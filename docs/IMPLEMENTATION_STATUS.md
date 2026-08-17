@@ -13,25 +13,25 @@ Sprint 0 — Platform foundation
 - Codex bootstrap/config prepared.
 - Environment bootstrap verified (2026-08-17).
 - PLATFORM-01 — pnpm workspace and Turborepo foundation.
+- PLATFORM-02 — Next.js web bootstrap with MUI Material theme/provider architecture.
 
 ## Current ticket
 
-- PLATFORM-02 — Next.js web bootstrap + MUI Material setup (next).
+- PLATFORM-03 — Plain React Native mobile bootstrap + React Native Paper (next).
 
 ## Next recommended tickets
 
-1. PLATFORM-02 — Next.js web bootstrap + MUI Material
-2. PLATFORM-03 — Plain React Native mobile bootstrap + React Native Paper
-3. PLATFORM-04 — NestJS + Fastify API bootstrap
-4. PLATFORM-05 — Shared TypeScript packages + shared design tokens
-5. FOUND-01 — Finalize InvoiceFlow design tokens/themes
-6. FOUND-02 — Reusable Web/Mobile UI component wrappers
-7. API-01 — API configuration / health / logging
-8. API-02 — Supabase PostgreSQL adapter
-9. API-03 — Repository abstractions
-10. DB-01 — Core schema
-11. API-04 — Authentication boundary
-12. API-05 — Business authorization
+1. PLATFORM-03 — Plain React Native mobile bootstrap + React Native Paper
+2. PLATFORM-04 — NestJS + Fastify API bootstrap
+3. PLATFORM-05 — Shared TypeScript packages + shared design tokens
+4. FOUND-01 — Finalize InvoiceFlow design tokens/themes
+5. FOUND-02 — Reusable Web/Mobile UI component wrappers
+6. API-01 — API configuration / health / logging
+7. API-02 — Supabase PostgreSQL adapter
+8. API-03 — Repository abstractions
+9. DB-01 — Core schema
+10. API-04 — Authentication boundary
+11. API-05 — Business authorization
 
 ## Locked decisions
 
@@ -177,10 +177,11 @@ Watchman: VERIFIED
 ## Last verified
 
 - `pnpm install --frozen-lockfile`
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm test`
-- `pnpm build`
+- `pnpm --filter web lint`
+- `pnpm --filter web typecheck`
+- `pnpm --filter web test`
+- `pnpm --filter web build`
+- Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
 

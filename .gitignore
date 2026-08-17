@@ -13,6 +13,7 @@ dist/
 build/
 coverage/
 .turbo/
+*.tsbuildinfo
 
 # React Native
 apps/mobile/ios/Pods/
