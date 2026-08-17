@@ -16,35 +16,141 @@ Sprint 0 — Platform foundation
 
 ## Current ticket
 
-- PLATFORM-02 — Next.js web bootstrap (next).
+- PLATFORM-02 — Next.js web bootstrap + MUI Material setup (next).
 
 ## Next recommended tickets
 
-1. PLATFORM-02 — Next.js web bootstrap
-2. PLATFORM-03 — Plain React Native mobile bootstrap
+1. PLATFORM-02 — Next.js web bootstrap + MUI Material
+2. PLATFORM-03 — Plain React Native mobile bootstrap + React Native Paper
 3. PLATFORM-04 — NestJS + Fastify API bootstrap
-4. PLATFORM-05 — Shared TypeScript packages
-5. API-01 — API configuration / health / logging
-6. API-02 — Supabase PostgreSQL adapter
-7. API-03 — Repository abstractions
-8. DB-01 — Core schema
-9. API-04 — Authentication boundary
-10. API-05 — Business authorization
+4. PLATFORM-05 — Shared TypeScript packages + shared design tokens
+5. FOUND-01 — Finalize InvoiceFlow design tokens/themes
+6. FOUND-02 — Reusable Web/Mobile UI component wrappers
+7. API-01 — API configuration / health / logging
+8. API-02 — Supabase PostgreSQL adapter
+9. API-03 — Repository abstractions
+10. DB-01 — Core schema
+11. API-04 — Authentication boundary
+12. API-05 — Business authorization
 
 ## Locked decisions
 
 - Web: Next.js + React + TypeScript
+- Web UI component library: MUI Material
 - Mobile: plain React Native + TypeScript
+- Mobile UI component library: React Native Paper
 - Backend: Node.js + NestJS + Fastify
 - Database: Supabase PostgreSQL
 - Auth: Supabase Auth
 - Storage: Supabase Storage
 - Monorepo: pnpm workspaces + Turborepo
+- Shared design tokens live in `packages/design-tokens`
+- MUI and React Native Paper consume the same InvoiceFlow design tokens
+- Web and Mobile use separate platform-specific UI components
+- Do not force shared visual components between MUI and React Native Paper
+- Feature screens should prefer app-owned UI wrappers instead of importing MUI/Paper directly everywhere
 - Web/Mobile call NestJS API for application workflows
 - Supabase remains replaceable infrastructure
 - shared Invoice/Quote domain architecture
 - shared document renderer
 - immutable/frozen theme versions for sent documents
+
+## UI architecture
+
+```text
+packages/design-tokens
+        │
+        ├── apps/web
+        │    └── MUI theme
+        │         └── Web UI wrappers
+        │
+        └── apps/mobile
+             └── React Native Paper theme
+                  └── Mobile UI wrappers
+```
+
+Planned shared tokens:
+
+```text
+packages/design-tokens/
+├── colors
+├── spacing
+├── radius
+├── typography
+├── sizing
+└── breakpoints
+```
+
+Web UI wrappers:
+
+```text
+apps/web/components/ui/
+├── Button
+├── TextField
+├── Select
+├── Checkbox
+├── Dialog
+├── Drawer
+├── StatusBadge
+└── other shared web primitives
+```
+
+Mobile UI wrappers:
+
+```text
+apps/mobile/src/components/ui/
+├── Button
+├── TextInput
+├── Select
+├── Checkbox
+├── Dialog
+├── BottomSheet
+├── StatusBadge
+└── other shared mobile primitives
+```
+
+## PLATFORM-02 requirements
+
+In addition to the base Next.js bootstrap:
+
+- Install and configure MUI Material.
+- Install MUI Icons.
+- Configure required MUI styling dependencies.
+- Add the application MUI ThemeProvider.
+- Create an initial InvoiceFlow MUI theme.
+- Keep the theme ready to consume `packages/design-tokens`.
+- Do not build feature screens yet.
+- Do not scatter raw MUI styling throughout feature code.
+
+## PLATFORM-03 requirements
+
+In addition to the base React Native bootstrap:
+
+- Install and configure React Native Paper.
+- Add `PaperProvider` at the application root.
+- Prepare Paper theme integration.
+- Integrate cleanly with React Navigation when navigation is added.
+- Keep the theme ready to consume `packages/design-tokens`.
+- Do not build feature screens yet.
+
+## PLATFORM-05 requirements
+
+Create platform-neutral shared packages, including:
+
+```text
+packages/
+├── domain/
+├── calculations/
+├── validation/
+├── types/
+├── api-client/
+├── document-schema/
+├── theme-schema/
+├── design-tokens/
+└── utils/
+```
+
+`packages/design-tokens` becomes the source of truth for shared visual tokens used by both MUI and React Native Paper.
 
 ## Environment status
 
@@ -85,7 +191,7 @@ Completed:
 - PLATFORM-01 — Monorepo
 
 Current:
-- PLATFORM-02 — Next.js bootstrap
+- PLATFORM-02 — Next.js + MUI bootstrap
 
 Known blockers:
 - none
