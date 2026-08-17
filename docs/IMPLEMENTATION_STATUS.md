@@ -12,24 +12,24 @@ Sprint 0 — Platform foundation
 - Technical stack selected.
 - Codex bootstrap/config prepared.
 - Environment bootstrap verified (2026-08-17).
+- PLATFORM-01 — pnpm workspace and Turborepo foundation.
 
 ## Current ticket
 
-- PLATFORM-01 — Monorepo (next).
+- PLATFORM-02 — Next.js web bootstrap (next).
 
 ## Next recommended tickets
 
-1. PLATFORM-01 — Monorepo
-2. PLATFORM-02 — Next.js web bootstrap
-3. PLATFORM-03 — Plain React Native mobile bootstrap
-4. PLATFORM-04 — NestJS + Fastify API bootstrap
-5. PLATFORM-05 — Shared TypeScript packages
-6. API-01 — API configuration / health / logging
-7. API-02 — Supabase PostgreSQL adapter
-8. API-03 — Repository abstractions
-9. DB-01 — Core schema
-10. API-04 — Authentication boundary
-11. API-05 — Business authorization
+1. PLATFORM-02 — Next.js web bootstrap
+2. PLATFORM-03 — Plain React Native mobile bootstrap
+3. PLATFORM-04 — NestJS + Fastify API bootstrap
+4. PLATFORM-05 — Shared TypeScript packages
+5. API-01 — API configuration / health / logging
+6. API-02 — Supabase PostgreSQL adapter
+7. API-03 — Repository abstractions
+8. DB-01 — Core schema
+9. API-04 — Authentication boundary
+10. API-05 — Business authorization
 
 ## Locked decisions
 
@@ -49,26 +49,32 @@ Sprint 0 — Platform foundation
 ## Environment status
 
 ```text
-Repository/Git: initialized on unborn main; origin configured and reachable; remote has no refs
-Git authenticated: UNVERIFIED (origin read requires no credentials; authenticated write not tested)
-GitHub CLI authenticated: NO — configured token for nimabk82 is invalid
+Repository/Git: initialized on main; origin configured and reachable; remote has no refs
+Git authenticated: YES
+GitHub CLI authenticated: YES
 Node version: 22.18.0
-pnpm version: not on PATH; Corepack resolves pnpm 6.11.0
+pnpm version: 10.34.5 (repository-pinned)
 Xcode/iOS prerequisites: READY — Xcode 26.5, CocoaPods 1.16.2, iOS 18.1/26.2 simulators
 Android prerequisites: READY WITH WARNINGS — Android Studio, JDK 17, adb/emulator and SDK 34-36 installed
 NestJS prerequisites: READY — Node available; Nest CLI 11.0.24 resolves through npx
-Supabase CLI authenticated: YES — CLI 2.114.0 resolves through npx (not on PATH)
-Supabase project linked: NO
-Supabase target classification (dev/staging/prod): NONE — no current linked target
+Supabase CLI authenticated: YES
+Supabase project linked: YES
+Supabase target classification (dev/staging/prod): DEVELOPMENT
+Android sdkmanager: VERIFIED
+Watchman: VERIFIED
 ```
 
 ## Known blockers
 
-- GitHub CLI must be re-authenticated before GitHub write workflows.
-- Link an explicitly classified non-production Supabase project before remote database work.
-- Install/activate the ticket-pinned pnpm version during PLATFORM-01; no direct pnpm executable exists yet.
-- Repair the Watchman/Folly dynamic-library mismatch before React Native development.
-- Android `sdkmanager` on PATH points to deprecated tools; use/update `cmdline-tools/latest` (currently 13.0 and emits metadata-version warnings).
+- None.
+
+## Last verified
+
+- `pnpm install --frozen-lockfile`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm build`
 
 ## Status update format
 
