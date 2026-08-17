@@ -1,0 +1,29 @@
+# Suggested InvoiceFlow ignores
+
+# secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# dependencies/build
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.turbo/
+
+# React Native
+apps/mobile/ios/Pods/
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+
+# local Supabase
+.supabase/
+infrastructure/supabase/.temp/
+
+# OS/editor
+.DS_Store

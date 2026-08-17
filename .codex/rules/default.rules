@@ -1,0 +1,125 @@
+# InvoiceFlow project-local Codex command rules.
+# Rules affect commands requested outside the sandbox.
+# More restrictive matches override broader allow rules.
+
+# ---------- Git inspection ----------
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "show", "branch", "remote", "rev-parse"]],
+    decision = "allow",
+    justification = "Routine repository inspection for InvoiceFlow development.",
+)
+
+# ---------- Git normal workflow ----------
+prefix_rule(
+    pattern = ["git", ["add", "commit", "fetch", "pull", "switch", "checkout"]],
+    decision = "allow",
+    justification = "Normal feature-branch development workflow is pre-authorized.",
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "allow",
+    justification = "Normal feature-branch push is authorized; force-push variants are explicitly blocked below.",
+)
+
+# Block destructive / history-rewriting Git operations.
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "Do not force-push. Use a normal feature branch or ask the user if history rewriting is truly required.",
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force-with-lease"],
+    decision = "forbidden",
+    justification = "Do not rewrite remote history without explicit user direction.",
+)
+
+prefix_rule(
+    pattern = ["git", "push", "-f"],
+    decision = "forbidden",
+    justification = "Do not force-push.",
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Do not discard working-tree changes with hard reset. Preserve user work and use a non-destructive alternative.",
+)
+
+prefix_rule(
+    pattern = ["git", "clean", "-fd"],
+    decision = "forbidden",
+    justification = "Do not destructively remove untracked files. Inspect them and remove only task-owned files explicitly.",
+)
+
+prefix_rule(
+    pattern = ["git", "clean", "-fdx"],
+    decision = "forbidden",
+    justification = "Do not destructively remove untracked/ignored files.",
+)
+
+# ---------- GitHub CLI ----------
+prefix_rule(
+    pattern = ["gh", ["status", "auth"]],
+    decision = "allow",
+    justification = "GitHub authentication/status inspection is authorized.",
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", ["view", "list", "status", "checks"]],
+    decision = "allow",
+    justification = "Read-only pull request inspection is authorized.",
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", ["create", "edit"]],
+    decision = "allow",
+    justification = "Creating or updating a feature PR is authorized when required by the current task.",
+)
+
+# ---------- Supabase safe/local inspection ----------
+prefix_rule(
+    pattern = ["supabase", ["status", "start", "stop", "projects", "branches"]],
+    decision = "allow",
+    justification = "Routine Supabase development environment inspection/control is authorized.",
+)
+
+prefix_rule(
+    pattern = ["supabase", "migration"],
+    decision = "allow",
+    justification = "Version-controlled migration creation/inspection is authorized.",
+)
+
+prefix_rule(
+    pattern = ["supabase", "db", ["diff", "lint", "dump"]],
+    decision = "allow",
+    justification = "Non-destructive database development/inspection commands are authorized.",
+)
+
+# Remote migration application deserves review because command rules cannot prove the linked target is development.
+prefix_rule(
+    pattern = ["supabase", "db", "push"],
+    decision = "prompt",
+    justification = "Confirm the linked project is the intended development environment before applying remote migrations.",
+)
+
+# Local reset is useful for migration verification and is scoped to local development.
+prefix_rule(
+    pattern = ["supabase", "db", "reset"],
+    decision = "allow",
+    justification = "Local database reset is authorized for migration verification; linked/remote reset variants are blocked below.",
+)
+
+prefix_rule(
+    pattern = ["supabase", "db", "reset", "--linked"],
+    decision = "forbidden",
+    justification = "Never reset the linked remote database through the default development workflow.",
+)
+
+# ---------- Clearly destructive commands ----------
+prefix_rule(
+    pattern = ["rm", "-rf", "/"],
+    decision = "forbidden",
+    justification = "Never delete the filesystem root.",
+)

@@ -1,0 +1,27 @@
+# Secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and builds
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.turbo/
+
+# React Native
+apps/mobile/ios/Pods/
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+
+# Local Supabase
+.supabase/
+infrastructure/supabase/.temp/
+
+# OS and editors
+.DS_Store

@@ -1,0 +1,24 @@
+{
+  "name": "InvoiceFlow Codex Bootstrap",
+  "purpose": "Low-context, low-interruption Codex implementation overlay",
+  "stack": {
+    "web": "Next.js + React + TypeScript",
+    "mobile": "Plain React Native + TypeScript",
+    "api": "Node.js + NestJS + Fastify",
+    "database": "Supabase PostgreSQL",
+    "auth": "Supabase Auth",
+    "storage": "Supabase Storage",
+    "monorepo": "pnpm + Turborepo"
+  },
+  "entrypoints": [
+    "README.md",
+    "AGENTS.md",
+    ".codex/config.toml",
+    ".codex/rules/default.rules",
+    "docs/ACCESS_SETUP.md",
+    "docs/FIRST_CODEX_TASK.md",
+    "docs/CODEX_INDEX.md",
+    "docs/IMPLEMENTATION_STATUS.md",
+    "docs/TASK_PROMPTS.md"
+  ]
+}

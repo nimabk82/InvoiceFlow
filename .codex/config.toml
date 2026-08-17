@@ -1,0 +1,23 @@
+# InvoiceFlow project-local Codex configuration.
+# Project .codex config loads only after this repository is trusted.
+
+# Keep routine work inside the repository sandbox.
+sandbox_mode = "workspace-write"
+
+# Ask only when a command needs escalation; auto-review handles eligible low-risk requests.
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+
+# Keep agent responses concise to reduce output tokens.
+model_verbosity = "low"
+
+# Medium reasoning is a good default for ticket-level implementation.
+# Raise it per task only for genuinely difficult architecture/debugging work.
+model_reasoning_effort = "medium"
+
+# Cached web search is sufficient for most coding tasks unless a task explicitly needs fresh browsing.
+web_search = "cached"
+
+[sandbox_workspace_write]
+# Required for package installs, GitHub/Supabase development access, and external API/documentation calls.
+network_access = true
