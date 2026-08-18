@@ -13,10 +13,10 @@ describe("createInvoiceFlowTheme", () => {
       invoiceFlowDesignTokens.color.background,
     );
     expect(theme.breakpoints.values.sm).toBe(
-      invoiceFlowDesignTokens.breakpoints.tablet,
+      invoiceFlowDesignTokens.breakpoints.tabletMin,
     );
     expect(theme.breakpoints.values.md).toBe(
-      invoiceFlowDesignTokens.breakpoints.desktop,
+      invoiceFlowDesignTokens.breakpoints.desktopMin,
     );
   });
 });

@@ -1,4 +1,4 @@
-export { invoiceFlowDesignTokens } from './design-tokens';
+export { invoiceFlowDesignTokens } from '@invoiceflow/design-tokens';
 export { invoiceFlowNavigationTheme } from './navigation-theme';
 export {
   createInvoiceFlowPaperTheme,

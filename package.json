@@ -15,6 +15,10 @@
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
-    "turbo": "2.10.10"
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "turbo": "2.10.10",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.67.0"
   }
 }

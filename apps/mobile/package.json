@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@invoiceflow/design-tokens": "workspace:*",
+    "@react-native/assets-registry": "0.87.0",
     "@react-native-vector-icons/material-design-icons": "13.1.2",
     "@react-navigation/native": "7.3.16",
     "react": "19.2.3",

@@ -1,9 +1,8 @@
 import { MD3LightTheme, type MD3Theme } from 'react-native-paper';
-
 import {
   invoiceFlowDesignTokens,
   type InvoiceFlowDesignTokens,
-} from './design-tokens';
+} from '@invoiceflow/design-tokens';
 
 export function createInvoiceFlowPaperTheme(
   tokens: InvoiceFlowDesignTokens = invoiceFlowDesignTokens,

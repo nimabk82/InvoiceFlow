@@ -1,23 +1,22 @@
 "use client";
 
 import { createTheme } from "@mui/material/styles";
-
 import {
   invoiceFlowDesignTokens,
   type InvoiceFlowDesignTokens,
-} from "./design-tokens";
+} from "@invoiceflow/design-tokens";
 
 export function createInvoiceFlowTheme(
   tokens: InvoiceFlowDesignTokens = invoiceFlowDesignTokens,
 ) {
   return createTheme({
     cssVariables: true,
-    spacing: tokens.spacingUnit,
+    spacing: tokens.spacing[0],
     breakpoints: {
       values: {
         xs: 0,
-        sm: tokens.breakpoints.tablet,
-        md: tokens.breakpoints.desktop,
+        sm: tokens.breakpoints.tabletMin,
+        md: tokens.breakpoints.desktopMin,
         lg: 1440,
         xl: 1920,
       },

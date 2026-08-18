@@ -16,22 +16,22 @@ Sprint 0 — Platform foundation
 - PLATFORM-02 — Next.js web bootstrap with MUI Material theme/provider architecture.
 - PLATFORM-03 — Plain React Native mobile bootstrap with Paper/navigation theme providers.
 - PLATFORM-04 — NestJS API bootstrap with the Fastify adapter.
+- PLATFORM-05 — Shared TypeScript package foundations and cross-platform design tokens.
 
 ## Current ticket
 
-- PLATFORM-05 — Shared TypeScript packages + shared design tokens (next).
+- FOUND-01 — Finalize InvoiceFlow design tokens/themes (next).
 
 ## Next recommended tickets
 
-1. PLATFORM-05 — Shared TypeScript packages + shared design tokens
-2. FOUND-01 — Finalize InvoiceFlow design tokens/themes
-3. FOUND-02 — Reusable Web/Mobile UI component wrappers
-4. API-01 — API configuration / health / logging
-5. API-02 — Supabase PostgreSQL adapter
-6. API-03 — Repository abstractions
-7. DB-01 — Core schema
-8. API-04 — Authentication boundary
-9. API-05 — Business authorization
+1. FOUND-01 — Finalize InvoiceFlow design tokens/themes
+2. FOUND-02 — Reusable Web/Mobile UI component wrappers
+3. API-01 — API configuration / health / logging
+4. API-02 — Supabase PostgreSQL adapter
+5. API-03 — Repository abstractions
+6. DB-01 — Core schema
+7. API-04 — Authentication boundary
+8. API-05 — Business authorization
 
 ## Locked decisions
 
@@ -186,6 +186,8 @@ Watchman: VERIFIED
 - Android `:app:assembleDebug`
 - iOS 26.5 simulator build
 - `pnpm --filter api lint`, `typecheck`, `test`, `test:e2e`, and `build`
+- Shared-package lint, typecheck, build, and design-token contract test
+- Web production build and Mobile Metro production bundle using shared design tokens
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format

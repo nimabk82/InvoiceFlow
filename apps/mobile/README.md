@@ -12,8 +12,8 @@ pnpm --filter mobile ios
 
 The application root composes safe-area, React Native Paper, and React
 Navigation providers without defining feature screens. Theme configuration is
-isolated under `src/theme`; PLATFORM-05 will connect its token adapter to
-`packages/design-tokens`.
+isolated under `src/theme` and consumes the shared
+`@invoiceflow/design-tokens` workspace package.
 
 # Getting Started
 
