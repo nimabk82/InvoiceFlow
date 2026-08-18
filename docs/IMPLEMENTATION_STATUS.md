@@ -15,23 +15,23 @@ Sprint 0 — Platform foundation
 - PLATFORM-01 — pnpm workspace and Turborepo foundation.
 - PLATFORM-02 — Next.js web bootstrap with MUI Material theme/provider architecture.
 - PLATFORM-03 — Plain React Native mobile bootstrap with Paper/navigation theme providers.
+- PLATFORM-04 — NestJS API bootstrap with the Fastify adapter.
 
 ## Current ticket
 
-- PLATFORM-04 — NestJS + Fastify API bootstrap (next).
+- PLATFORM-05 — Shared TypeScript packages + shared design tokens (next).
 
 ## Next recommended tickets
 
-1. PLATFORM-04 — NestJS + Fastify API bootstrap
-2. PLATFORM-05 — Shared TypeScript packages + shared design tokens
-3. FOUND-01 — Finalize InvoiceFlow design tokens/themes
-4. FOUND-02 — Reusable Web/Mobile UI component wrappers
-5. API-01 — API configuration / health / logging
-6. API-02 — Supabase PostgreSQL adapter
-7. API-03 — Repository abstractions
-8. DB-01 — Core schema
-9. API-04 — Authentication boundary
-10. API-05 — Business authorization
+1. PLATFORM-05 — Shared TypeScript packages + shared design tokens
+2. FOUND-01 — Finalize InvoiceFlow design tokens/themes
+3. FOUND-02 — Reusable Web/Mobile UI component wrappers
+4. API-01 — API configuration / health / logging
+5. API-02 — Supabase PostgreSQL adapter
+6. API-03 — Repository abstractions
+7. DB-01 — Core schema
+8. API-04 — Authentication boundary
+9. API-05 — Business authorization
 
 ## Locked decisions
 
@@ -160,7 +160,7 @@ Git authenticated: YES
 GitHub CLI authenticated: YES
 Node version: 22.18.0
 pnpm version: 10.34.5 (repository-pinned)
-Xcode/iOS prerequisites: BLOCKED — Xcode 26.5 platform/runtime component is missing; CocoaPods succeeds
+Xcode/iOS prerequisites: READY — Xcode 26.5 runtime installed; simulator build succeeds
 Android prerequisites: READY WITH WARNINGS — Android Studio, JDK 17, adb/emulator and SDK 34-36 installed
 NestJS prerequisites: READY — Node available; Nest CLI 11.0.24 resolves through npx
 Supabase CLI authenticated: YES
@@ -172,7 +172,7 @@ Watchman: VERIFIED
 
 ## Known blockers
 
-- Install the Xcode 26.5 iOS platform/runtime component before running an iOS build; existing 18.1/26.2 simulators are ineligible with the active SDK.
+- None.
 
 ## Last verified
 
@@ -184,6 +184,8 @@ Watchman: VERIFIED
 - `pnpm --filter mobile lint`, `typecheck`, and `test`
 - `bundle exec pod install` (89 dependencies; native modules autolinked)
 - Android `:app:assembleDebug`
+- iOS 26.5 simulator build
+- `pnpm --filter api lint`, `typecheck`, `test`, `test:e2e`, and `build`
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
