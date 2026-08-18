@@ -15,5 +15,17 @@ describe('createInvoiceFlowPaperTheme', () => {
       invoiceFlowDesignTokens.color.textPrimary,
     );
     expect(theme.roundness).toBe(invoiceFlowDesignTokens.radius.control);
+    expect(theme.fonts.headlineLarge.fontFamily).toBe(
+      invoiceFlowDesignTokens.typography.family,
+    );
+    expect(theme.fonts.headlineLarge.fontSize).toBe(
+      invoiceFlowDesignTokens.typography.pageTitle.size,
+    );
+    expect(theme.fonts.headlineSmall.fontSize).toBe(
+      invoiceFlowDesignTokens.typography.total.size,
+    );
+    expect(theme.colors.inversePrimary).toBe(
+      invoiceFlowDesignTokens.color.primarySoft,
+    );
   });
 });

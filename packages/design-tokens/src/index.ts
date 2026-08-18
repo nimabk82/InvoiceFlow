@@ -32,6 +32,18 @@ export type TypographyTokens = Readonly<{
   total: TypographyStyle;
 }>;
 
+export type SpacingTokens = readonly [
+  4,
+  8,
+  12,
+  16,
+  24,
+  32,
+  40,
+  48,
+  64,
+];
+
 export type RadiusTokens = Readonly<{
   small: number;
   control: number;
@@ -55,7 +67,7 @@ export type SizingTokens = Readonly<{
 export type InvoiceFlowDesignTokens = Readonly<{
   color: ColorTokens;
   typography: TypographyTokens;
-  spacing: readonly number[];
+  spacing: SpacingTokens;
   radius: RadiusTokens;
   breakpoints: BreakpointTokens;
   sizing: SizingTokens;
@@ -90,7 +102,17 @@ export const typography = {
   total: { size: 24, weight: 700 },
 } as const satisfies TypographyTokens;
 
-export const spacing = [4, 8, 12, 16, 24, 32, 40, 48, 64] as const;
+export const spacing = [
+  4,
+  8,
+  12,
+  16,
+  24,
+  32,
+  40,
+  48,
+  64,
+] as const satisfies SpacingTokens;
 
 export const radius = {
   small: 6,

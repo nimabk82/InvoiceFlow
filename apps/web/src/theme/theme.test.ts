@@ -18,5 +18,14 @@ describe("createInvoiceFlowTheme", () => {
     expect(theme.breakpoints.values.md).toBe(
       invoiceFlowDesignTokens.breakpoints.desktopMin,
     );
+    expect(theme.palette.success.light).toBe(
+      invoiceFlowDesignTokens.color.successSoft,
+    );
+    expect(theme.typography.h3.fontSize).toBe(
+      invoiceFlowDesignTokens.typography.total.size,
+    );
+    expect(theme.typography.subtitle2.fontSize).toBe(
+      invoiceFlowDesignTokens.typography.label.size,
+    );
   });
 });

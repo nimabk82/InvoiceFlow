@@ -40,12 +40,15 @@ export function createInvoiceFlowTheme(
       divider: tokens.color.border,
       success: {
         main: tokens.color.success,
+        light: tokens.color.successSoft,
       },
       warning: {
         main: tokens.color.warning,
+        light: tokens.color.warningSoft,
       },
       error: {
         main: tokens.color.danger,
+        light: tokens.color.dangerSoft,
       },
     },
     shape: {
@@ -61,9 +64,17 @@ export function createInvoiceFlowTheme(
         fontSize: tokens.typography.sectionTitle.size,
         fontWeight: tokens.typography.sectionTitle.weight,
       },
+      h3: {
+        fontSize: tokens.typography.total.size,
+        fontWeight: tokens.typography.total.weight,
+      },
       body1: {
         fontSize: tokens.typography.body.size,
         fontWeight: tokens.typography.body.weight,
+      },
+      subtitle2: {
+        fontSize: tokens.typography.label.size,
+        fontWeight: tokens.typography.label.weight,
       },
       caption: {
         fontSize: tokens.typography.meta.size,
@@ -78,7 +89,15 @@ export function createInvoiceFlowTheme(
         styleOverrides: {
           root: {
             minHeight: tokens.sizing.desktopControl,
+            borderRadius: tokens.radius.control,
             textTransform: "none",
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: tokens.radius.card,
           },
         },
       },
@@ -86,6 +105,14 @@ export function createInvoiceFlowTheme(
         styleOverrides: {
           body: {
             backgroundColor: tokens.color.background,
+            color: tokens.color.textPrimary,
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            borderRadius: tokens.radius.modal,
           },
         },
       },
