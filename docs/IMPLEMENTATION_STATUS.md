@@ -18,20 +18,20 @@ Sprint 0 — Platform foundation
 - PLATFORM-04 — NestJS API bootstrap with the Fastify adapter.
 - PLATFORM-05 — Shared TypeScript package foundations and cross-platform design tokens.
 - FOUND-01 — Finalized shared design tokens and MUI/React Native Paper theme mappings.
+- FOUND-02 — Reusable Web/Mobile UI primitive wrappers.
 
 ## Current ticket
 
-- FOUND-02 — Reusable Web/Mobile UI component wrappers (next).
+- API-01 — API configuration / health / logging (next).
 
 ## Next recommended tickets
 
-1. FOUND-02 — Reusable Web/Mobile UI component wrappers
-2. API-01 — API configuration / health / logging
-3. API-02 — Supabase PostgreSQL adapter
-4. API-03 — Repository abstractions
-5. DB-01 — Core schema
-6. API-04 — Authentication boundary
-7. API-05 — Business authorization
+1. API-01 — API configuration / health / logging
+2. API-02 — Supabase PostgreSQL adapter
+3. API-03 — Repository abstractions
+4. DB-01 — Core schema
+5. API-04 — Authentication boundary
+6. API-05 — Business authorization
 
 ## Locked decisions
 
@@ -189,6 +189,7 @@ Watchman: VERIFIED
 - Shared-package lint, typecheck, build, and design-token contract test
 - Web theme lint, typecheck, test, and production build using finalized tokens
 - Mobile theme lint, typecheck, test, and Metro production bundle using finalized tokens
+- Web/Mobile UI primitive lint, typecheck, and contract tests
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
