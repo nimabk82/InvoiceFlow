@@ -1,2 +1,2 @@
-/** Shared document renderer contracts are added by renderer tickets. */
-export {};
+export * from './normalize.js';
+export * from './renderable-document.js';

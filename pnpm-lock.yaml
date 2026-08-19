@@ -267,7 +267,15 @@ importers:
 
   packages/design-tokens: {}
 
-  packages/document-schema: {}
+  packages/document-schema:
+    dependencies:
+      '@invoiceflow/calculations':
+        specifier: workspace:*
+        version: link:../calculations
+    devDependencies:
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@22.20.1)(vite@8.2.1(@types/node@22.20.1)(terser@5.50.0)(yaml@2.9.0))
 
   packages/domain: {}
 
