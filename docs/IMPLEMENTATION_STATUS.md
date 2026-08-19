@@ -31,6 +31,9 @@ Sprint 0 — Platform foundation
 - API-06 — File storage abstraction + Supabase Storage adapter (`FileStorage`).
 - API-07 — Email provider abstraction (`EmailProvider`, logger adapter).
 - API-08 — Typed API client for Web + Mobile (`@invoiceflow/api-client`).
+- DOMAIN-01 — Money model (decimal-safe, minor-unit) in `@invoiceflow/calculations`.
+- DOMAIN-02 — Document calculator (subtotal/discount/tax/total/deposit) in `@invoiceflow/calculations`.
+- DOMAIN-03 — Document validation layers (edit/review/send) in `@invoiceflow/validation`.
 
 ## Current ticket
 
@@ -40,9 +43,9 @@ Sprint 0 — Platform foundation
 
 1. AUTH-01 — Sign In
 2. ONBOARD-01 — First Business
-3. DOMAIN-01 — Money model
-4. DOMAIN-02 — Document calculator
-5. DOMAIN-03 — Document validation
+3. DOMAIN-04 — Autosave contract
+4. RENDER-01 — Normalize RenderableDocument
+5. CLIENT-01 — Client list
 
 ## Locked decisions
 
@@ -204,6 +207,8 @@ Watchman: VERIFIED
 - `sqlfluff lint infrastructure/supabase/migrations` (all DB-01/02/03 migrations parse + lint clean)
 - `pnpm --filter api lint`, `typecheck`, `test` (53 passed), and `build` (storage + email added)
 - `pnpm --filter @invoiceflow/api-client lint`, `typecheck`, `build`, and `test` (3 passed)
+- `pnpm --filter @invoiceflow/calculations lint`, `typecheck`, `build`, and `test` (11 passed)
+- `pnpm --filter @invoiceflow/validation lint`, `typecheck`, `build`, and `test` (7 passed)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
