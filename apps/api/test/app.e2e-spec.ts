@@ -16,6 +16,7 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
+      { logger: false },
     );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
@@ -26,6 +27,27 @@ describe('AppController (e2e)', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.payload).toBe('InvoiceFlow API');
+  });
+
+  it('reports liveness and attaches a request id', async () => {
+    const response = await app.inject({ method: 'GET', url: '/health' });
+    const payload = response.json<{
+      environment: string;
+      service: string;
+      status: string;
+      timestamp: string;
+      uptimeSeconds: number;
+    }>();
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['x-request-id']).toEqual(expect.any(String));
+    expect(payload).toEqual({
+      environment: expect.any(String) as string,
+      service: 'invoiceflow-api',
+      status: 'ok',
+      timestamp: expect.any(String) as string,
+      uptimeSeconds: expect.any(Number) as number,
+    });
   });
 
   afterAll(async () => {
