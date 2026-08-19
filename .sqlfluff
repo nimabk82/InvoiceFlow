@@ -1,0 +1,5 @@
+[sqlfluff]
+dialect = postgres
+templater = raw
+# Structural validation only; leave formatting to the SQL author.
+exclude_rules = layout.*, references.keywords
