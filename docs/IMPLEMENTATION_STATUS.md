@@ -22,17 +22,19 @@ Sprint 0 — Platform foundation
 - API-01 — API configuration, health endpoint, and structured logging.
 - API-02 — Supabase PostgreSQL adapter (`SupabaseModule` with injectable client).
 - API-03 — Repository abstractions (`packages/domain` types + per-feature repository interfaces and DI tokens).
+- DB-01 — Core schema migration (accounts, businesses, memberships, clients, client emails, product services, taxes).
 
 ## Current ticket
 
-- DB-01 — Core schema (next).
+- DB-02 — Document schema (next).
 
 ## Next recommended tickets
 
-1. DB-01 — Core schema
-2. DB-02 — Document schema
-3. API-04 — Authentication boundary
-4. API-05 — Business authorization
+1. DB-02 — Document schema
+2. DB-03 — Theme schema
+3. DB-04 — Version-controlled migrations
+4. API-04 — Authentication boundary
+5. API-05 — Business authorization
 
 ## Locked decisions
 
