@@ -10,6 +10,8 @@ type Builder = {
   in: jest.Mock;
   order: jest.Mock;
   limit: jest.Mock;
+  delete: jest.Mock;
+  insert: jest.Mock;
   maybeSingle: jest.Mock;
   upsert: jest.Mock;
   then: (onFulfilled?: (value: unknown) => unknown) => Promise<unknown>;
@@ -22,6 +24,8 @@ function createBuilder(result: unknown): Builder {
     in: jest.fn(() => builder),
     order: jest.fn(() => builder),
     limit: jest.fn(() => builder),
+    delete: jest.fn(() => builder),
+    insert: jest.fn(() => builder),
     maybeSingle: jest.fn(() => Promise.resolve(result)),
     upsert: jest.fn(() => Promise.resolve(result)),
     then: (onFulfilled) => Promise.resolve(result).then(onFulfilled),
@@ -110,5 +114,38 @@ describe('SupabaseInvoiceRepository', () => {
     expect(invoice.items[0].appliedTaxes).toEqual([
       { name: 'GST', rate: '13' },
     ]);
+  });
+
+  it('persists the invoice row and replaces its items on save', async () => {
+    const client = createClient({
+      invoices: { error: null },
+      document_items: { error: null },
+      document_item_taxes: { error: null },
+    });
+    const repository = new SupabaseInvoiceRepository(client);
+
+    await expect(
+      repository.save({
+        id: 'inv1',
+        businessId: 'b1',
+        number: 'INV-001',
+        clientSnapshot: { displayName: 'Client', emails: [] },
+        businessSnapshot: { displayName: 'Acme', taxNumbers: [] },
+        currencyCode: 'CAD',
+        issueDate: '2026-08-01',
+        items: [
+          {
+            id: 'i1',
+            description: 'Consulting',
+            quantity: '1',
+            rate: '5000',
+            appliedTaxes: [{ name: 'GST', rate: '13' }],
+          },
+        ],
+        status: 'draft',
+        createdAt: '2026-08-01T00:00:00.000Z',
+        updatedAt: '2026-08-01T00:00:00.000Z',
+      }),
+    ).resolves.toBeUndefined();
   });
 });

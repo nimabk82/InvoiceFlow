@@ -1,9 +1,20 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import type { InvoiceStatus } from '@invoiceflow/domain';
 
 import { AuthGuard } from '../auth';
 import { BusinessAccessGuard } from '../businesses/access';
-import type { ListInvoicesOptions } from './invoices.service';
+import type {
+  CreateInvoiceInput,
+  ListInvoicesOptions,
+} from './invoices.service';
 import { InvoicesService } from './invoices.service';
 
 const invoiceStatuses: readonly InvoiceStatus[] = [
@@ -33,5 +44,13 @@ export class InvoicesController {
     }
 
     return this.invoicesService.list(businessId, options);
+  }
+
+  @Post()
+  create(
+    @Param('businessId') businessId: string,
+    @Body() input: CreateInvoiceInput,
+  ) {
+    return this.invoicesService.createInvoice(businessId, input);
   }
 }

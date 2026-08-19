@@ -77,7 +77,7 @@ type Database = {
       };
       document_item_taxes: {
         Row: DocumentItemTaxRow;
-        Insert: DocumentItemTaxRow;
+        Insert: Omit<DocumentItemTaxRow, 'id'> & { id?: string };
         Update: Partial<DocumentItemTaxRow>;
         Relationships: [];
       };
@@ -156,6 +156,57 @@ export class SupabaseInvoiceRepository implements InvoiceRepository {
     if (error) {
       throw new Error(error.message);
     }
+
+    await this.replaceItems(invoice);
+  }
+
+  private async replaceItems(invoice: Invoice): Promise<void> {
+    const { error: deleteError } = await this.client
+      .from('document_items')
+      .delete()
+      .eq('document_type', 'invoice')
+      .eq('document_id', invoice.id);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
+    if (invoice.items.length === 0) {
+      return;
+    }
+
+    const itemRows = invoice.items.map((item, index) =>
+      mapItemToRow(item, invoice.id, index),
+    );
+
+    const { error: itemError } = await this.client
+      .from('document_items')
+      .insert(itemRows);
+
+    if (itemError) {
+      throw new Error(itemError.message);
+    }
+
+    const taxRows = invoice.items.flatMap((item) =>
+      item.appliedTaxes.map((tax) => ({
+        item_id: item.id,
+        tax_id: tax.taxId ?? null,
+        name: tax.name,
+        rate: tax.rate,
+      })),
+    );
+
+    if (taxRows.length === 0) {
+      return;
+    }
+
+    const { error: taxError } = await this.client
+      .from('document_item_taxes')
+      .insert(taxRows);
+
+    if (taxError) {
+      throw new Error(taxError.message);
+    }
   }
 
   private async loadItems(
@@ -231,6 +282,24 @@ function mapItem(row: DocumentItemRow, taxes: AppliedTax[]): DocumentItem {
     quantity: String(row.quantity),
     rate: String(row.rate),
     appliedTaxes: taxes,
+  };
+}
+
+function mapItemToRow(
+  item: DocumentItem,
+  documentId: string,
+  sortOrder: number,
+): DocumentItemRow {
+  return {
+    id: item.id,
+    document_type: 'invoice',
+    document_id: documentId,
+    source_product_service_id: item.sourceProductServiceId ?? null,
+    description: item.description,
+    secondary_description: item.secondaryDescription ?? null,
+    quantity: item.quantity,
+    rate: item.rate,
+    sort_order: sortOrder,
   };
 }
 
