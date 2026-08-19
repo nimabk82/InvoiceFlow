@@ -1,4 +1,5 @@
 export * from './account.js';
+export * from './autosave.js';
 export * from './business.js';
 export * from './client.js';
 export * from './document.js';
