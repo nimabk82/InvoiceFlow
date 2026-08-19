@@ -45,17 +45,18 @@ Sprint 0 — Platform foundation
 - ONBOARD-01 — First Business (Web) + businesses API (`POST/GET /businesses`, Supabase repository adapter).
 - CLIENT-01 — Client list (Web) + clients API (`GET /businesses/:businessId/clients`, Supabase repository adapter).
 - PRODUCT-01 — Product/Service list (Web) + products API (`GET /businesses/:businessId/products`, Supabase repository adapter).
+- INV-01 — Invoice list (Web) + invoices API (`GET /businesses/:businessId/invoices`, Supabase repository adapter).
 
 ## Current ticket
 
-- INV-01 — Invoice list (next).
+- INV-02 — New/Edit Invoice shell (next).
 
 ## Next recommended tickets
 
-1. INV-01 — Invoice list
+1. INV-02 — New/Edit Invoice shell
 2. CLIENT-02 — Create/Edit client
 3. PRODUCT-02 — Create/Edit item
-4. INV-02 — New/Edit Invoice shell
+4. INV-03 — Client selector + inline Add Client
 5. SET-01 — Business Profile
 
 ## Locked decisions
