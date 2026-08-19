@@ -9,6 +9,7 @@ import { validateEnvironment } from './config/environment';
 import { BusinessesModule } from './modules/businesses/businesses.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { HealthModule } from './modules/health/health.module';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HealthModule } from './modules/health/health.module';
     HealthModule,
     BusinessesModule,
     ClientsModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [
