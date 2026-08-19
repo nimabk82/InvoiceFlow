@@ -5,5 +5,6 @@ export const BUSINESS_REPOSITORY = Symbol('BUSINESS_REPOSITORY');
 export interface BusinessRepository {
   findById(id: string): Promise<Business | null>;
   listByOwner(ownerAccountId: string): Promise<Business[]>;
+  isMember(accountId: string, businessId: string): Promise<boolean>;
   save(business: Business): Promise<void>;
 }

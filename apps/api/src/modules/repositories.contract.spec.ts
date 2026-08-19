@@ -67,6 +67,7 @@ const repositoryCases: readonly RepositoryCase[] = [
     fake: {
       findById: jest.fn().mockResolvedValue(null),
       listByOwner: jest.fn().mockResolvedValue([]),
+      isMember: jest.fn().mockResolvedValue(false),
       save: jest.fn().mockResolvedValue(undefined),
     },
   },
