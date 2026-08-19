@@ -34,6 +34,8 @@ Sprint 0 — Platform foundation
 - DOMAIN-01 — Money model (decimal-safe, minor-unit) in `@invoiceflow/calculations`.
 - DOMAIN-02 — Document calculator (subtotal/discount/tax/total/deposit) in `@invoiceflow/calculations`.
 - DOMAIN-03 — Document validation layers (edit/review/send) in `@invoiceflow/validation`.
+- DOMAIN-04 — Autosave state contract (`SaveState`, `autosaveReducer`) in `@invoiceflow/domain`.
+- RENDER-01 — Normalize `RenderableDocument` for the shared renderer (`@invoiceflow/document-schema`).
 
 ## Current ticket
 
@@ -43,9 +45,9 @@ Sprint 0 — Platform foundation
 
 1. AUTH-01 — Sign In
 2. ONBOARD-01 — First Business
-3. DOMAIN-04 — Autosave contract
-4. RENDER-01 — Normalize RenderableDocument
-5. CLIENT-01 — Client list
+3. RENDER-02 — Theme schema validation
+4. CLIENT-01 — Client list
+5. PRODUCT-01 — Product/Service list
 
 ## Locked decisions
 
@@ -209,6 +211,8 @@ Watchman: VERIFIED
 - `pnpm --filter @invoiceflow/api-client lint`, `typecheck`, `build`, and `test` (3 passed)
 - `pnpm --filter @invoiceflow/calculations lint`, `typecheck`, `build`, and `test` (11 passed)
 - `pnpm --filter @invoiceflow/validation lint`, `typecheck`, `build`, and `test` (7 passed)
+- `pnpm --filter @invoiceflow/domain lint`, `typecheck`, `build`, and `test` (4 passed)
+- `pnpm --filter @invoiceflow/document-schema lint`, `typecheck`, `build`, and `test` (4 passed)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
