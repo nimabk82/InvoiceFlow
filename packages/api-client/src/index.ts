@@ -60,6 +60,26 @@ export type ProductServicePage = Readonly<{
   items: readonly ProductService[];
 }>;
 
+export type Invoice = Readonly<{
+  id: string;
+  number: string;
+  status: string;
+  currencyCode: string;
+  dueDate?: string;
+  clientSnapshot: Readonly<{ displayName: string }>;
+  items: Readonly<
+    {
+      quantity: string;
+      rate: string;
+      appliedTaxes: Readonly<{ name: string; rate: string }>[];
+    }[]
+  >;
+}>;
+
+export type InvoicePage = Readonly<{
+  items: readonly Invoice[];
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -128,6 +148,18 @@ export class ApiClient {
   ): Promise<ProductServicePage> {
     return this.request<ProductServicePage>(
       `/businesses/${businessId}/products`,
+      {
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async listInvoices(
+    businessId: string,
+    token: string,
+  ): Promise<InvoicePage> {
+    return this.request<InvoicePage>(
+      `/businesses/${businessId}/invoices`,
       {
         headers: { authorization: `Bearer ${token}` },
       },
