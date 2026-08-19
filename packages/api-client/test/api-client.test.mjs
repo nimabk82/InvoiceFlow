@@ -58,6 +58,19 @@ test('listBusinesses returns the parsed list', async () => {
   assert.equal(businesses[0].id, 'b1');
 });
 
+test('listClients hits the business-scoped clients endpoint', async () => {
+  let capturedUrl;
+  const fetchImpl = async (url) => {
+    capturedUrl = url;
+    return okResponse({ items: [{ id: 'c1', emails: [] }] });
+  };
+  const client = new ApiClient({ baseUrl: 'http://localhost:3001', fetchImpl });
+
+  const page = await client.listClients('business-1', 'session-token');
+  assert.equal(capturedUrl, 'http://localhost:3001/businesses/business-1/clients');
+  assert.equal(page.items.length, 1);
+});
+
 test('throws ApiRequestError on a non-ok response', async () => {
   const fetchImpl = async () => ({
     ok: false,

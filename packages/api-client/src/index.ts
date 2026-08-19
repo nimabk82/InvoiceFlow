@@ -30,6 +30,23 @@ export type CreateBusinessInput = Readonly<{
   logoAssetId?: string;
 }>;
 
+export type ClientEmail = Readonly<{
+  id: string;
+  address: string;
+  isPrimary: boolean;
+}>;
+
+export type Client = Readonly<{
+  id: string;
+  name?: string;
+  company?: string;
+  emails: readonly ClientEmail[];
+}>;
+
+export type ClientPage = Readonly<{
+  items: readonly Client[];
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -78,6 +95,18 @@ export class ApiClient {
     return this.request<Business[]>('/businesses', {
       headers: { authorization: `Bearer ${token}` },
     });
+  }
+
+  async listClients(
+    businessId: string,
+    token: string,
+  ): Promise<ClientPage> {
+    return this.request<ClientPage>(
+      `/businesses/${businessId}/clients`,
+      {
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {

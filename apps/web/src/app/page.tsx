@@ -32,6 +32,9 @@ export default function HomePage() {
             <Link href="/onboarding/business">
               <Button variant="outlined">Create business</Button>
             </Link>
+            <Link href="/app/sample-business/clients">
+              <Button variant="outlined">Clients list</Button>
+            </Link>
           </Stack>
         </Stack>
       </Box>
