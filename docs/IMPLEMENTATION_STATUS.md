@@ -46,17 +46,18 @@ Sprint 0 — Platform foundation
 - CLIENT-01 — Client list (Web) + clients API (`GET /businesses/:businessId/clients`, Supabase repository adapter).
 - PRODUCT-01 — Product/Service list (Web) + products API (`GET /businesses/:businessId/products`, Supabase repository adapter).
 - INV-01 — Invoice list (Web) + invoices API (`GET /businesses/:businessId/invoices`, Supabase repository adapter).
+- INV-02 — New Invoice editor (Web) + `POST /businesses/:businessId/invoices` (server-side snapshots + item persistence).
 
 ## Current ticket
 
-- INV-02 — New/Edit Invoice shell (next).
+- INV-03 — Client selector + inline Add Client (next).
 
 ## Next recommended tickets
 
-1. INV-02 — New/Edit Invoice shell
+1. INV-03 — Client selector + inline Add Client
 2. CLIENT-02 — Create/Edit client
 3. PRODUCT-02 — Create/Edit item
-4. INV-03 — Client selector + inline Add Client
+4. INV-04 — Line item editor
 5. SET-01 — Business Profile
 
 ## Locked decisions
@@ -217,7 +218,8 @@ Watchman: VERIFIED
 - Mobile theme lint, typecheck, test, and Metro production bundle using finalized tokens
 - Web/Mobile UI primitive lint, typecheck, and contract tests
 - `sqlfluff lint infrastructure/supabase/migrations` (all DB-01/02/03 migrations parse + lint clean)
-- `pnpm --filter api lint`, `typecheck`, `test` (53 passed), and `build` (storage + email added)
+- `pnpm --filter api lint`, `typecheck`, `test` (89 passed), and `build` (businesses/clients/products/invoices modules)
+- `pnpm --filter @invoiceflow/domain lint`, `typecheck`, `build`, and `test` (4 passed)
 - `pnpm --filter @invoiceflow/api-client lint`, `typecheck`, `build`, and `test` (3 passed)
 - `pnpm --filter @invoiceflow/calculations lint`, `typecheck`, `build`, and `test` (11 passed)
 - `pnpm --filter @invoiceflow/validation lint`, `typecheck`, `build`, and `test` (7 passed)
