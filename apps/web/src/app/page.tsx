@@ -41,6 +41,9 @@ export default function HomePage() {
             <Link href="/app/sample-business/invoices">
               <Button variant="outlined">Invoices list</Button>
             </Link>
+            <Link href="/app/sample-business/invoices/new">
+              <Button variant="outlined">New invoice</Button>
+            </Link>
           </Stack>
         </Stack>
       </Box>

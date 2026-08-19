@@ -80,6 +80,23 @@ export type InvoicePage = Readonly<{
   items: readonly Invoice[];
 }>;
 
+export type CreateInvoiceItemInput = Readonly<{
+  description: string;
+  quantity: string;
+  rate: string;
+  appliedTaxes?: Readonly<{ name: string; rate: string }>[];
+}>;
+
+export type CreateInvoiceInput = Readonly<{
+  number?: string;
+  clientId?: string;
+  issueDate: string;
+  dueDate?: string;
+  currencyCode: string;
+  poNumber?: string;
+  items: readonly CreateInvoiceItemInput[];
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -164,6 +181,18 @@ export class ApiClient {
         headers: { authorization: `Bearer ${token}` },
       },
     );
+  }
+
+  async createInvoice(
+    businessId: string,
+    input: CreateInvoiceInput,
+    token: string,
+  ): Promise<Invoice> {
+    return this.request<Invoice>(`/businesses/${businessId}/invoices`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { authorization: `Bearer ${token}` },
+    });
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
