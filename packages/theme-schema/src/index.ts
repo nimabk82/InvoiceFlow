@@ -1,2 +1,2 @@
-/** Document-theme contracts are added by theme tickets. */
-export {};
+export * from './config.js';
+export * from './validate.js';
