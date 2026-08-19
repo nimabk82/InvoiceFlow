@@ -229,6 +229,9 @@ importers:
       '@mui/material-nextjs':
         specifier: 9.3.0
         version: 9.3.0(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.8))(@emotion/server@11.11.0)(@types/react@19.2.18)(next@16.3.1(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
+      '@supabase/supabase-js':
+        specifier: ^2.112.3
+        version: 2.112.3
       next:
         specifier: 16.3.1
         version: 16.3.1(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
