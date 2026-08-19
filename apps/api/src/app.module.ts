@@ -9,6 +9,7 @@ import { validateEnvironment } from './config/environment';
 import { BusinessesModule } from './modules/businesses/businesses.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { HealthModule } from './modules/health/health.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 import { ProductsModule } from './modules/products/products.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { ProductsModule } from './modules/products/products.module';
     BusinessesModule,
     ClientsModule,
     ProductsModule,
+    InvoicesModule,
   ],
   controllers: [AppController],
   providers: [

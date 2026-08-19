@@ -1,0 +1,23 @@
+import { Module } from '@nestjs/common';
+
+import { SupabaseModule } from '../../infrastructure/supabase/supabase.module';
+import { AuthModule } from '../auth/auth.module';
+import { BusinessAccessModule } from '../businesses/access/business-access.module';
+import { INVOICE_REPOSITORY } from './repositories/invoice.repository';
+import { SupabaseInvoiceRepository } from './repositories/supabase-invoice.repository';
+import { InvoicesController } from './invoices.controller';
+import { InvoicesService } from './invoices.service';
+
+@Module({
+  imports: [AuthModule, BusinessAccessModule, SupabaseModule],
+  controllers: [InvoicesController],
+  providers: [
+    InvoicesService,
+    {
+      provide: INVOICE_REPOSITORY,
+      useClass: SupabaseInvoiceRepository,
+    },
+  ],
+  exports: [INVOICE_REPOSITORY],
+})
+export class InvoicesModule {}

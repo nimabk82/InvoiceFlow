@@ -83,8 +83,8 @@ export type Invoice = {
   poNumber?: string;
   status: InvoiceStatus;
   sourceQuoteId?: string;
-  themeId: string;
-  themeVersionId: string;
+  themeId?: string;
+  themeVersionId?: string;
   themeNameSnapshot?: string;
   createdAt: string;
   updatedAt: string;
@@ -114,8 +114,8 @@ export type Quote = {
   notes?: RichTextDocument;
   terms?: RichTextDocument;
   status: QuoteStatus;
-  themeId: string;
-  themeVersionId: string;
+  themeId?: string;
+  themeVersionId?: string;
   themeNameSnapshot?: string;
   convertedInvoiceIds: string[];
   createdAt: string;
