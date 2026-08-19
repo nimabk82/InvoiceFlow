@@ -1,2 +1,3 @@
-/** Typed API client contracts are added by API-08. */
-export {};
+export * from './client.js';
+export * from './errors.js';
+export * from './types.js';
