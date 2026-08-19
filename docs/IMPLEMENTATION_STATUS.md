@@ -23,18 +23,23 @@ Sprint 0 — Platform foundation
 - API-02 — Supabase PostgreSQL adapter (`SupabaseModule` with injectable client).
 - API-03 — Repository abstractions (`packages/domain` types + per-feature repository interfaces and DI tokens).
 - DB-01 — Core schema migration (accounts, businesses, memberships, clients, client emails, product services, taxes).
+- DB-02 — Document schema migration (invoices, quotes, items, item taxes, payments, activity events).
+- DB-03 — Theme schema migration (themes, immutable versions, document/version references).
+- DB-04 — Version-controlled migrations tooling (`infrastructure/supabase/config.toml`, sqlfluff, README).
+- API-04 — Supabase auth verification boundary (`Authentication`, `AuthGuard`, `CurrentAccount`).
+- API-05 — Business authorization guard and access service (`isMember` policy).
 
 ## Current ticket
 
-- DB-02 — Document schema (next).
+- AUTH-01 — Sign In (next).
 
 ## Next recommended tickets
 
-1. DB-02 — Document schema
-2. DB-03 — Theme schema
-3. DB-04 — Version-controlled migrations
-4. API-04 — Authentication boundary
-5. API-05 — Business authorization
+1. AUTH-01 — Sign In
+2. ONBOARD-01 — First Business
+3. API-06 — Storage abstraction + Supabase Storage adapter
+4. API-07 — Email provider abstraction
+5. API-08 — Typed API client for Web + Mobile
 
 ## Locked decisions
 
@@ -193,6 +198,8 @@ Watchman: VERIFIED
 - Web theme lint, typecheck, test, and production build using finalized tokens
 - Mobile theme lint, typecheck, test, and Metro production bundle using finalized tokens
 - Web/Mobile UI primitive lint, typecheck, and contract tests
+- `sqlfluff lint infrastructure/supabase/migrations` (all DB-01/02/03 migrations parse + lint clean)
+- `pnpm --filter api lint`, `typecheck`, `test` (46 passed), and `build` (auth + business access added)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
