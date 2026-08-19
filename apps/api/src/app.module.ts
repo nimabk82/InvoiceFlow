@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { HttpLoggingInterceptor } from './common/logging/http-logging.interceptor';
 import { validateEnvironment } from './config/environment';
 import { BusinessesModule } from './modules/businesses/businesses.module';
+import { ClientsModule } from './modules/clients/clients.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -18,6 +19,7 @@ import { HealthModule } from './modules/health/health.module';
     }),
     HealthModule,
     BusinessesModule,
+    ClientsModule,
   ],
   controllers: [AppController],
   providers: [
