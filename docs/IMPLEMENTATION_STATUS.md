@@ -44,17 +44,18 @@ Sprint 0 — Platform foundation
 - THEME-02 — Built-in presets (clean, modern, minimal, blank) in `@invoiceflow/theme-schema`.
 - ONBOARD-01 — First Business (Web) + businesses API (`POST/GET /businesses`, Supabase repository adapter).
 - CLIENT-01 — Client list (Web) + clients API (`GET /businesses/:businessId/clients`, Supabase repository adapter).
+- PRODUCT-01 — Product/Service list (Web) + products API (`GET /businesses/:businessId/products`, Supabase repository adapter).
 
 ## Current ticket
 
-- PRODUCT-01 — Product/Service list (next).
+- INV-01 — Invoice list (next).
 
 ## Next recommended tickets
 
-1. PRODUCT-01 — Product/Service list
+1. INV-01 — Invoice list
 2. CLIENT-02 — Create/Edit client
 3. PRODUCT-02 — Create/Edit item
-4. INV-01 — Invoice list
+4. INV-02 — New/Edit Invoice shell
 5. SET-01 — Business Profile
 
 ## Locked decisions
