@@ -37,18 +37,20 @@ Sprint 0 — Platform foundation
 - DOMAIN-04 — Autosave state contract (`SaveState`, `autosaveReducer`) in `@invoiceflow/domain`.
 - RENDER-01 — Normalize `RenderableDocument` for the shared renderer (`@invoiceflow/document-schema`).
 - RENDER-02 — Theme schema validation (structure, enums, protected section order) in `@invoiceflow/theme-schema`.
+- AUTH-01 — Sign In (Web): `/auth/sign-in` via Supabase Auth.
+- AUTH-02 — Sign Up (Web): `/auth/sign-up` via Supabase Auth.
 
 ## Current ticket
 
-- AUTH-01 — Sign In (next).
+- AUTH-01 — Sign In (Mobile) (next).
 
 ## Next recommended tickets
 
-1. AUTH-01 — Sign In
-2. ONBOARD-01 — First Business
-3. THEME-02 — Built-in presets
-4. CLIENT-01 — Client list
-5. PRODUCT-01 — Product/Service list
+1. AUTH-01 — Sign In (Mobile)
+2. AUTH-02 — Sign Up (Mobile)
+3. ONBOARD-01 — First Business
+4. THEME-02 — Built-in presets
+5. CLIENT-01 — Client list
 
 ## Locked decisions
 
@@ -215,6 +217,7 @@ Watchman: VERIFIED
 - `pnpm --filter @invoiceflow/domain lint`, `typecheck`, `build`, and `test` (4 passed)
 - `pnpm --filter @invoiceflow/document-schema lint`, `typecheck`, `build`, and `test` (4 passed)
 - `pnpm --filter @invoiceflow/theme-schema lint`, `typecheck`, `build`, and `test` (5 passed)
+- `pnpm --filter web lint`, `typecheck`, `test` (2 passed), and `build` (auth screens; routes `/`, `/auth/sign-in`, `/auth/sign-up`)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
