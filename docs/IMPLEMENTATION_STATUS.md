@@ -28,6 +28,9 @@ Sprint 0 — Platform foundation
 - DB-04 — Version-controlled migrations tooling (`infrastructure/supabase/config.toml`, sqlfluff, README).
 - API-04 — Supabase auth verification boundary (`Authentication`, `AuthGuard`, `CurrentAccount`).
 - API-05 — Business authorization guard and access service (`isMember` policy).
+- API-06 — File storage abstraction + Supabase Storage adapter (`FileStorage`).
+- API-07 — Email provider abstraction (`EmailProvider`, logger adapter).
+- API-08 — Typed API client for Web + Mobile (`@invoiceflow/api-client`).
 
 ## Current ticket
 
@@ -37,9 +40,9 @@ Sprint 0 — Platform foundation
 
 1. AUTH-01 — Sign In
 2. ONBOARD-01 — First Business
-3. API-06 — Storage abstraction + Supabase Storage adapter
-4. API-07 — Email provider abstraction
-5. API-08 — Typed API client for Web + Mobile
+3. DOMAIN-01 — Money model
+4. DOMAIN-02 — Document calculator
+5. DOMAIN-03 — Document validation
 
 ## Locked decisions
 
@@ -199,7 +202,8 @@ Watchman: VERIFIED
 - Mobile theme lint, typecheck, test, and Metro production bundle using finalized tokens
 - Web/Mobile UI primitive lint, typecheck, and contract tests
 - `sqlfluff lint infrastructure/supabase/migrations` (all DB-01/02/03 migrations parse + lint clean)
-- `pnpm --filter api lint`, `typecheck`, `test` (46 passed), and `build` (auth + business access added)
+- `pnpm --filter api lint`, `typecheck`, `test` (53 passed), and `build` (storage + email added)
+- `pnpm --filter @invoiceflow/api-client lint`, `typecheck`, `build`, and `test` (3 passed)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
