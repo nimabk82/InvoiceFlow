@@ -29,6 +29,9 @@ export default function HomePage() {
             <Link href="/auth/sign-up">
               <Button variant="outlined">Sign up</Button>
             </Link>
+            <Link href="/onboarding/business">
+              <Button variant="outlined">Create business</Button>
+            </Link>
           </Stack>
         </Stack>
       </Box>
