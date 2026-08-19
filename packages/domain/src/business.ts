@@ -19,8 +19,8 @@ export type Business = {
   countryCode: string;
   currencyCode: string;
   logoAssetId?: string;
-  defaultInvoiceThemeId: string;
-  defaultQuoteThemeId: string;
+  defaultInvoiceThemeId?: string;
+  defaultQuoteThemeId?: string;
 };
 
 export type BusinessSnapshot = {

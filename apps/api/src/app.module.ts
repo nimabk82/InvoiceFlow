@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HttpLoggingInterceptor } from './common/logging/http-logging.interceptor';
 import { validateEnvironment } from './config/environment';
+import { BusinessesModule } from './modules/businesses/businesses.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { HealthModule } from './modules/health/health.module';
       validate: validateEnvironment,
     }),
     HealthModule,
+    BusinessesModule,
   ],
   controllers: [AppController],
   providers: [
