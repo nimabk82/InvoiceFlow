@@ -1,2 +1,2 @@
-/** Shared validation contracts are added by their owning tickets. */
-export {};
+export * from './document-validation.js';
+export * from './validation.js';
