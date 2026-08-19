@@ -36,6 +36,7 @@ Sprint 0 — Platform foundation
 - DOMAIN-03 — Document validation layers (edit/review/send) in `@invoiceflow/validation`.
 - DOMAIN-04 — Autosave state contract (`SaveState`, `autosaveReducer`) in `@invoiceflow/domain`.
 - RENDER-01 — Normalize `RenderableDocument` for the shared renderer (`@invoiceflow/document-schema`).
+- RENDER-02 — Theme schema validation (structure, enums, protected section order) in `@invoiceflow/theme-schema`.
 
 ## Current ticket
 
@@ -45,7 +46,7 @@ Sprint 0 — Platform foundation
 
 1. AUTH-01 — Sign In
 2. ONBOARD-01 — First Business
-3. RENDER-02 — Theme schema validation
+3. THEME-02 — Built-in presets
 4. CLIENT-01 — Client list
 5. PRODUCT-01 — Product/Service list
 
@@ -213,6 +214,7 @@ Watchman: VERIFIED
 - `pnpm --filter @invoiceflow/validation lint`, `typecheck`, `build`, and `test` (7 passed)
 - `pnpm --filter @invoiceflow/domain lint`, `typecheck`, `build`, and `test` (4 passed)
 - `pnpm --filter @invoiceflow/document-schema lint`, `typecheck`, `build`, and `test` (4 passed)
+- `pnpm --filter @invoiceflow/theme-schema lint`, `typecheck`, `build`, and `test` (5 passed)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 
 ## Status update format
