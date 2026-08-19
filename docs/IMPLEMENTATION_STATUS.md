@@ -20,14 +20,15 @@ Sprint 0 — Platform foundation
 - FOUND-01 — Finalized shared design tokens and MUI/React Native Paper theme mappings.
 - FOUND-02 — Reusable Web/Mobile UI primitive wrappers.
 - API-01 — API configuration, health endpoint, and structured logging.
+- API-02 — Supabase PostgreSQL adapter (`SupabaseModule` with injectable client).
 
 ## Current ticket
 
-- API-02 — Supabase PostgreSQL adapter (next).
+- API-03 — Repository abstractions (next).
 
 ## Next recommended tickets
 
-1. API-02 — Supabase PostgreSQL adapter
+1. API-03 — Repository abstractions
 3. API-03 — Repository abstractions
 4. DB-01 — Core schema
 5. API-04 — Authentication boundary

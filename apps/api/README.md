@@ -21,6 +21,8 @@ configuration during startup and supports:
 - `PORT`: bind port (default `3001`)
 - `LOG_LEVEL`: `fatal`, `error`, `warn`, `log`, `debug`, or `verbose`
 - `CORS_ORIGINS`: comma-separated HTTP(S) browser origins
+- `SUPABASE_URL`: Supabase project URL (required)
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role secret (required)
 
 The development server allows `http://localhost:3000` by default. Production
 does not enable a CORS origin unless `CORS_ORIGINS` is configured.
@@ -29,4 +31,10 @@ does not enable a CORS origin unless `CORS_ORIGINS` is configured.
 database readiness until a database adapter exists. Application and HTTP
 request logs are emitted as JSON, and responses include `x-request-id`.
 
-Persistence and authentication are intentionally added by later tickets.
+The `SupabaseModule` (at `src/infrastructure/supabase`) provides an injectable
+`SupabaseClient` configured with the service role key. Import `SupabaseModule`
+in any feature module that needs direct database access. Repositories must
+depend on the `SUPABASE_CLIENT` injection token, not on `SupabaseModule`
+directly.
+
+Authentication is intentionally added by a later ticket.

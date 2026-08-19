@@ -19,6 +19,8 @@ export type EnvironmentVariables = Readonly<{
   LOG_LEVEL: ApiLogLevel;
   NODE_ENV: NodeEnvironment;
   PORT: number;
+  SUPABASE_URL: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
 }>;
 
 const defaultPort = 3001;
@@ -87,6 +89,34 @@ function normalizeOrigin(origin: string): string {
   return url.origin;
 }
 
+function parseSupabaseUrl(value: unknown): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error('SUPABASE_URL must be a non-empty string');
+  }
+
+  let url: URL;
+
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw new Error('SUPABASE_URL must be a valid URL');
+  }
+
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    throw new Error('SUPABASE_URL must be an HTTP(S) URL');
+  }
+
+  return url.toString();
+}
+
+function parseSupabaseServiceRoleKey(value: unknown): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY must be a non-empty string');
+  }
+
+  return value.trim();
+}
+
 function parseCorsOrigins(
   value: unknown,
   environment: NodeEnvironment,
@@ -119,5 +149,9 @@ export function validateEnvironment(
     LOG_LEVEL: parseLogLevel(values.LOG_LEVEL),
     NODE_ENV: environment,
     PORT: parsePort(values.PORT),
+    SUPABASE_URL: parseSupabaseUrl(values.SUPABASE_URL),
+    SUPABASE_SERVICE_ROLE_KEY: parseSupabaseServiceRoleKey(
+      values.SUPABASE_SERVICE_ROLE_KEY,
+    ),
   };
 }

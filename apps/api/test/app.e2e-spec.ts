@@ -10,6 +10,9 @@ describe('AppController (e2e)', () => {
   let app: NestFastifyApplication;
 
   beforeAll(async () => {
+    process.env.SUPABASE_URL ??= 'https://test-project.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??= 'test-service-role-key';
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
