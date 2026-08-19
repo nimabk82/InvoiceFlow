@@ -47,6 +47,19 @@ export type ClientPage = Readonly<{
   items: readonly Client[];
 }>;
 
+export type ProductService = Readonly<{
+  id: string;
+  type: 'product' | 'service';
+  name: string;
+  description?: string;
+  defaultRate?: string;
+  unit?: string;
+}>;
+
+export type ProductServicePage = Readonly<{
+  items: readonly ProductService[];
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -103,6 +116,18 @@ export class ApiClient {
   ): Promise<ClientPage> {
     return this.request<ClientPage>(
       `/businesses/${businessId}/clients`,
+      {
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async listProducts(
+    businessId: string,
+    token: string,
+  ): Promise<ProductServicePage> {
+    return this.request<ProductServicePage>(
+      `/businesses/${businessId}/products`,
       {
         headers: { authorization: `Bearer ${token}` },
       },
