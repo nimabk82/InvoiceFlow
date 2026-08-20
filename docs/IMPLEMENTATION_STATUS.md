@@ -49,16 +49,17 @@ Sprint 0 — Platform foundation
 - INV-02 — New Invoice editor (Web) + `POST /businesses/:businessId/invoices` (server-side snapshots + item persistence).
 - INV-03 — Client selector + inline Add Client in the invoice editor (`POST /businesses/:businessId/clients`).
 - INV-04 — Line item editor (secondary description + live per-item totals/subtotal via shared calculator).
+- INV-05 — Taxes (per-item tax components + tax/total display in the invoice editor).
 
 ## Current ticket
 
-- INV-05 — Taxes (next).
+- CLIENT-02 — Create/Edit client (next).
 
 ## Next recommended tickets
 
-1. INV-05 — Taxes
-2. CLIENT-02 — Create/Edit client
-3. PRODUCT-02 — Create/Edit item
+1. CLIENT-02 — Create/Edit client
+2. PRODUCT-02 — Create/Edit item
+3. INV-06 — Deposit editor
 4. INV-09 — Review validation
 5. INV-10 — Invoice Review
 
