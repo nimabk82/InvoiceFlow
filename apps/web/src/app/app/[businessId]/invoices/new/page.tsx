@@ -1,12 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ApiClient,
   type Client,
   type CreateInvoiceItemInput,
 } from "@invoiceflow/api-client";
+import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import {
   Alert,
   Box,
@@ -27,7 +28,7 @@ const apiClient = new ApiClient({
 type LineItem = CreateInvoiceItemInput;
 
 function emptyItem(): LineItem {
-  return { description: "", quantity: "1", rate: "" };
+  return { description: "", secondaryDescription: "", quantity: "1", rate: "" };
 }
 
 export default function NewInvoicePage() {
@@ -169,6 +170,21 @@ export default function NewInvoicePage() {
     label: client.name ?? client.company ?? "Unnamed client",
   }));
 
+  const totals = useMemo(() => {
+    try {
+      return calculateDocumentTotals({
+        currencyCode,
+        items: items.map((item) => ({
+          quantity: item.quantity || "0",
+          rate: item.rate || "0",
+          appliedTaxes: [],
+        })),
+      });
+    } catch {
+      return null;
+    }
+  }, [items, currencyCode]);
+
   return (
     <main>
       <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
@@ -272,14 +288,26 @@ export default function NewInvoicePage() {
                     key={index}
                     sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}
                   >
-                    <Input
-                      label="Description"
-                      value={item.description}
-                      onChange={(event) =>
-                        updateItem(index, { description: event.target.value })
-                      }
-                      sx={{ flexGrow: 1 }}
-                    />
+                    <Stack spacing={1} sx={{ flexGrow: 1 }}>
+                      <Input
+                        label="Description"
+                        value={item.description}
+                        onChange={(event) =>
+                          updateItem(index, {
+                            description: event.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        label="Secondary description"
+                        value={item.secondaryDescription}
+                        onChange={(event) =>
+                          updateItem(index, {
+                            secondaryDescription: event.target.value,
+                          })
+                        }
+                      />
+                    </Stack>
                     <Input
                       label="Qty"
                       value={item.quantity}
@@ -296,6 +324,9 @@ export default function NewInvoicePage() {
                       }
                       sx={{ width: 120 }}
                     />
+                    <Typography variant="body2" sx={{ minWidth: 90, pt: 3 }}>
+                      {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
+                    </Typography>
                     <IconButton
                       aria-label="Remove item"
                       onClick={() => removeItem(index)}
@@ -307,6 +338,13 @@ export default function NewInvoicePage() {
                 <Button variant="outlined" onClick={addItem}>
                   Add item
                 </Button>
+                {totals && (
+                  <Box sx={{ textAlign: "right" }}>
+                    <Typography variant="body1">
+                      Subtotal: {totals.subtotal.toDecimalString()}
+                    </Typography>
+                  </Box>
+                )}
               </Stack>
             </Paper>
 

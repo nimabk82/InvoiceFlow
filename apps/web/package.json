@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@invoiceflow/api-client": "workspace:*",
+    "@invoiceflow/calculations": "workspace:*",
     "@invoiceflow/design-tokens": "workspace:*",
     "@emotion/cache": "11.14.0",
     "@emotion/react": "11.14.0",

@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: [
     "@invoiceflow/api-client",
+    "@invoiceflow/calculations",
     "@invoiceflow/design-tokens",
   ],
 };

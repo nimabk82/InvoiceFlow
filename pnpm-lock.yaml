@@ -226,6 +226,9 @@ importers:
       '@invoiceflow/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@invoiceflow/calculations':
+        specifier: workspace:*
+        version: link:../../packages/calculations
       '@invoiceflow/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens

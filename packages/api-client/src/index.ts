@@ -88,6 +88,7 @@ export type InvoicePage = Readonly<{
 
 export type CreateInvoiceItemInput = Readonly<{
   description: string;
+  secondaryDescription?: string;
   quantity: string;
   rate: string;
   appliedTaxes?: Readonly<{ name: string; rate: string }>[];
