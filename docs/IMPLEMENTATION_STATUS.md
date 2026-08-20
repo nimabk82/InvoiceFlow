@@ -51,15 +51,16 @@ Sprint 0 — Platform foundation
 - INV-04 — Line item editor (secondary description + live per-item totals/subtotal via shared calculator).
 - INV-05 — Taxes (per-item tax components + tax/total display in the invoice editor).
 - CLIENT-02 — Create/Edit client (Web) + `GET/PATCH /clients/:clientId`.
+- PRODUCT-02 — Create/Edit item (Web) + `POST/GET/PATCH /products/:productId`.
 
 ## Current ticket
 
-- PRODUCT-02 — Create/Edit item (next).
+- INV-06 — Deposit editor (next).
 
 ## Next recommended tickets
 
-1. PRODUCT-02 — Create/Edit item
-2. INV-06 — Deposit editor
+1. INV-06 — Deposit editor
+2. INV-07 — More Options
 3. INV-09 — Review validation
 4. INV-10 — Invoice Review
 5. SET-01 — Business Profile
