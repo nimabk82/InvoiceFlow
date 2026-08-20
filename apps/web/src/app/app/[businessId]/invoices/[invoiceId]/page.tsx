@@ -161,6 +161,63 @@ export default function InvoiceDetailPage() {
     }
   }
 
+  async function handleDuplicate() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token ?? null;
+    if (!token) return;
+
+    try {
+      const copy = await apiClient.duplicateInvoice(
+        businessId,
+        invoiceId,
+        token,
+      );
+      router.push(`/app/${businessId}/invoices/${copy.id}`);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to duplicate invoice.",
+      );
+    }
+  }
+
+  async function handleVoid() {
+    if (!window.confirm("Void this invoice? This cannot be undone.")) return;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token ?? null;
+    if (!token) return;
+
+    try {
+      const updated = await apiClient.voidInvoice(businessId, invoiceId, token);
+      setInvoice(updated);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to void invoice.",
+      );
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm("Delete this draft invoice? This cannot be undone.")) return;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token ?? null;
+    if (!token) return;
+
+    try {
+      await apiClient.deleteInvoice(businessId, invoiceId, token);
+      router.push(`/app/${businessId}/invoices`);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to delete invoice.",
+      );
+    }
+  }
+
   if (error) {
     return (
       <main>
@@ -343,9 +400,26 @@ export default function InvoiceDetailPage() {
         </Paper>
 
         <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+          {invoice.status === "draft" && (
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleDelete}
+            >
+              Delete
+            </Button>
+          )}
           <Button variant="outlined" onClick={openPayment}>
             Record Payment
           </Button>
+          <Button variant="outlined" onClick={handleDuplicate}>
+            Duplicate
+          </Button>
+          {invoice.status !== "draft" && invoice.status !== "void" && (
+            <Button variant="outlined" color="error" onClick={handleVoid}>
+              Void
+            </Button>
+          )}
           <Button
             onClick={() =>
               router.push(`/app/${businessId}/invoices/${invoiceId}/send`)

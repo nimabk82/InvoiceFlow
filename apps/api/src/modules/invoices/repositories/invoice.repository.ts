@@ -18,4 +18,5 @@ export interface InvoiceRepository {
   findById(id: string, businessId: string): Promise<Invoice | null>;
   list(query: InvoiceListQuery): Promise<InvoicePage>;
   save(invoice: Invoice): Promise<void>;
+  delete(id: string, businessId: string): Promise<void>;
 }

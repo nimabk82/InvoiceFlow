@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -88,5 +89,29 @@ export class InvoicesController {
     @Param('invoiceId') invoiceId: string,
   ) {
     return this.invoicesService.listPayments(businessId, invoiceId);
+  }
+
+  @Post(':invoiceId/duplicate')
+  duplicate(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+  ) {
+    return this.invoicesService.duplicateInvoice(businessId, invoiceId);
+  }
+
+  @Post(':invoiceId/void')
+  void(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+  ) {
+    return this.invoicesService.voidInvoice(businessId, invoiceId);
+  }
+
+  @Delete(':invoiceId')
+  remove(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+  ) {
+    return this.invoicesService.deleteInvoice(businessId, invoiceId);
   }
 }

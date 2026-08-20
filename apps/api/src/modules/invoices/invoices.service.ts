@@ -238,6 +238,65 @@ export class InvoicesService {
     };
   }
 
+  async duplicateInvoice(
+    businessId: string,
+    invoiceId: string,
+  ): Promise<Invoice> {
+    const source = await this.findById(businessId, invoiceId);
+
+    const copy: Invoice = {
+      ...source,
+      id: randomUUID(),
+      number: `COPY-${source.number}`,
+      status: 'draft',
+      sentAt: undefined,
+      items: source.items.map((item) => ({
+        ...item,
+        id: randomUUID(),
+      })),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.invoiceRepository.save(copy);
+
+    return copy;
+  }
+
+  async voidInvoice(businessId: string, invoiceId: string): Promise<Invoice> {
+    const invoice = await this.findById(businessId, invoiceId);
+
+    if (invoice.status === 'draft') {
+      throw new BadRequestException('Drafts should be deleted, not voided');
+    }
+
+    if (invoice.status === 'void') {
+      return invoice;
+    }
+
+    const updated: Invoice = {
+      ...invoice,
+      status: 'void',
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.invoiceRepository.save(updated);
+
+    return updated;
+  }
+
+  async deleteInvoice(businessId: string, invoiceId: string): Promise<void> {
+    const invoice = await this.findById(businessId, invoiceId);
+
+    if (invoice.status !== 'draft') {
+      throw new BadRequestException(
+        'Only draft invoices can be deleted; sent invoices should be voided',
+      );
+    }
+
+    await this.invoiceRepository.delete(invoiceId, businessId);
+  }
+
   async createInvoice(
     businessId: string,
     input: CreateInvoiceInput,

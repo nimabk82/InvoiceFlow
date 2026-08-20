@@ -209,6 +209,56 @@ export class SupabaseInvoiceRepository implements InvoiceRepository {
     }
   }
 
+  async delete(id: string, businessId: string): Promise<void> {
+    const { data: itemRows, error: itemError } = await this.client
+      .from('document_items')
+      .select('id')
+      .eq('document_type', 'invoice')
+      .eq('document_id', id);
+
+    if (itemError) {
+      throw new Error(itemError.message);
+    }
+
+    const itemIds = (itemRows ?? []).map((row) => row.id);
+
+    if (itemIds.length > 0) {
+      const { error: taxError } = await this.client
+        .from('document_item_taxes')
+        .delete()
+        .in('item_id', itemIds);
+      if (taxError) {
+        throw new Error(taxError.message);
+      }
+
+      const { error: itemsDeleteError } = await this.client
+        .from('document_items')
+        .delete()
+        .in('id', itemIds);
+      if (itemsDeleteError) {
+        throw new Error(itemsDeleteError.message);
+      }
+    }
+
+    const { error: paymentsError } = await this.client
+      .from('payments')
+      .delete()
+      .eq('invoice_id', id);
+    if (paymentsError) {
+      throw new Error(paymentsError.message);
+    }
+
+    const { error } = await this.client
+      .from('invoices')
+      .delete()
+      .eq('id', id)
+      .eq('business_id', businessId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
   private async loadItems(
     invoiceIds: string[],
   ): Promise<Map<string, DocumentItem[]>> {

@@ -317,4 +317,98 @@ describe('InvoicesService', () => {
 
     expect(invoice.status).toBe('paid');
   });
+
+  it('duplicates an invoice as a new draft', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      save,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'sent',
+      items: [],
+    });
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    );
+
+    const copy = await service.duplicateInvoice('business-1', 'invoice-1');
+
+    expect(copy.id).not.toBe('invoice-1');
+    expect(copy.number).toBe('COPY-INV-1');
+    expect(copy.status).toBe('draft');
+    expect(save).toHaveBeenCalled();
+  });
+
+  it('voids a sent invoice', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      save,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'sent',
+      items: [],
+    });
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    );
+
+    const voided = await service.voidInvoice('business-1', 'invoice-1');
+
+    expect(voided.status).toBe('void');
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'void' }),
+    );
+  });
+
+  it('deletes a draft invoice', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'draft',
+      items: [],
+    });
+    const del = jest.fn().mockResolvedValue(undefined);
+    invoiceRepository.delete = del;
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    );
+
+    await service.deleteInvoice('business-1', 'invoice-1');
+
+    expect(del).toHaveBeenCalledWith('invoice-1', 'business-1');
+  });
 });

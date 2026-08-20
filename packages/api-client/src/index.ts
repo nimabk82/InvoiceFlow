@@ -479,6 +479,39 @@ export class ApiClient {
     );
   }
 
+  async duplicateInvoice(
+    businessId: string,
+    invoiceId: string,
+    token: string,
+  ): Promise<Invoice> {
+    return this.request<Invoice>(
+      `/businesses/${businessId}/invoices/${invoiceId}/duplicate`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async voidInvoice(
+    businessId: string,
+    invoiceId: string,
+    token: string,
+  ): Promise<Invoice> {
+    return this.request<Invoice>(
+      `/businesses/${businessId}/invoices/${invoiceId}/void`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async deleteInvoice(
+    businessId: string,
+    invoiceId: string,
+    token: string,
+  ): Promise<void> {
+    await this.request<unknown>(
+      `/businesses/${businessId}/invoices/${invoiceId}`,
+      { method: 'DELETE', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const headers: Record<string, string> = {
       'content-type': 'application/json',
