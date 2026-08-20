@@ -1,9 +1,10 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   ApiClient,
+  type Client,
   type CreateInvoiceItemInput,
 } from "@invoiceflow/api-client";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Select } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -33,6 +34,12 @@ export default function NewInvoicePage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
   const router = useRouter();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [clientId, setClientId] = useState("");
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
+  const [newClientCompany, setNewClientCompany] = useState("");
+  const [newClientEmail, setNewClientEmail] = useState("");
   const [number, setNumber] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -40,6 +47,42 @@ export default function NewInvoicePage() {
   const [items, setItems] = useState<LineItem[]>([emptyItem()]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  async function getToken(): Promise<string | null> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const token = await getToken();
+      if (!token) {
+        if (!cancelled) setError("You must be signed in to create an invoice.");
+        return;
+      }
+      try {
+        const page = await apiClient.listClients(businessId, token);
+        if (!cancelled) setClients([...page.items]);
+      } catch (caught) {
+        if (!cancelled)
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : "Failed to load clients.",
+          );
+      }
+    }
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId]);
 
   function updateItem(index: number, patch: Partial<LineItem>) {
     setItems((current) =>
@@ -55,32 +98,61 @@ export default function NewInvoicePage() {
     setItems((current) => current.filter((_, i) => i !== index));
   }
 
+  async function handleAddClient() {
+    setError(null);
+    const token = await getToken();
+    if (!token) {
+      setError("You must be signed in.");
+      return;
+    }
+
+    try {
+      const client = await apiClient.createClient(
+        businessId,
+        {
+          name: newClientName || undefined,
+          company: newClientCompany || undefined,
+          emails: newClientEmail ? [{ address: newClientEmail }] : undefined,
+        },
+        token,
+      );
+      setClients((current) => [...current, client]);
+      setClientId(client.id);
+      setShowAddClient(false);
+      setNewClientName("");
+      setNewClientCompany("");
+      setNewClientEmail("");
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to add client.",
+      );
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
 
+    const token = await getToken();
+    if (!token) {
+      setError("You must be signed in to create an invoice.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        setError("You must be signed in to create an invoice.");
-        setSubmitting(false);
-        return;
-      }
-
       await apiClient.createInvoice(
         businessId,
         {
           number,
+          clientId: clientId || undefined,
           issueDate,
           dueDate: dueDate || undefined,
           currencyCode,
           items,
         },
-        session.access_token,
+        token,
       );
 
       router.push(`/app/${businessId}/invoices`);
@@ -91,6 +163,11 @@ export default function NewInvoicePage() {
       setSubmitting(false);
     }
   }
+
+  const clientOptions = clients.map((client) => ({
+    value: client.id,
+    label: client.name ?? client.company ?? "Unnamed client",
+  }));
 
   return (
     <main>
@@ -103,6 +180,60 @@ export default function NewInvoicePage() {
           <Stack spacing={2}>
             <Paper elevation={1} sx={{ p: 3 }}>
               <Stack spacing={2}>
+                <Select
+                  label="Client"
+                  value={clientId}
+                  onValueChange={(value) => {
+                    setClientId(value);
+                    setShowAddClient(false);
+                  }}
+                  options={[
+                    { value: "", label: "Select a client" },
+                    ...clientOptions,
+                  ]}
+                />
+                {!showAddClient && (
+                  <Button variant="text" onClick={() => setShowAddClient(true)}>
+                    Add new client
+                  </Button>
+                )}
+                {showAddClient && (
+                  <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Stack spacing={2}>
+                      <Input
+                        label="Client name"
+                        value={newClientName}
+                        onChange={(event) =>
+                          setNewClientName(event.target.value)
+                        }
+                      />
+                      <Input
+                        label="Company"
+                        value={newClientCompany}
+                        onChange={(event) =>
+                          setNewClientCompany(event.target.value)
+                        }
+                      />
+                      <Input
+                        label="Email"
+                        type="email"
+                        value={newClientEmail}
+                        onChange={(event) =>
+                          setNewClientEmail(event.target.value)
+                        }
+                      />
+                      <Stack direction="row" spacing={1}>
+                        <Button onClick={handleAddClient}>Add client</Button>
+                        <Button
+                          variant="outlined"
+                          onClick={() => setShowAddClient(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                )}
                 <Input
                   label="Invoice number"
                   value={number}

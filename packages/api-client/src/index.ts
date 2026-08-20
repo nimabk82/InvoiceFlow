@@ -47,6 +47,12 @@ export type ClientPage = Readonly<{
   items: readonly Client[];
 }>;
 
+export type CreateClientInput = Readonly<{
+  name?: string;
+  company?: string;
+  emails?: Readonly<{ address: string; isPrimary?: boolean }>[];
+}>;
+
 export type ProductService = Readonly<{
   id: string;
   type: 'product' | 'service';
@@ -157,6 +163,18 @@ export class ApiClient {
         headers: { authorization: `Bearer ${token}` },
       },
     );
+  }
+
+  async createClient(
+    businessId: string,
+    input: CreateClientInput,
+    token: string,
+  ): Promise<Client> {
+    return this.request<Client>(`/businesses/${businessId}/clients`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { authorization: `Bearer ${token}` },
+    });
   }
 
   async listProducts(
