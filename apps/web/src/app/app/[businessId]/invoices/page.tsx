@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ApiClient,
   type Invoice,
@@ -99,11 +100,17 @@ export default function InvoicesPage() {
           <Paper elevation={1}>
             <List>
               {invoices.map((invoice) => (
-                <ListItem key={invoice.id} divider>
-                  <ListItemText
-                    primary={invoice.number}
-                    secondary={`${invoice.clientSnapshot.displayName} · ${invoice.status}`}
-                  />
+                <ListItem key={invoice.id} divider disablePadding>
+                  <Link
+                    href={`/app/${businessId}/invoices/${invoice.id}`}
+                    style={{ textDecoration: "none", width: "100%" }}
+                  >
+                    <ListItemText
+                      sx={{ px: 2, py: 1 }}
+                      primary={invoice.number}
+                      secondary={`${invoice.clientSnapshot.displayName} · ${invoice.status}`}
+                    />
+                  </Link>
                 </ListItem>
               ))}
             </List>

@@ -57,14 +57,15 @@ Sprint 0 — Platform foundation
 - INV-09 — Review validation (Web): gate Review Invoice on blocking issues (select client, ≥1 item, rate), focus first issue; validate on progression (no red wall on load); wire `@invoiceflow/validation` into web.
 - INV-10 — Invoice Review (Web): read-only preview + summary via `GET /invoices/:invoiceId`; Continue to Send / Back to Edit actions.
 - INV-12 — Send Invoice (Web + API): `POST /invoices/:id/send` transitions draft→sent + sets sentAt, validates emails, sends via email provider; Send screen (To/CC/BCC chips, subject, message, total/deposit summary).
+- INV-13 — Invoice Detail (Web): permanent home for an invoice — status badge, business/client, items + totals, Paid/Balance summary; Send Again action; list rows link to detail.
 
 ## Current ticket
 
-- INV-13 — Invoice Detail (next).
+- INV-14 — Record Payment (next).
 
 ## Next recommended tickets
 
-1. INV-13 — Invoice Detail
+1. INV-14 — Record Payment
 2. SET-01 — Business Profile
 
 ## Locked decisions
@@ -243,6 +244,7 @@ Watchman: VERIFIED
 - INV-09 — web lint/typecheck/test/build; validation package lint/typecheck/test (7 passed); `@invoiceflow/validation` added to web deps + transpilePackages (consolidated to single-file entry)
 - INV-10 — web lint/typecheck/build; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end GET /invoices/:id verified
 - INV-12 — web lint/typecheck/build; api lint/typecheck/test (107 passed)/build; api-client lint/typecheck/test/build; end-to-end send (draft→sent) verified
+- INV-13 — web lint/typecheck/test/build
 
 ## Status update format
 
