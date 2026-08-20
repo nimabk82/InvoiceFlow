@@ -4,7 +4,14 @@ import { ClientsService } from './clients.service';
 describe('ClientsController', () => {
   const list = jest.fn().mockResolvedValue({ items: [] });
   const createClient = jest.fn().mockResolvedValue({});
-  const service = { list, createClient } as unknown as ClientsService;
+  const findById = jest.fn().mockResolvedValue({});
+  const updateClient = jest.fn().mockResolvedValue({});
+  const service = {
+    list,
+    createClient,
+    findById,
+    updateClient,
+  } as unknown as ClientsService;
   const controller = new ClientsController(service);
 
   it('lists clients with a search term', async () => {
@@ -28,5 +35,19 @@ describe('ClientsController', () => {
     await controller.create('business-1', input);
 
     expect(createClient).toHaveBeenCalledWith('business-1', input);
+  });
+
+  it('finds a client by id', async () => {
+    await controller.findOne('business-1', 'c1');
+
+    expect(findById).toHaveBeenCalledWith('business-1', 'c1');
+  });
+
+  it('updates a client by id', async () => {
+    await controller.update('business-1', 'c1', { name: 'New' });
+
+    expect(updateClient).toHaveBeenCalledWith('business-1', 'c1', {
+      name: 'New',
+    });
   });
 });

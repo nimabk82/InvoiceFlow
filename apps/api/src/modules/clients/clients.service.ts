@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Client } from '@invoiceflow/domain';
 
@@ -23,6 +28,8 @@ export type CreateClientInput = {
   internalNote?: string;
 };
 
+export type UpdateClientInput = CreateClientInput;
+
 @Injectable()
 export class ClientsService {
   constructor(
@@ -35,6 +42,10 @@ export class ClientsService {
     options?: ListClientsOptions,
   ): Promise<ClientPage> {
     return this.clientRepository.list({ businessId, ...options });
+  }
+
+  async findById(businessId: string, clientId: string): Promise<Client | null> {
+    return this.clientRepository.findById(clientId, businessId);
   }
 
   async createClient(
@@ -66,5 +77,52 @@ export class ClientsService {
     await this.clientRepository.save(client);
 
     return client;
+  }
+
+  async updateClient(
+    businessId: string,
+    clientId: string,
+    input: UpdateClientInput,
+  ): Promise<Client> {
+    const existing = await this.clientRepository.findById(clientId, businessId);
+
+    if (!existing) {
+      throw new NotFoundException('Client not found');
+    }
+
+    const updated: Client = {
+      ...existing,
+      name:
+        input.name !== undefined
+          ? input.name.trim() || undefined
+          : existing.name,
+      company:
+        input.company !== undefined
+          ? input.company.trim() || undefined
+          : existing.company,
+      phone:
+        input.phone !== undefined
+          ? input.phone.trim() || undefined
+          : existing.phone,
+      taxNumber:
+        input.taxNumber !== undefined
+          ? input.taxNumber.trim() || undefined
+          : existing.taxNumber,
+      internalNote:
+        input.internalNote !== undefined
+          ? input.internalNote.trim() || undefined
+          : existing.internalNote,
+      emails: input.emails
+        ? input.emails.map((email, index) => ({
+            id: randomUUID(),
+            address: email.address.trim(),
+            isPrimary: email.isPrimary ?? index === 0,
+          }))
+        : existing.emails,
+    };
+
+    await this.clientRepository.save(updated);
+
+    return updated;
   }
 }
