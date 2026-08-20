@@ -41,6 +41,8 @@ export type Client = Readonly<{
   name?: string;
   company?: string;
   emails: readonly ClientEmail[];
+  phone?: string;
+  taxNumber?: string;
 }>;
 
 export type ClientPage = Readonly<{
@@ -51,7 +53,11 @@ export type CreateClientInput = Readonly<{
   name?: string;
   company?: string;
   emails?: Readonly<{ address: string; isPrimary?: boolean }>[];
+  phone?: string;
+  taxNumber?: string;
 }>;
+
+export type UpdateClientInput = CreateClientInput;
 
 export type ProductService = Readonly<{
   id: string;
@@ -176,6 +182,35 @@ export class ApiClient {
       body: JSON.stringify(input),
       headers: { authorization: `Bearer ${token}` },
     });
+  }
+
+  async getClient(
+    businessId: string,
+    clientId: string,
+    token: string,
+  ): Promise<Client | null> {
+    return this.request<Client | null>(
+      `/businesses/${businessId}/clients/${clientId}`,
+      {
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async updateClient(
+    businessId: string,
+    clientId: string,
+    input: UpdateClientInput,
+    token: string,
+  ): Promise<Client> {
+    return this.request<Client>(
+      `/businesses/${businessId}/clients/${clientId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
   }
 
   async listProducts(

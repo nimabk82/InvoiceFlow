@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -14,9 +15,11 @@ import {
   ListItem,
   ListItemText,
   Paper,
+  Stack,
   Typography,
 } from "@mui/material";
 
+import { Button } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -77,9 +80,21 @@ export default function ClientsPage() {
   return (
     <main>
       <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Clients
-        </Typography>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h4" component="h1">
+            Clients
+          </Typography>
+          <Link href={`/app/${businessId}/clients/new`}>
+            <Button>New client</Button>
+          </Link>
+        </Stack>
 
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
@@ -99,7 +114,13 @@ export default function ClientsPage() {
           <Paper elevation={1}>
             <List>
               {clients.map((client) => (
-                <ListItem key={client.id} divider>
+                <ListItem
+                  key={client.id}
+                  divider
+                  component={Link}
+                  href={`/app/${businessId}/clients/${client.id}/edit`}
+                  sx={{ textDecoration: "none" }}
+                >
                   <ListItemText
                     primary={client.name ?? client.company ?? "Unnamed client"}
                     secondary={client.emails[0]?.address}
