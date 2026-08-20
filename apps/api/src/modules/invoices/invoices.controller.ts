@@ -53,4 +53,12 @@ export class InvoicesController {
   ) {
     return this.invoicesService.createInvoice(businessId, input);
   }
+
+  @Get(':invoiceId')
+  findOne(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+  ) {
+    return this.invoicesService.findById(businessId, invoiceId);
+  }
 }

@@ -55,14 +55,15 @@ Sprint 0 — Platform foundation
 - INV-06 — Deposit editor (Web) + `depositTerms` through api-client and invoice create API.
 - INV-07 — More Options (Web): Discount (percentage/fixed) + PO # through api-client and invoice create API.
 - INV-09 — Review validation (Web): gate Review Invoice on blocking issues (select client, ≥1 item, rate), focus first issue; validate on progression (no red wall on load); wire `@invoiceflow/validation` into web.
+- INV-10 — Invoice Review (Web): read-only preview + summary via `GET /invoices/:invoiceId`; Continue to Send / Back to Edit actions.
 
 ## Current ticket
 
-- INV-10 — Invoice Review (next).
+- INV-12 — Send Invoice (next).
 
 ## Next recommended tickets
 
-1. INV-10 — Invoice Review
+1. INV-12 — Send Invoice
 2. SET-01 — Business Profile
 
 ## Locked decisions
@@ -239,6 +240,7 @@ Watchman: VERIFIED
 - INV-06 — web lint/typecheck/test; api lint/typecheck/test (105 passed)/build; api-client lint/typecheck/test/build; end-to-end deposit persistence verified
 - INV-07 — web lint/typecheck/test; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end discount + PO # persistence verified
 - INV-09 — web lint/typecheck/test/build; validation package lint/typecheck/test (7 passed); `@invoiceflow/validation` added to web deps + transpilePackages (consolidated to single-file entry)
+- INV-10 — web lint/typecheck/build; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end GET /invoices/:id verified
 
 ## Status update format
 

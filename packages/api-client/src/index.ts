@@ -82,20 +82,67 @@ export type CreateProductInput = Readonly<{
 
 export type UpdateProductInput = CreateProductInput;
 
+export type InvoiceItem = Readonly<{
+  description: string;
+  secondaryDescription?: string;
+  quantity: string;
+  rate: string;
+  appliedTaxes: Readonly<{ name: string; rate: string }>[];
+}>;
+
+export type InvoiceAddress = Readonly<{
+  line1?: string;
+  line2?: string;
+  city?: string;
+  region?: string;
+  postalCode?: string;
+  countryCode?: string;
+}>;
+
+export type InvoiceClientSnapshot = Readonly<{
+  displayName: string;
+  emails: readonly string[];
+  phone?: string;
+  address?: InvoiceAddress;
+  taxNumber?: string;
+}>;
+
+export type InvoiceBusinessSnapshot = Readonly<{
+  displayName: string;
+  legalName?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: InvoiceAddress;
+  taxNumbers?: readonly string[];
+  logoAssetId?: string;
+}>;
+
+export type InvoiceDiscount = Readonly<{
+  type: 'percentage' | 'fixed';
+  value: string;
+}>;
+
+export type InvoiceDepositTerms = Readonly<{
+  type: 'percentage' | 'fixed';
+  value: string;
+  dueRule: DepositDueRule;
+  dueDate?: string;
+}>;
+
 export type Invoice = Readonly<{
   id: string;
   number: string;
   status: string;
   currencyCode: string;
+  issueDate: string;
   dueDate?: string;
-  clientSnapshot: Readonly<{ displayName: string }>;
-  items: Readonly<
-    {
-      quantity: string;
-      rate: string;
-      appliedTaxes: Readonly<{ name: string; rate: string }>[];
-    }[]
-  >;
+  poNumber?: string;
+  clientSnapshot: InvoiceClientSnapshot;
+  businessSnapshot: InvoiceBusinessSnapshot;
+  items: readonly InvoiceItem[];
+  discount?: InvoiceDiscount;
+  depositTerms?: InvoiceDepositTerms;
 }>;
 
 export type InvoicePage = Readonly<{
@@ -315,6 +362,17 @@ export class ApiClient {
       body: JSON.stringify(input),
       headers: { authorization: `Bearer ${token}` },
     });
+  }
+
+  async getInvoice(
+    businessId: string,
+    invoiceId: string,
+    token: string,
+  ): Promise<Invoice> {
+    return this.request<Invoice>(
+      `/businesses/${businessId}/invoices/${invoiceId}`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {

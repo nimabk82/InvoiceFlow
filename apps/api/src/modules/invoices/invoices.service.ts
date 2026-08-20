@@ -84,6 +84,22 @@ export class InvoicesService {
     return this.invoiceRepository.list({ businessId, ...options });
   }
 
+  async findById(
+    businessId: string,
+    invoiceId: string,
+  ): Promise<Invoice> {
+    const invoice = await this.invoiceRepository.findById(
+      invoiceId,
+      businessId,
+    );
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    return invoice;
+  }
+
   async createInvoice(
     businessId: string,
     input: CreateInvoiceInput,
