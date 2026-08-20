@@ -47,18 +47,19 @@ Sprint 0 — Platform foundation
 - PRODUCT-01 — Product/Service list (Web) + products API (`GET /businesses/:businessId/products`, Supabase repository adapter).
 - INV-01 — Invoice list (Web) + invoices API (`GET /businesses/:businessId/invoices`, Supabase repository adapter).
 - INV-02 — New Invoice editor (Web) + `POST /businesses/:businessId/invoices` (server-side snapshots + item persistence).
+- INV-03 — Client selector + inline Add Client in the invoice editor (`POST /businesses/:businessId/clients`).
 
 ## Current ticket
 
-- INV-03 — Client selector + inline Add Client (next).
+- INV-04 — Line item editor (next).
 
 ## Next recommended tickets
 
-1. INV-03 — Client selector + inline Add Client
-2. CLIENT-02 — Create/Edit client
-3. PRODUCT-02 — Create/Edit item
-4. INV-04 — Line item editor
-5. SET-01 — Business Profile
+1. INV-04 — Line item editor
+2. INV-05 — Taxes
+3. CLIENT-02 — Create/Edit client
+4. PRODUCT-02 — Create/Edit item
+5. INV-09 — Review validation
 
 ## Locked decisions
 
