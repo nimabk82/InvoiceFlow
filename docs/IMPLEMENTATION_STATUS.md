@@ -58,14 +58,15 @@ Sprint 0 — Platform foundation
 - INV-10 — Invoice Review (Web): read-only preview + summary via `GET /invoices/:invoiceId`; Continue to Send / Back to Edit actions.
 - INV-12 — Send Invoice (Web + API): `POST /invoices/:id/send` transitions draft→sent + sets sentAt, validates emails, sends via email provider; Send screen (To/CC/BCC chips, subject, message, total/deposit summary).
 - INV-13 — Invoice Detail (Web): permanent home for an invoice — status badge, business/client, items + totals, Paid/Balance summary; Send Again action; list rows link to detail.
+- INV-14 — Record Payment (Web + API): `POST/GET /invoices/:id/payments` via new `PaymentsModule`/Supabase repo; records a payment and derives status (paid / partially_paid); Record Payment dialog in Detail.
 
 ## Current ticket
 
-- INV-14 — Record Payment (next).
+- INV-15 — Partial/Paid status derivation (next).
 
 ## Next recommended tickets
 
-1. INV-14 — Record Payment
+1. INV-15 — Partial/Paid status derivation
 2. SET-01 — Business Profile
 
 ## Locked decisions
@@ -245,6 +246,7 @@ Watchman: VERIFIED
 - INV-10 — web lint/typecheck/build; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end GET /invoices/:id verified
 - INV-12 — web lint/typecheck/build; api lint/typecheck/test (107 passed)/build; api-client lint/typecheck/test/build; end-to-end send (draft→sent) verified
 - INV-13 — web lint/typecheck/test/build
+- INV-14 — web lint/typecheck/build; api lint/typecheck/test (109 passed)/build; api-client lint/typecheck/test/build; end-to-end record payment + status derivation verified
 
 ## Status update format
 

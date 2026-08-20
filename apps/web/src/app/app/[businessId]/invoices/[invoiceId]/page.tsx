@@ -2,7 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ApiClient, type Invoice } from "@invoiceflow/api-client";
+import {
+  ApiClient,
+  type Invoice,
+  type Payment,
+} from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import {
   Alert,
@@ -19,7 +23,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { Button, StatusBadge, type StatusTone } from "@/components/ui";
+import { Button, Dialog, Input, StatusBadge, type StatusTone } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -41,7 +45,15 @@ export default function InvoiceDetailPage() {
   const { businessId, invoiceId } = params;
   const router = useRouter();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [paidAt, setPaidAt] = useState("");
+  const [method, setMethod] = useState("");
+  const [reference, setReference] = useState("");
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,8 +70,14 @@ export default function InvoiceDetailPage() {
       }
 
       try {
-        const found = await apiClient.getInvoice(businessId, invoiceId, token);
-        if (!cancelled) setInvoice(found);
+        const [found, paymentList] = await Promise.all([
+          apiClient.getInvoice(businessId, invoiceId, token),
+          apiClient.listPayments(businessId, invoiceId, token),
+        ]);
+        if (!cancelled) {
+          setInvoice(found);
+          setPayments([...paymentList]);
+        }
       } catch (caught) {
         if (!cancelled)
           setError(
@@ -94,6 +112,54 @@ export default function InvoiceDetailPage() {
       return null;
     }
   }, [invoice]);
+
+  const paidAmount = payments.reduce(
+    (sum, payment) => sum + Number(payment.amount),
+    0,
+  );
+
+  function openPayment() {
+    setPaymentError(null);
+    setAmount(totals ? totals.total.toDecimalString() : "");
+    setPaidAt(new Date().toISOString().slice(0, 10));
+    setMethod("");
+    setReference("");
+    setPaymentOpen(true);
+  }
+
+  async function savePayment() {
+    setPaymentError(null);
+    setSavingPayment(true);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token ?? null;
+    if (!token) {
+      setPaymentError("You must be signed in.");
+      setSavingPayment(false);
+      return;
+    }
+
+    try {
+      const result = await apiClient.recordPayment(
+        businessId,
+        invoiceId,
+        { amount, paidAt, method: method || undefined, reference: reference || undefined },
+        token,
+      );
+      setInvoice(result.invoice);
+      const paymentList = await apiClient.listPayments(businessId, invoiceId, token);
+      setPayments([...paymentList]);
+      setPaymentOpen(false);
+    } catch (caught) {
+      setPaymentError(
+        caught instanceof Error ? caught.message : "Failed to record payment.",
+      );
+    } finally {
+      setSavingPayment(false);
+    }
+  }
 
   if (error) {
     return (
@@ -263,12 +329,13 @@ export default function InvoiceDetailPage() {
                 Summary
               </Typography>
               <Typography variant="body1">
-                Paid: {totals ? `0.00 ${invoice.currencyCode}` : "—"}
+                Paid:{" "}
+                {totals ? `${paidAmount.toFixed(2)} ${invoice.currencyCode}` : "—"}
               </Typography>
               <Typography variant="body1">
                 Balance:{" "}
                 {totals
-                  ? `${totals.total.toDecimalString()} ${invoice.currencyCode}`
+                  ? `${(totals.total.toNumber() - paidAmount).toFixed(2)} ${invoice.currencyCode}`
                   : "—"}
               </Typography>
             </Box>
@@ -276,6 +343,9 @@ export default function InvoiceDetailPage() {
         </Paper>
 
         <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+          <Button variant="outlined" onClick={openPayment}>
+            Record Payment
+          </Button>
           <Button
             onClick={() =>
               router.push(`/app/${businessId}/invoices/${invoiceId}/send`)
@@ -284,6 +354,48 @@ export default function InvoiceDetailPage() {
             Send Again
           </Button>
         </Box>
+
+        <Dialog
+          open={paymentOpen}
+          onClose={() => setPaymentOpen(false)}
+          title="Record Payment"
+          actions={
+            <>
+              <Button variant="outlined" onClick={() => setPaymentOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={savePayment} disabled={savingPayment}>
+                {savingPayment ? "Saving…" : "Record Payment"}
+              </Button>
+            </>
+          }
+        >
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Input
+              label="Amount"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+            />
+            <Input
+              label="Date"
+              type="date"
+              value={paidAt}
+              onChange={(event) => setPaidAt(event.target.value)}
+            />
+            <Input
+              label="Method"
+              value={method}
+              onChange={(event) => setMethod(event.target.value)}
+              placeholder="e.g. Credit card, Bank transfer"
+            />
+            <Input
+              label="Reference"
+              value={reference}
+              onChange={(event) => setReference(event.target.value)}
+            />
+            {paymentError && <Alert severity="error">{paymentError}</Alert>}
+          </Stack>
+        </Dialog>
       </Box>
     </main>
   );

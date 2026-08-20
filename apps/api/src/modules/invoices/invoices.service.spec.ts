@@ -20,12 +20,18 @@ function createRepository() {
   const emailProvider = {
     send: jest.fn().mockResolvedValue({ accepted: true }),
   };
+  const paymentRepository = {
+    findById: jest.fn(),
+    listByInvoice: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockResolvedValue(undefined),
+  };
 
   return {
     invoiceRepository,
     businessRepository,
     clientRepository,
     emailProvider,
+    paymentRepository,
     list,
     save,
   };
@@ -38,6 +44,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
       list,
     } = createRepository();
     const service = new InvoicesService(
@@ -45,6 +52,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
     );
 
     await service.list('business-1', { status: 'draft' });
@@ -61,6 +69,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
       save,
     } = createRepository();
     (businessRepository.findById as jest.Mock).mockResolvedValue({
@@ -80,6 +89,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
     );
 
     const invoice = await service.createInvoice('business-1', {
@@ -103,12 +113,14 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
     } = createRepository();
     const service = new InvoicesService(
       invoiceRepository,
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
     );
 
     await expect(
@@ -126,6 +138,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -140,6 +153,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
     );
 
     const sent = await service.sendInvoice('business-1', 'invoice-1', {
@@ -167,6 +181,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -181,6 +196,7 @@ describe('InvoicesService', () => {
       businessRepository,
       clientRepository,
       emailProvider,
+      paymentRepository,
     );
 
     await expect(
@@ -190,5 +206,81 @@ describe('InvoicesService', () => {
       }),
     ).rejects.toThrow();
     expect(save).not.toHaveBeenCalled();
+  });
+
+  it('records a payment and marks a fully paid invoice as paid', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      save,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      currencyCode: 'CAD',
+      items: [{ quantity: '2', rate: '500', appliedTaxes: [] }],
+    });
+    paymentRepository.listByInvoice.mockResolvedValue([
+      { id: 'p1', invoiceId: 'invoice-1', amount: '500' },
+      { id: 'p2', invoiceId: 'invoice-1', amount: '500' },
+    ]);
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    );
+
+    const { invoice } = await service.recordPayment('business-1', 'invoice-1', {
+      amount: '500',
+      paidAt: '2026-08-20T00:00:00.000Z',
+    });
+
+    expect(paymentRepository.save).toHaveBeenCalled();
+    expect(invoice.status).toBe('paid');
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'paid' }),
+    );
+  });
+
+  it('records a partial payment and marks the invoice partially paid', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      save,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      currencyCode: 'CAD',
+      items: [{ quantity: '2', rate: '500', appliedTaxes: [] }],
+    });
+    paymentRepository.listByInvoice.mockResolvedValue([
+      { id: 'p1', invoiceId: 'invoice-1', amount: '250' },
+    ]);
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    );
+
+    const { invoice } = await service.recordPayment('business-1', 'invoice-1', {
+      amount: '250',
+      paidAt: '2026-08-20T00:00:00.000Z',
+    });
+
+    expect(invoice.status).toBe('partially_paid');
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'partially_paid' }),
+    );
   });
 });

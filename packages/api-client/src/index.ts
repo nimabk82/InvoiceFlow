@@ -191,6 +191,22 @@ export type SendInvoiceInput = Readonly<{
   message?: string;
 }>;
 
+export type RecordPaymentInput = Readonly<{
+  amount: string;
+  paidAt: string;
+  method?: string;
+  reference?: string;
+}>;
+
+export type Payment = Readonly<{
+  id: string;
+  invoiceId: string;
+  amount: string;
+  paidAt: string;
+  method?: string;
+  reference?: string;
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -396,6 +412,33 @@ export class ApiClient {
         body: JSON.stringify(input),
         headers: { authorization: `Bearer ${token}` },
       },
+    );
+  }
+
+  async recordPayment(
+    businessId: string,
+    invoiceId: string,
+    input: RecordPaymentInput,
+    token: string,
+  ): Promise<{ invoice: Invoice; paymentId: string }> {
+    return this.request<{ invoice: Invoice; paymentId: string }>(
+      `/businesses/${businessId}/invoices/${invoiceId}/payments`,
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async listPayments(
+    businessId: string,
+    invoiceId: string,
+    token: string,
+  ): Promise<Payment[]> {
+    return this.request<Payment[]>(
+      `/businesses/${businessId}/invoices/${invoiceId}/payments`,
+      { headers: { authorization: `Bearer ${token}` } },
     );
   }
 

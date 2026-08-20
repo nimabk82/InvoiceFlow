@@ -11,6 +11,7 @@ import type {
   Client,
   ClientSnapshot,
   Invoice,
+  Payment,
 } from '@invoiceflow/domain';
 
 import {
@@ -22,6 +23,10 @@ import {
   type ClientRepository,
 } from '../clients/repositories/client.repository';
 import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
+import {
+  PAYMENT_REPOSITORY,
+  type PaymentRepository,
+} from '../payments/repositories/payment.repository';
 import {
   INVOICE_REPOSITORY,
   type InvoicePage,
@@ -75,6 +80,13 @@ export type SendInvoiceInput = {
   message?: string;
 };
 
+export type RecordPaymentInput = {
+  amount: string;
+  paidAt: string;
+  method?: string;
+  reference?: string;
+};
+
 @Injectable()
 export class InvoicesService {
   constructor(
@@ -86,6 +98,8 @@ export class InvoicesService {
     private readonly clientRepository: ClientRepository,
     @Inject(EMAIL_PROVIDER)
     private readonly emailProvider: EmailProvider,
+    @Inject(PAYMENT_REPOSITORY)
+    private readonly paymentRepository: PaymentRepository,
   ) {}
 
   async list(
@@ -151,6 +165,60 @@ export class InvoicesService {
     await this.invoiceRepository.save(sent);
 
     return sent;
+  }
+
+  async listPayments(
+    businessId: string,
+    invoiceId: string,
+  ): Promise<Payment[]> {
+    await this.findById(businessId, invoiceId);
+    return this.paymentRepository.listByInvoice(invoiceId);
+  }
+
+  async recordPayment(
+    businessId: string,
+    invoiceId: string,
+    input: RecordPaymentInput,
+  ): Promise<{ invoice: Invoice; paymentId: string }> {
+    if (input.amount === undefined || input.amount.trim() === '') {
+      throw new BadRequestException('Payment amount is required');
+    }
+
+    if (!input.paidAt) {
+      throw new BadRequestException('Payment date is required');
+    }
+
+    const invoice = await this.findById(businessId, invoiceId);
+
+    const paymentId = randomUUID();
+    await this.paymentRepository.save({
+      id: paymentId,
+      invoiceId,
+      amount: input.amount,
+      paidAt: input.paidAt,
+      method: input.method,
+      reference: input.reference,
+    });
+
+    const payments = await this.paymentRepository.listByInvoice(invoiceId);
+    const total = computeInvoiceTotal(invoice);
+    const paid = payments.reduce(
+      (sum, payment) => sum + toUnits(payment.amount),
+      0n,
+    );
+
+    const status: Invoice['status'] =
+      paid >= total ? 'paid' : paid > 0n ? 'partially_paid' : 'sent';
+
+    const updated: Invoice = {
+      ...invoice,
+      status,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.invoiceRepository.save(updated);
+
+    return { invoice: updated, paymentId };
   }
 
   async createInvoice(
@@ -235,4 +303,56 @@ function toClientSnapshot(client: Client): ClientSnapshot {
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+const MONEY_SCALE = 4n;
+const SCALE_MULT = 10n ** MONEY_SCALE;
+
+function toUnits(value: string): bigint {
+  const trimmed = value.trim();
+  const negative = trimmed.startsWith('-');
+  const abs = negative ? trimmed.slice(1) : trimmed;
+  const dot = abs.indexOf('.');
+  const int = dot === -1 ? abs : abs.slice(0, dot);
+  let frac = dot === -1 ? '' : abs.slice(dot + 1);
+  frac = (frac + '0000').slice(0, Number(MONEY_SCALE));
+  const units =
+    BigInt(int === '' ? '0' : int) * SCALE_MULT +
+    BigInt(frac === '' ? '0' : frac);
+  return negative ? -units : units;
+}
+
+function multiply(units: bigint, factor: string): bigint {
+  return (units * toUnits(factor)) / SCALE_MULT;
+}
+
+function percentOf(units: bigint, percent: string): bigint {
+  return (units * toUnits(percent)) / (100n * SCALE_MULT);
+}
+
+function computeInvoiceTotal(invoice: Invoice): bigint {
+  const subtotal = invoice.items.reduce(
+    (sum, item) => sum + multiply(toUnits(item.quantity), item.rate),
+    0n,
+  );
+
+  const discountAmount = invoice.discount
+    ? invoice.discount.type === 'fixed'
+      ? toUnits(invoice.discount.value)
+      : percentOf(subtotal, invoice.discount.value)
+    : 0n;
+
+  const taxableSubtotal = subtotal - discountAmount;
+
+  let taxTotal = 0n;
+  invoice.items.forEach((item) => {
+    const lineTotal = multiply(toUnits(item.quantity), item.rate);
+    const discountedLineTotal =
+      subtotal === 0n ? lineTotal : (lineTotal * taxableSubtotal) / subtotal;
+    for (const tax of item.appliedTaxes ?? []) {
+      taxTotal += percentOf(discountedLineTotal, tax.rate);
+    }
+  });
+
+  return taxableSubtotal + taxTotal;
 }
