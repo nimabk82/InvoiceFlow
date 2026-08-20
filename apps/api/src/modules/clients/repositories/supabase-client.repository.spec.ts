@@ -12,6 +12,8 @@ type Builder = {
   order: jest.Mock;
   limit: jest.Mock;
   in: jest.Mock;
+  delete: jest.Mock;
+  insert: jest.Mock;
   maybeSingle: jest.Mock;
   upsert: jest.Mock;
   then: (onFulfilled?: (value: unknown) => unknown) => Promise<unknown>;
@@ -26,6 +28,8 @@ function createBuilder(result: unknown): Builder {
     order: jest.fn(() => builder),
     limit: jest.fn(() => builder),
     in: jest.fn(() => builder),
+    delete: jest.fn(() => builder),
+    insert: jest.fn(() => builder),
     maybeSingle: jest.fn(() => Promise.resolve(result)),
     upsert: jest.fn(() => Promise.resolve(result)),
     then: (onFulfilled) => Promise.resolve(result).then(onFulfilled),

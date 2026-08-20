@@ -123,6 +123,34 @@ export class SupabaseClientRepository implements ClientRepository {
     if (error) {
       throw new Error(error.message);
     }
+
+    const { error: deleteError } = await this.client
+      .from('client_emails')
+      .delete()
+      .eq('client_id', client.id);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
+    if (client.emails.length === 0) {
+      return;
+    }
+
+    const { error: insertError } = await this.client
+      .from('client_emails')
+      .insert(
+        client.emails.map((email) => ({
+          id: email.id,
+          client_id: client.id,
+          address: email.address,
+          is_primary: email.isPrimary,
+        })),
+      );
+
+    if (insertError) {
+      throw new Error(insertError.message);
+    }
   }
 
   private async loadEmails(

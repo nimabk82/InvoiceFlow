@@ -1,8 +1,16 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { AuthGuard } from '../auth';
 import { BusinessAccessGuard } from '../businesses/access';
-import type { ListClientsOptions } from './clients.service';
+import type { CreateClientInput, ListClientsOptions } from './clients.service';
 import { ClientsService } from './clients.service';
 
 @Controller('businesses/:businessId/clients')
@@ -23,5 +31,13 @@ export class ClientsController {
     }
 
     return this.clientsService.list(businessId, options);
+  }
+
+  @Post()
+  create(
+    @Param('businessId') businessId: string,
+    @Body() input: CreateClientInput,
+  ) {
+    return this.clientsService.createClient(businessId, input);
   }
 }
