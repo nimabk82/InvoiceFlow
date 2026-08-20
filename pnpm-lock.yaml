@@ -232,6 +232,9 @@ importers:
       '@invoiceflow/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@invoiceflow/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       '@mui/icons-material':
         specifier: 9.3.1
         version: 9.3.1(@mui/material@9.3.1(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@types/react@19.2.18)(react@19.2.8)

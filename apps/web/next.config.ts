@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     "@invoiceflow/api-client",
     "@invoiceflow/calculations",
     "@invoiceflow/design-tokens",
+    "@invoiceflow/validation",
   ],
 };
 

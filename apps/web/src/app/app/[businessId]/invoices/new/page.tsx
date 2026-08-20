@@ -9,6 +9,7 @@ import {
   type DepositDueRule,
 } from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
+import { validateDocumentForReview } from "@invoiceflow/validation";
 import {
   Alert,
   Box,
@@ -66,6 +67,7 @@ export default function NewInvoicePage() {
   >("");
   const [discountValue, setDiscountValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [reviewIssues, setReviewIssues] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   async function getToken(): Promise<string | null> {
@@ -198,6 +200,78 @@ export default function NewInvoicePage() {
     }
   }
 
+  function buildInvoiceInput(): Parameters<typeof apiClient.createInvoice>[1] {
+    return {
+      number,
+      clientId: clientId || undefined,
+      issueDate,
+      dueDate: dueDate || undefined,
+      currencyCode,
+      poNumber: poNumber || undefined,
+      items,
+      discount: discountType
+        ? { type: discountType, value: discountValue }
+        : undefined,
+      depositTerms: depositType
+        ? {
+            type: depositType,
+            value: depositValue,
+            dueRule: depositDueRule,
+            dueDate:
+              depositDueRule === "custom" && depositDueDate
+                ? depositDueDate
+                : undefined,
+          }
+        : undefined,
+    };
+  }
+
+  async function saveDraft(token: string) {
+    return apiClient.createInvoice(businessId, buildInvoiceInput(), token);
+  }
+
+  function focusFirstIssue(issues: readonly { path?: string }[]) {
+    const first = issues.find((issue) => issue.path);
+    if (!first?.path) return;
+    const id = first.path === "client" ? "client-select" : first.path;
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById(id)?.focus?.();
+  }
+
+  async function handleReview() {
+    setError(null);
+    const result = validateDocumentForReview({
+      clientSelected: clientId !== "",
+      items: items.map((item) => ({ rate: item.rate })),
+    });
+
+    if (!result.valid) {
+      setReviewIssues(result.issues.map((issue) => issue.message));
+      focusFirstIssue(result.issues);
+      return;
+    }
+
+    setReviewIssues([]);
+    setSubmitting(true);
+
+    const token = await getToken();
+    if (!token) {
+      setError("You must be signed in to create an invoice.");
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const invoice = await saveDraft(token);
+      router.push(`/app/${businessId}/invoices/${invoice.id}/review`);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to create invoice.",
+      );
+      setSubmitting(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -211,33 +285,7 @@ export default function NewInvoicePage() {
     }
 
     try {
-      await apiClient.createInvoice(
-        businessId,
-        {
-          number,
-          clientId: clientId || undefined,
-          issueDate,
-          dueDate: dueDate || undefined,
-          currencyCode,
-          poNumber: poNumber || undefined,
-          items,
-          discount: discountType
-            ? { type: discountType, value: discountValue }
-            : undefined,
-          depositTerms: depositType
-            ? {
-                type: depositType,
-                value: depositValue,
-                dueRule: depositDueRule,
-                dueDate:
-                  depositDueRule === "custom" && depositDueDate
-                    ? depositDueDate
-                    : undefined,
-              }
-            : undefined,
-        },
-        token,
-      );
+      await saveDraft(token);
 
       router.push(`/app/${businessId}/invoices`);
     } catch (caught) {
@@ -288,6 +336,7 @@ export default function NewInvoicePage() {
             <Paper elevation={1} sx={{ p: 3 }}>
               <Stack spacing={2}>
                 <Select
+                  id="client-select"
                   label="Client"
                   value={clientId}
                   onValueChange={(value) => {
@@ -408,6 +457,7 @@ export default function NewInvoicePage() {
                         sx={{ width: 90 }}
                       />
                       <Input
+                        id={`items[${index}].rate`}
                         label="Rate"
                         value={item.rate}
                         onChange={(event) =>
@@ -590,9 +640,29 @@ export default function NewInvoicePage() {
 
             {error && <Alert severity="error">{error}</Alert>}
 
-            <Box>
-              <Button type="submit" disabled={submitting}>
-                {submitting ? "Saving…" : "Save draft"}
+            {reviewIssues.length > 0 && (
+              <Alert severity="warning">
+                <Typography variant="subtitle2" gutterBottom>
+                  Review blocked
+                </Typography>
+                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                  {reviewIssues.map((message) => (
+                    <li key={message}>{message}</li>
+                  ))}
+                </ul>
+              </Alert>
+            )}
+
+            <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+              <Button type="submit" variant="outlined" disabled={submitting}>
+                Save draft
+              </Button>
+              <Button
+                type="button"
+                onClick={handleReview}
+                disabled={submitting}
+              >
+                {submitting ? "Saving…" : "Review Invoice"}
               </Button>
             </Box>
           </Stack>
