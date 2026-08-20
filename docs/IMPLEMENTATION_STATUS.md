@@ -56,14 +56,15 @@ Sprint 0 — Platform foundation
 - INV-07 — More Options (Web): Discount (percentage/fixed) + PO # through api-client and invoice create API.
 - INV-09 — Review validation (Web): gate Review Invoice on blocking issues (select client, ≥1 item, rate), focus first issue; validate on progression (no red wall on load); wire `@invoiceflow/validation` into web.
 - INV-10 — Invoice Review (Web): read-only preview + summary via `GET /invoices/:invoiceId`; Continue to Send / Back to Edit actions.
+- INV-12 — Send Invoice (Web + API): `POST /invoices/:id/send` transitions draft→sent + sets sentAt, validates emails, sends via email provider; Send screen (To/CC/BCC chips, subject, message, total/deposit summary).
 
 ## Current ticket
 
-- INV-12 — Send Invoice (next).
+- INV-13 — Invoice Detail (next).
 
 ## Next recommended tickets
 
-1. INV-12 — Send Invoice
+1. INV-13 — Invoice Detail
 2. SET-01 — Business Profile
 
 ## Locked decisions
@@ -241,6 +242,7 @@ Watchman: VERIFIED
 - INV-07 — web lint/typecheck/test; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end discount + PO # persistence verified
 - INV-09 — web lint/typecheck/test/build; validation package lint/typecheck/test (7 passed); `@invoiceflow/validation` added to web deps + transpilePackages (consolidated to single-file entry)
 - INV-10 — web lint/typecheck/build; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end GET /invoices/:id verified
+- INV-12 — web lint/typecheck/build; api lint/typecheck/test (107 passed)/build; api-client lint/typecheck/test/build; end-to-end send (draft→sent) verified
 
 ## Status update format
 

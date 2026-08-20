@@ -17,11 +17,15 @@ function createRepository() {
   const clientRepository = {
     findById: jest.fn(),
   } as unknown as ClientRepository;
+  const emailProvider = {
+    send: jest.fn().mockResolvedValue({ accepted: true }),
+  };
 
   return {
     invoiceRepository,
     businessRepository,
     clientRepository,
+    emailProvider,
     list,
     save,
   };
@@ -29,12 +33,18 @@ function createRepository() {
 
 describe('InvoicesService', () => {
   it('lists invoices for a business with an optional status', async () => {
-    const { invoiceRepository, businessRepository, clientRepository, list } =
-      createRepository();
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      list,
+    } = createRepository();
     const service = new InvoicesService(
       invoiceRepository,
       businessRepository,
       clientRepository,
+      emailProvider,
     );
 
     await service.list('business-1', { status: 'draft' });
@@ -46,8 +56,13 @@ describe('InvoicesService', () => {
   });
 
   it('creates an invoice draft with snapshots and saves it', async () => {
-    const { invoiceRepository, businessRepository, clientRepository, save } =
-      createRepository();
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      save,
+    } = createRepository();
     (businessRepository.findById as jest.Mock).mockResolvedValue({
       id: 'business-1',
       name: 'Acme',
@@ -64,6 +79,7 @@ describe('InvoicesService', () => {
       invoiceRepository,
       businessRepository,
       clientRepository,
+      emailProvider,
     );
 
     const invoice = await service.createInvoice('business-1', {
@@ -82,12 +98,17 @@ describe('InvoicesService', () => {
   });
 
   it('rejects when required fields are missing', async () => {
-    const { invoiceRepository, businessRepository, clientRepository } =
-      createRepository();
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+    } = createRepository();
     const service = new InvoicesService(
       invoiceRepository,
       businessRepository,
       clientRepository,
+      emailProvider,
     );
 
     await expect(
@@ -97,5 +118,77 @@ describe('InvoicesService', () => {
         items: [],
       }),
     ).rejects.toThrow();
+  });
+
+  it('sends a draft invoice, emails recipients, and transitions to sent', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      save,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'draft',
+      businessSnapshot: { displayName: 'Acme' },
+    });
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+    );
+
+    const sent = await service.sendInvoice('business-1', 'invoice-1', {
+      to: ['a@example.com', 'b@example.com'],
+      cc: ['c@example.com'],
+      subject: 'Your invoice',
+    });
+
+    expect(emailProvider.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: ['a@example.com', 'b@example.com', 'c@example.com'],
+        subject: 'Your invoice',
+      }),
+    );
+    expect(sent.status).toBe('sent');
+    expect(sent.sentAt).toBeDefined();
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'sent' }),
+    );
+  });
+
+  it('rejects sending when an email address is invalid', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      save,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'draft',
+      businessSnapshot: { displayName: 'Acme' },
+    });
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+    );
+
+    await expect(
+      service.sendInvoice('business-1', 'invoice-1', {
+        to: ['not-an-email'],
+        subject: 'Your invoice',
+      }),
+    ).rejects.toThrow();
+    expect(save).not.toHaveBeenCalled();
   });
 });

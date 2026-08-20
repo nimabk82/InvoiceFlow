@@ -21,6 +21,7 @@ import {
   CLIENT_REPOSITORY,
   type ClientRepository,
 } from '../clients/repositories/client.repository';
+import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
 import {
   INVOICE_REPOSITORY,
   type InvoicePage,
@@ -66,6 +67,14 @@ export type ListInvoicesOptions = {
   limit?: number;
 };
 
+export type SendInvoiceInput = {
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  message?: string;
+};
+
 @Injectable()
 export class InvoicesService {
   constructor(
@@ -75,6 +84,8 @@ export class InvoicesService {
     private readonly businessRepository: BusinessRepository,
     @Inject(CLIENT_REPOSITORY)
     private readonly clientRepository: ClientRepository,
+    @Inject(EMAIL_PROVIDER)
+    private readonly emailProvider: EmailProvider,
   ) {}
 
   async list(
@@ -84,10 +95,7 @@ export class InvoicesService {
     return this.invoiceRepository.list({ businessId, ...options });
   }
 
-  async findById(
-    businessId: string,
-    invoiceId: string,
-  ): Promise<Invoice> {
+  async findById(businessId: string, invoiceId: string): Promise<Invoice> {
     const invoice = await this.invoiceRepository.findById(
       invoiceId,
       businessId,
@@ -98,6 +106,51 @@ export class InvoicesService {
     }
 
     return invoice;
+  }
+
+  async sendInvoice(
+    businessId: string,
+    invoiceId: string,
+    input: SendInvoiceInput,
+  ): Promise<Invoice> {
+    const invoice = await this.findById(businessId, invoiceId);
+
+    if (invoice.status !== 'draft') {
+      throw new BadRequestException('Only draft invoices can be sent');
+    }
+
+    const to = input.to ?? [];
+    const cc = input.cc ?? [];
+    const bcc = input.bcc ?? [];
+
+    const invalidEmail = [...to, ...cc, ...bcc].find(
+      (email) => !isValidEmail(email),
+    );
+
+    if (invalidEmail !== undefined) {
+      throw new BadRequestException(`Invalid email address: ${invalidEmail}`);
+    }
+
+    const subject =
+      input.subject?.trim() ||
+      `Invoice ${invoice.number} from ${invoice.businessSnapshot.displayName}`;
+
+    await this.emailProvider.send({
+      to: [...to, ...cc, ...bcc],
+      subject,
+      text: input.message,
+    });
+
+    const sent: Invoice = {
+      ...invoice,
+      status: 'sent',
+      sentAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.invoiceRepository.save(sent);
+
+    return sent;
   }
 
   async createInvoice(
@@ -178,4 +231,8 @@ function toClientSnapshot(client: Client): ClientSnapshot {
     address: client.billingAddress,
     taxNumber: client.taxNumber,
   };
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }

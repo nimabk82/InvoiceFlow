@@ -183,6 +183,14 @@ export type CreateInvoiceInput = Readonly<{
   discount?: CreateInvoiceDiscountInput;
 }>;
 
+export type SendInvoiceInput = Readonly<{
+  to: readonly string[];
+  cc?: readonly string[];
+  bcc?: readonly string[];
+  subject: string;
+  message?: string;
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -372,6 +380,22 @@ export class ApiClient {
     return this.request<Invoice>(
       `/businesses/${businessId}/invoices/${invoiceId}`,
       { headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async sendInvoice(
+    businessId: string,
+    invoiceId: string,
+    input: SendInvoiceInput,
+    token: string,
+  ): Promise<Invoice> {
+    return this.request<Invoice>(
+      `/businesses/${businessId}/invoices/${invoiceId}/send`,
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
     );
   }
 

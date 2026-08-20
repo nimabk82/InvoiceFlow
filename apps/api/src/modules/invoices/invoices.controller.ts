@@ -14,6 +14,7 @@ import { BusinessAccessGuard } from '../businesses/access';
 import type {
   CreateInvoiceInput,
   ListInvoicesOptions,
+  SendInvoiceInput,
 } from './invoices.service';
 import { InvoicesService } from './invoices.service';
 
@@ -60,5 +61,14 @@ export class InvoicesController {
     @Param('invoiceId') invoiceId: string,
   ) {
     return this.invoicesService.findById(businessId, invoiceId);
+  }
+
+  @Post(':invoiceId/send')
+  send(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+    @Body() input: SendInvoiceInput,
+  ) {
+    return this.invoicesService.sendInvoice(businessId, invoiceId, input);
   }
 }
