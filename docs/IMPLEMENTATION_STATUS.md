@@ -52,16 +52,16 @@ Sprint 0 — Platform foundation
 - INV-05 — Taxes (per-item tax components + tax/total display in the invoice editor).
 - CLIENT-02 — Create/Edit client (Web) + `GET/PATCH /clients/:clientId`.
 - PRODUCT-02 — Create/Edit item (Web) + `POST/GET/PATCH /products/:productId`.
+- INV-06 — Deposit editor (Web) + `depositTerms` through api-client and invoice create API.
 
 ## Current ticket
 
-- INV-06 — Deposit editor (next).
+- INV-07 — More Options (next).
 
 ## Next recommended tickets
 
-1. INV-06 — Deposit editor
-2. INV-07 — More Options
-3. INV-09 — Review validation
+1. INV-07 — More Options
+2. INV-09 — Review validation
 4. INV-10 — Invoice Review
 5. SET-01 — Business Profile
 
@@ -236,6 +236,7 @@ Watchman: VERIFIED
 - `pnpm --filter @invoiceflow/theme-schema lint`, `typecheck`, `build`, and `test` (7 passed)
 - `pnpm --filter @invoiceflow/api-client lint`, `typecheck`, `build`, and `test` (4 passed)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
+- INV-06 — web lint/typecheck/test; api lint/typecheck/test (105 passed)/build; api-client lint/typecheck/test/build; end-to-end deposit persistence verified
 
 ## Status update format
 

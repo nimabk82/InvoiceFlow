@@ -35,6 +35,15 @@ export type CreateInvoiceItemInput = {
   appliedTaxes?: { name: string; rate: string }[];
 };
 
+export type DepositDueRule = 'on_receipt' | 'days_7' | 'days_15' | 'custom';
+
+export type CreateInvoiceDepositInput = {
+  type: 'percentage' | 'fixed';
+  value: string;
+  dueRule: DepositDueRule;
+  dueDate?: string;
+};
+
 export type CreateInvoiceInput = {
   number?: string;
   clientId?: string;
@@ -43,6 +52,7 @@ export type CreateInvoiceInput = {
   currencyCode: string;
   poNumber?: string;
   items: CreateInvoiceItemInput[];
+  depositTerms?: CreateInvoiceDepositInput;
 };
 
 export type ListInvoicesOptions = {
@@ -112,6 +122,7 @@ export class InvoicesService {
         })),
       })),
       poNumber: input.poNumber,
+      depositTerms: input.depositTerms,
       status: 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

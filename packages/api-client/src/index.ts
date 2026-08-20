@@ -110,6 +110,15 @@ export type CreateInvoiceItemInput = Readonly<{
   appliedTaxes?: Readonly<{ name: string; rate: string }>[];
 }>;
 
+export type DepositDueRule = 'on_receipt' | 'days_7' | 'days_15' | 'custom';
+
+export type CreateInvoiceDepositInput = Readonly<{
+  type: 'percentage' | 'fixed';
+  value: string;
+  dueRule: DepositDueRule;
+  dueDate?: string;
+}>;
+
 export type CreateInvoiceInput = Readonly<{
   number?: string;
   clientId?: string;
@@ -118,6 +127,7 @@ export type CreateInvoiceInput = Readonly<{
   currencyCode: string;
   poNumber?: string;
   items: readonly CreateInvoiceItemInput[];
+  depositTerms?: CreateInvoiceDepositInput;
 }>;
 
 export class ApiRequestError extends Error {

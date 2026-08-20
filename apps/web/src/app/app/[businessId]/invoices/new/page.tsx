@@ -6,6 +6,7 @@ import {
   ApiClient,
   type Client,
   type CreateInvoiceItemInput,
+  type DepositDueRule,
 } from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import {
@@ -52,6 +53,13 @@ export default function NewInvoicePage() {
   const [dueDate, setDueDate] = useState("");
   const [currencyCode, setCurrencyCode] = useState("CAD");
   const [items, setItems] = useState<LineItem[]>([emptyItem()]);
+  const [depositType, setDepositType] = useState<
+    "" | "percentage" | "fixed"
+  >("");
+  const [depositValue, setDepositValue] = useState("");
+  const [depositDueRule, setDepositDueRule] =
+    useState<DepositDueRule>("on_receipt");
+  const [depositDueDate, setDepositDueDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -207,6 +215,17 @@ export default function NewInvoicePage() {
           dueDate: dueDate || undefined,
           currencyCode,
           items,
+          depositTerms: depositType
+            ? {
+                type: depositType,
+                value: depositValue,
+                dueRule: depositDueRule,
+                dueDate:
+                  depositDueRule === "custom" && depositDueDate
+                    ? depositDueDate
+                    : undefined,
+              }
+            : undefined,
         },
         token,
       );
@@ -236,11 +255,14 @@ export default function NewInvoicePage() {
             (tax) => tax.name.trim() !== "" || tax.rate.trim() !== "",
           ),
         })),
+        depositTerms: depositType
+          ? { type: depositType, value: depositValue }
+          : undefined,
       });
     } catch {
       return null;
     }
-  }, [items, currencyCode]);
+  }, [items, currencyCode, depositType, depositValue]);
 
   return (
     <main>
@@ -450,7 +472,67 @@ export default function NewInvoicePage() {
                     <Typography variant="h6">
                       Total: {totals.total.toDecimalString()}
                     </Typography>
+                    {totals.deposit && (
+                      <>
+                        <Typography variant="body1">
+                          Deposit{" "}
+                          {totals.deposit.type === "percentage"
+                            ? `${totals.deposit.rate}%`
+                            : ""}
+                          : {totals.deposit.required.toDecimalString()}
+                        </Typography>
+                        <Typography variant="body1">
+                          Remaining: {totals.deposit.remaining.toDecimalString()}
+                        </Typography>
+                      </>
+                    )}
                   </Box>
+                )}
+              </Stack>
+            </Paper>
+
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Stack spacing={2}>
+                <Typography variant="h6" gutterBottom>
+                  Deposit
+                </Typography>
+                <Select
+                  label="Deposit type"
+                  value={depositType}
+                  onValueChange={(value) => setDepositType(value as "" | "percentage" | "fixed")}
+                  options={[
+                    { value: "", label: "No deposit" },
+                    { value: "percentage", label: "Percentage" },
+                    { value: "fixed", label: "Fixed amount" },
+                  ]}
+                />
+                {depositType !== "" && (
+                  <>
+                    <Input
+                      label={depositType === "percentage" ? "Deposit %" : "Deposit amount"}
+                      value={depositValue}
+                      onChange={(event) => setDepositValue(event.target.value)}
+                    />
+                    <Select
+                      label="Deposit due"
+                      value={depositDueRule}
+                      onValueChange={(value) => setDepositDueRule(value as DepositDueRule)}
+                      options={[
+                        { value: "on_receipt", label: "On receipt" },
+                        { value: "days_7", label: "Within 7 days" },
+                        { value: "days_15", label: "Within 15 days" },
+                        { value: "custom", label: "Custom date" },
+                      ]}
+                    />
+                    {depositDueRule === "custom" && (
+                      <Input
+                        label="Deposit due date"
+                        type="date"
+                        value={depositDueDate}
+                        onChange={(event) => setDepositDueDate(event.target.value)}
+                      />
+                    )}
+                  </>
                 )}
               </Stack>
             </Paper>
