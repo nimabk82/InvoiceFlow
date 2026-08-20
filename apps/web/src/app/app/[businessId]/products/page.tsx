@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -14,9 +15,11 @@ import {
   ListItem,
   ListItemText,
   Paper,
+  Stack,
   Typography,
 } from "@mui/material";
 
+import { Button } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -77,9 +80,21 @@ export default function ProductsPage() {
   return (
     <main>
       <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Products &amp; Services
-        </Typography>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h4" component="h1">
+            Products &amp; Services
+          </Typography>
+          <Link href={`/app/${businessId}/products/new`}>
+            <Button>New item</Button>
+          </Link>
+        </Stack>
 
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
@@ -99,7 +114,13 @@ export default function ProductsPage() {
           <Paper elevation={1}>
             <List>
               {products.map((product) => (
-                <ListItem key={product.id} divider>
+                <ListItem
+                  key={product.id}
+                  divider
+                  component={Link}
+                  href={`/app/${businessId}/products/${product.id}/edit`}
+                  sx={{ textDecoration: "none" }}
+                >
                   <ListItemText
                     primary={product.name}
                     secondary={product.description ?? product.type}

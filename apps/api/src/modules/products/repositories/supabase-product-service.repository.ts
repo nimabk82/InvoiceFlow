@@ -127,7 +127,7 @@ function mapToRow(productService: ProductService): ProductServiceRow {
     description: productService.description ?? null,
     default_rate: productService.defaultRate ?? null,
     unit: productService.unit ?? null,
-    default_tax_ids: productService.defaultTaxIds ?? null,
+    default_tax_ids: productService.defaultTaxIds ?? [],
     archived_at: productService.archivedAt ?? null,
   };
 }

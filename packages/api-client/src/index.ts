@@ -72,6 +72,16 @@ export type ProductServicePage = Readonly<{
   items: readonly ProductService[];
 }>;
 
+export type CreateProductInput = Readonly<{
+  type: 'product' | 'service';
+  name: string;
+  description?: string;
+  defaultRate?: string;
+  unit?: string;
+}>;
+
+export type UpdateProductInput = CreateProductInput;
+
 export type Invoice = Readonly<{
   id: string;
   number: string;
@@ -221,6 +231,47 @@ export class ApiClient {
     return this.request<ProductServicePage>(
       `/businesses/${businessId}/products`,
       {
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async createProduct(
+    businessId: string,
+    input: CreateProductInput,
+    token: string,
+  ): Promise<ProductService> {
+    return this.request<ProductService>(`/businesses/${businessId}/products`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getProduct(
+    businessId: string,
+    productId: string,
+    token: string,
+  ): Promise<ProductService | null> {
+    return this.request<ProductService | null>(
+      `/businesses/${businessId}/products/${productId}`,
+      {
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async updateProduct(
+    businessId: string,
+    productId: string,
+    input: UpdateProductInput,
+    token: string,
+  ): Promise<ProductService> {
+    return this.request<ProductService>(
+      `/businesses/${businessId}/products/${productId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(input),
         headers: { authorization: `Bearer ${token}` },
       },
     );
