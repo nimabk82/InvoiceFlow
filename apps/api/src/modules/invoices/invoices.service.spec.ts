@@ -283,4 +283,38 @@ describe('InvoicesService', () => {
       expect.objectContaining({ status: 'partially_paid' }),
     );
   });
+
+  it('derives the effective payment status when reading an invoice', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      status: 'sent',
+      currencyCode: 'CAD',
+      items: [{ quantity: '2', rate: '500', appliedTaxes: [] }],
+    });
+    paymentRepository.listByInvoice.mockResolvedValue([
+      { id: 'p1', invoiceId: 'invoice-1', amount: '1000' },
+    ]);
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+    );
+
+    const invoice = await service.getInvoiceWithStatus(
+      'business-1',
+      'invoice-1',
+    );
+
+    expect(invoice.status).toBe('paid');
+  });
 });

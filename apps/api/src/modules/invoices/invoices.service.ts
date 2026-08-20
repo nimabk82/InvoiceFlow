@@ -207,8 +207,7 @@ export class InvoicesService {
       0n,
     );
 
-    const status: Invoice['status'] =
-      paid >= total ? 'paid' : paid > 0n ? 'partially_paid' : 'sent';
+    const status = derivePaymentStatus(invoice.status, total, paid);
 
     const updated: Invoice = {
       ...invoice,
@@ -219,6 +218,24 @@ export class InvoicesService {
     await this.invoiceRepository.save(updated);
 
     return { invoice: updated, paymentId };
+  }
+
+  async getInvoiceWithStatus(
+    businessId: string,
+    invoiceId: string,
+  ): Promise<Invoice> {
+    const invoice = await this.findById(businessId, invoiceId);
+    const payments = await this.paymentRepository.listByInvoice(invoiceId);
+    const total = computeInvoiceTotal(invoice);
+    const paid = payments.reduce(
+      (sum, payment) => sum + toUnits(payment.amount),
+      0n,
+    );
+
+    return {
+      ...invoice,
+      status: derivePaymentStatus(invoice.status, total, paid),
+    };
   }
 
   async createInvoice(
@@ -328,6 +345,23 @@ function multiply(units: bigint, factor: string): bigint {
 
 function percentOf(units: bigint, percent: string): bigint {
   return (units * toUnits(percent)) / (100n * SCALE_MULT);
+}
+
+function derivePaymentStatus(
+  current: Invoice['status'],
+  total: bigint,
+  paid: bigint,
+): Invoice['status'] {
+  if (current === 'draft' || current === 'void') {
+    return current;
+  }
+  if (paid >= total) {
+    return 'paid';
+  }
+  if (paid > 0n) {
+    return 'partially_paid';
+  }
+  return current;
 }
 
 function computeInvoiceTotal(invoice: Invoice): bigint {

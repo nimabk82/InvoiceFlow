@@ -61,7 +61,7 @@ export class InvoicesController {
     @Param('businessId') businessId: string,
     @Param('invoiceId') invoiceId: string,
   ) {
-    return this.invoicesService.findById(businessId, invoiceId);
+    return this.invoicesService.getInvoiceWithStatus(businessId, invoiceId);
   }
 
   @Post(':invoiceId/send')
