@@ -32,16 +32,16 @@ export default function HomePage() {
             <Link href="/onboarding/business">
               <Button variant="outlined">Create business</Button>
             </Link>
-            <Link href="/app/sample-business/clients">
+            <Link href="/app/a29f8a78-6e2f-4027-bc64-526a87daec83/clients">
               <Button variant="outlined">Clients list</Button>
             </Link>
-            <Link href="/app/sample-business/products">
+            <Link href="/app/a29f8a78-6e2f-4027-bc64-526a87daec83/products">
               <Button variant="outlined">Products list</Button>
             </Link>
-            <Link href="/app/sample-business/invoices">
+            <Link href="/app/a29f8a78-6e2f-4027-bc64-526a87daec83/invoices">
               <Button variant="outlined">Invoices list</Button>
             </Link>
-            <Link href="/app/sample-business/invoices/new">
+            <Link href="/app/a29f8a78-6e2f-4027-bc64-526a87daec83/invoices/new">
               <Button variant="outlined">New invoice</Button>
             </Link>
           </Stack>
