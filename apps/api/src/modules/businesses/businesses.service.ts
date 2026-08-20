@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Business } from '@invoiceflow/domain';
 
@@ -18,6 +23,8 @@ export type CreateBusinessInput = {
   address?: Business['address'];
   logoAssetId?: string;
 };
+
+export type UpdateBusinessInput = Partial<CreateBusinessInput>;
 
 @Injectable()
 export class BusinessesService {
@@ -62,5 +69,37 @@ export class BusinessesService {
 
   async listForAccount(accountId: string): Promise<Business[]> {
     return this.businessRepository.listByOwner(accountId);
+  }
+
+  async findById(businessId: string): Promise<Business> {
+    const business = await this.businessRepository.findById(businessId);
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
+    return business;
+  }
+
+  async updateBusiness(
+    businessId: string,
+    input: UpdateBusinessInput,
+  ): Promise<Business> {
+    const existing = await this.findById(businessId);
+
+    const updated: Business = {
+      ...existing,
+      name: input.name?.trim() || existing.name,
+      countryCode: input.countryCode?.trim() || existing.countryCode,
+      currencyCode: input.currencyCode?.trim() || existing.currencyCode,
+      legalName: input.legalName?.trim() || undefined,
+      email: input.email?.trim() || undefined,
+      phone: input.phone?.trim() || undefined,
+      website: input.website?.trim() || undefined,
+      address: input.address ?? existing.address,
+      logoAssetId: input.logoAssetId ?? existing.logoAssetId,
+    };
+
+    await this.businessRepository.save(updated);
+
+    return updated;
   }
 }

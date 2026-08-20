@@ -1,7 +1,19 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 
 import { AuthGuard, CurrentAccount, type AuthPrincipal } from '../auth';
-import type { CreateBusinessInput } from './businesses.service';
+import { BusinessAccessGuard } from './access';
+import type {
+  CreateBusinessInput,
+  UpdateBusinessInput,
+} from './businesses.service';
 import { BusinessesService } from './businesses.service';
 
 @Controller('businesses')
@@ -20,5 +32,20 @@ export class BusinessesController {
   @Get()
   list(@CurrentAccount() account: AuthPrincipal) {
     return this.businessesService.listForAccount(account.accountId);
+  }
+
+  @Get(':businessId')
+  @UseGuards(BusinessAccessGuard)
+  findOne(@Param('businessId') businessId: string) {
+    return this.businessesService.findById(businessId);
+  }
+
+  @Patch(':businessId')
+  @UseGuards(BusinessAccessGuard)
+  update(
+    @Param('businessId') businessId: string,
+    @Body() input: UpdateBusinessInput,
+  ) {
+    return this.businessesService.updateBusiness(businessId, input);
   }
 }

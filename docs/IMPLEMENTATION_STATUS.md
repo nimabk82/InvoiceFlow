@@ -60,15 +60,16 @@ Sprint 0 — Platform foundation
 - INV-13 — Invoice Detail (Web): permanent home for an invoice — status badge, business/client, items + totals, Paid/Balance summary; Send Again action; list rows link to detail.
 - INV-14 — Record Payment (Web + API): `POST/GET /invoices/:id/payments` via new `PaymentsModule`/Supabase repo; records a payment and derives status (paid / partially_paid); Record Payment dialog in Detail.
 - INV-15 — Partial/Paid status derivation (API): derive effective payment status on read (`getInvoiceWithStatus`); shared `derivePaymentStatus` helper.
+- SET-01 — Business Profile (Web + API): `GET/PATCH /businesses/:businessId`; profile screen (name, legal name, email, phone, website, address, country, currency).
 
 ## Current ticket
 
-- SET-01 — Business Profile (next).
+- INV-16 — Duplicate / Void / Delete Draft (next).
 
 ## Next recommended tickets
 
-1. SET-01 — Business Profile
-2. INV-16 — Duplicate / Void / Delete Draft
+1. INV-16 — Duplicate / Void / Delete Draft
+2. SET-02 — Document Defaults
 
 ## Locked decisions
 
@@ -249,6 +250,7 @@ Watchman: VERIFIED
 - INV-13 — web lint/typecheck/test/build
 - INV-14 — web lint/typecheck/build; api lint/typecheck/test (109 passed)/build; api-client lint/typecheck/test/build; end-to-end record payment + status derivation verified
 - INV-15 — api lint/typecheck/test (110 passed)/build; end-to-end read-time status derivation verified
+- SET-01 — web lint/typecheck/build; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end business GET/PATCH verified
 
 ## Status update format
 

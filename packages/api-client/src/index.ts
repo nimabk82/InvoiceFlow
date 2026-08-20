@@ -16,6 +16,14 @@ export type Business = Readonly<{
   email?: string;
   phone?: string;
   website?: string;
+  address?: Readonly<{
+    line1?: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    postalCode?: string;
+    countryCode?: string;
+  }>;
   logoAssetId?: string;
 }>;
 
@@ -27,6 +35,14 @@ export type CreateBusinessInput = Readonly<{
   email?: string;
   phone?: string;
   website?: string;
+  address?: Readonly<{
+    line1?: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    postalCode?: string;
+    countryCode?: string;
+  }>;
   logoAssetId?: string;
 }>;
 
@@ -254,6 +270,27 @@ export class ApiClient {
 
   async listBusinesses(token: string): Promise<Business[]> {
     return this.request<Business[]>('/businesses', {
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getBusiness(
+    businessId: string,
+    token: string,
+  ): Promise<Business> {
+    return this.request<Business>(`/businesses/${businessId}`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async updateBusiness(
+    businessId: string,
+    input: CreateBusinessInput,
+    token: string,
+  ): Promise<Business> {
+    return this.request<Business>(`/businesses/${businessId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
       headers: { authorization: `Bearer ${token}` },
     });
   }
