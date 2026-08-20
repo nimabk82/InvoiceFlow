@@ -119,6 +119,11 @@ export type CreateInvoiceDepositInput = Readonly<{
   dueDate?: string;
 }>;
 
+export type CreateInvoiceDiscountInput = Readonly<{
+  type: 'percentage' | 'fixed';
+  value: string;
+}>;
+
 export type CreateInvoiceInput = Readonly<{
   number?: string;
   clientId?: string;
@@ -128,6 +133,7 @@ export type CreateInvoiceInput = Readonly<{
   poNumber?: string;
   items: readonly CreateInvoiceItemInput[];
   depositTerms?: CreateInvoiceDepositInput;
+  discount?: CreateInvoiceDiscountInput;
 }>;
 
 export class ApiRequestError extends Error {

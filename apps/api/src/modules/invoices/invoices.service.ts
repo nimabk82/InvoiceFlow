@@ -44,6 +44,11 @@ export type CreateInvoiceDepositInput = {
   dueDate?: string;
 };
 
+export type CreateInvoiceDiscountInput = {
+  type: 'percentage' | 'fixed';
+  value: string;
+};
+
 export type CreateInvoiceInput = {
   number?: string;
   clientId?: string;
@@ -53,6 +58,7 @@ export type CreateInvoiceInput = {
   poNumber?: string;
   items: CreateInvoiceItemInput[];
   depositTerms?: CreateInvoiceDepositInput;
+  discount?: CreateInvoiceDiscountInput;
 };
 
 export type ListInvoicesOptions = {
@@ -122,6 +128,7 @@ export class InvoicesService {
         })),
       })),
       poNumber: input.poNumber,
+      discount: input.discount,
       depositTerms: input.depositTerms,
       status: 'draft',
       createdAt: new Date().toISOString(),

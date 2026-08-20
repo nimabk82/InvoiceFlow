@@ -53,17 +53,17 @@ Sprint 0 — Platform foundation
 - CLIENT-02 — Create/Edit client (Web) + `GET/PATCH /clients/:clientId`.
 - PRODUCT-02 — Create/Edit item (Web) + `POST/GET/PATCH /products/:productId`.
 - INV-06 — Deposit editor (Web) + `depositTerms` through api-client and invoice create API.
+- INV-07 — More Options (Web): Discount (percentage/fixed) + PO # through api-client and invoice create API.
 
 ## Current ticket
 
-- INV-07 — More Options (next).
+- INV-09 — Review validation (next).
 
 ## Next recommended tickets
 
-1. INV-07 — More Options
-2. INV-09 — Review validation
-4. INV-10 — Invoice Review
-5. SET-01 — Business Profile
+1. INV-09 — Review validation
+2. INV-10 — Invoice Review
+3. SET-01 — Business Profile
 
 ## Locked decisions
 
@@ -237,6 +237,7 @@ Watchman: VERIFIED
 - `pnpm --filter @invoiceflow/api-client lint`, `typecheck`, `build`, and `test` (4 passed)
 - Root `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 - INV-06 — web lint/typecheck/test; api lint/typecheck/test (105 passed)/build; api-client lint/typecheck/test/build; end-to-end deposit persistence verified
+- INV-07 — web lint/typecheck/test; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end discount + PO # persistence verified
 
 ## Status update format
 

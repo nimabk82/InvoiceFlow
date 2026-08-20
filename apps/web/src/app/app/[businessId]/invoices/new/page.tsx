@@ -60,6 +60,11 @@ export default function NewInvoicePage() {
   const [depositDueRule, setDepositDueRule] =
     useState<DepositDueRule>("on_receipt");
   const [depositDueDate, setDepositDueDate] = useState("");
+  const [poNumber, setPoNumber] = useState("");
+  const [discountType, setDiscountType] = useState<
+    "" | "percentage" | "fixed"
+  >("");
+  const [discountValue, setDiscountValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -214,7 +219,11 @@ export default function NewInvoicePage() {
           issueDate,
           dueDate: dueDate || undefined,
           currencyCode,
+          poNumber: poNumber || undefined,
           items,
+          discount: discountType
+            ? { type: discountType, value: discountValue }
+            : undefined,
           depositTerms: depositType
             ? {
                 type: depositType,
@@ -258,11 +267,14 @@ export default function NewInvoicePage() {
         depositTerms: depositType
           ? { type: depositType, value: depositValue }
           : undefined,
+        discount: discountType
+          ? { type: discountType, value: discountValue }
+          : undefined,
       });
     } catch {
       return null;
     }
-  }, [items, currencyCode, depositType, depositValue]);
+  }, [items, currencyCode, depositType, depositValue, discountType, discountValue]);
 
   return (
     <main>
@@ -466,6 +478,11 @@ export default function NewInvoicePage() {
                     <Typography variant="body1">
                       Subtotal: {totals.subtotal.toDecimalString()}
                     </Typography>
+                    {totals.discountAmount && !totals.discountAmount.isZero && (
+                      <Typography variant="body1">
+                        Discount: -{totals.discountAmount.toDecimalString()}
+                      </Typography>
+                    )}
                     <Typography variant="body1">
                       Tax: {totals.taxTotal.toDecimalString()}
                     </Typography>
@@ -533,6 +550,40 @@ export default function NewInvoicePage() {
                       />
                     )}
                   </>
+                )}
+              </Stack>
+            </Paper>
+
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Stack spacing={2}>
+                <Typography variant="h6" gutterBottom>
+                  More options
+                </Typography>
+                <Input
+                  label="PO #"
+                  value={poNumber}
+                  onChange={(event) => setPoNumber(event.target.value)}
+                />
+                <Select
+                  label="Discount type"
+                  value={discountType}
+                  onValueChange={(value) =>
+                    setDiscountType(value as "" | "percentage" | "fixed")
+                  }
+                  options={[
+                    { value: "", label: "No discount" },
+                    { value: "percentage", label: "Percentage" },
+                    { value: "fixed", label: "Fixed amount" },
+                  ]}
+                />
+                {discountType !== "" && (
+                  <Input
+                    label={
+                      discountType === "percentage" ? "Discount %" : "Discount amount"
+                    }
+                    value={discountValue}
+                    onChange={(event) => setDiscountValue(event.target.value)}
+                  />
                 )}
               </Stack>
             </Paper>
