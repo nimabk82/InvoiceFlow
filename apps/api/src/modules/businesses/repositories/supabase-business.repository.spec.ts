@@ -32,8 +32,11 @@ function createClient(
   return { from } as unknown as SupabaseBusinessClient;
 }
 
+const businessId = '00000000-0000-0000-0000-000000000001';
+const accountId = '00000000-0000-0000-0000-000000000002';
+
 const businessRow = {
-  id: 'b1',
+  id: businessId,
   owner_account_id: 'account-1',
   name: 'Acme',
   legal_name: 'Acme Inc.',
@@ -60,8 +63,8 @@ describe('SupabaseBusinessRepository', () => {
     });
     const repository = new SupabaseBusinessRepository(client);
 
-    await expect(repository.findById('b1')).resolves.toEqual({
-      id: 'b1',
+    await expect(repository.findById(businessId)).resolves.toEqual({
+      id: businessId,
       ownerAccountId: 'account-1',
       name: 'Acme',
       legalName: 'Acme Inc.',
@@ -93,7 +96,7 @@ describe('SupabaseBusinessRepository', () => {
   it('resolves isMember from the membership table', async () => {
     const memberClient = createClient({
       business_members: {
-        data: { account_id: 'a1', business_id: 'b1', role: 'owner' },
+        data: { account_id: accountId, business_id: businessId, role: 'owner' },
         error: null,
       },
     });
@@ -102,11 +105,31 @@ describe('SupabaseBusinessRepository', () => {
     });
 
     await expect(
-      new SupabaseBusinessRepository(memberClient).isMember('a1', 'b1'),
+      new SupabaseBusinessRepository(memberClient).isMember(
+        accountId,
+        businessId,
+      ),
     ).resolves.toBe(true);
     await expect(
-      new SupabaseBusinessRepository(nonMemberClient).isMember('a1', 'b1'),
+      new SupabaseBusinessRepository(nonMemberClient).isMember(
+        accountId,
+        businessId,
+      ),
     ).resolves.toBe(false);
+  });
+
+  it('returns false for a non-UUID business id without querying', async () => {
+    const client = createClient({
+      business_members: { data: null, error: null },
+    });
+    const repository = new SupabaseBusinessRepository(client);
+
+    await expect(
+      repository.isMember(accountId, 'sample-business'),
+    ).resolves.toBe(false);
+    await expect(repository.isMember('not-a-uuid', businessId)).resolves.toBe(
+      false,
+    );
   });
 
   it('inserts a member on addMember', async () => {

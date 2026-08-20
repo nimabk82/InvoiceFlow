@@ -62,6 +62,10 @@ export class SupabaseBusinessRepository implements BusinessRepository {
   ) {}
 
   async findById(id: string): Promise<Business | null> {
+    if (!isUuid(id)) {
+      return null;
+    }
+
     const { data, error } = await this.client
       .from('businesses')
       .select('*')
@@ -89,6 +93,10 @@ export class SupabaseBusinessRepository implements BusinessRepository {
   }
 
   async isMember(accountId: string, businessId: string): Promise<boolean> {
+    if (!isUuid(accountId) || !isUuid(businessId)) {
+      return false;
+    }
+
     const { data, error } = await this.client
       .from('business_members')
       .select('account_id')
@@ -126,6 +134,12 @@ export class SupabaseBusinessRepository implements BusinessRepository {
       throw new Error(error.message);
     }
   }
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value,
+  );
 }
 
 function mapRow(row: BusinessRow): Business {
