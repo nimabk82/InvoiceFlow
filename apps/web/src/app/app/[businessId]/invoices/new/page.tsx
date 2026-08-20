@@ -28,7 +28,13 @@ const apiClient = new ApiClient({
 type LineItem = CreateInvoiceItemInput;
 
 function emptyItem(): LineItem {
-  return { description: "", secondaryDescription: "", quantity: "1", rate: "" };
+  return {
+    description: "",
+    secondaryDescription: "",
+    quantity: "1",
+    rate: "",
+    appliedTaxes: [],
+  };
 }
 
 export default function NewInvoicePage() {
@@ -97,6 +103,55 @@ export default function NewInvoicePage() {
 
   function removeItem(index: number) {
     setItems((current) => current.filter((_, i) => i !== index));
+  }
+
+  function addTax(itemIndex: number) {
+    setItems((current) =>
+      current.map((item, i) =>
+        i === itemIndex
+          ? {
+              ...item,
+              appliedTaxes: [
+                ...(item.appliedTaxes ?? []),
+                { name: "", rate: "" },
+              ],
+            }
+          : item,
+      ),
+    );
+  }
+
+  function updateTax(
+    itemIndex: number,
+    taxIndex: number,
+    patch: Partial<{ name: string; rate: string }>,
+  ) {
+    setItems((current) =>
+      current.map((item, i) => {
+        if (i !== itemIndex) return item;
+        return {
+          ...item,
+          appliedTaxes: (item.appliedTaxes ?? []).map((tax, ti) =>
+            ti === taxIndex ? { ...tax, ...patch } : tax,
+          ),
+        };
+      }),
+    );
+  }
+
+  function removeTax(itemIndex: number, taxIndex: number) {
+    setItems((current) =>
+      current.map((item, i) =>
+        i === itemIndex
+          ? {
+              ...item,
+              appliedTaxes: (item.appliedTaxes ?? []).filter(
+                (_, ti) => ti !== taxIndex,
+              ),
+            }
+          : item,
+      ),
+    );
   }
 
   async function handleAddClient() {
@@ -177,7 +232,9 @@ export default function NewInvoicePage() {
         items: items.map((item) => ({
           quantity: item.quantity || "0",
           rate: item.rate || "0",
-          appliedTaxes: [],
+          appliedTaxes: (item.appliedTaxes ?? []).filter(
+            (tax) => tax.name.trim() !== "" || tax.rate.trim() !== "",
+          ),
         })),
       });
     } catch {
@@ -284,55 +341,99 @@ export default function NewInvoicePage() {
               </Typography>
               <Stack spacing={2}>
                 {items.map((item, index) => (
-                  <Box
-                    key={index}
-                    sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}
-                  >
-                    <Stack spacing={1} sx={{ flexGrow: 1 }}>
-                      <Input
-                        label="Description"
-                        value={item.description}
-                        onChange={(event) =>
-                          updateItem(index, {
-                            description: event.target.value,
-                          })
-                        }
-                      />
-                      <Input
-                        label="Secondary description"
-                        value={item.secondaryDescription}
-                        onChange={(event) =>
-                          updateItem(index, {
-                            secondaryDescription: event.target.value,
-                          })
-                        }
-                      />
-                    </Stack>
-                    <Input
-                      label="Qty"
-                      value={item.quantity}
-                      onChange={(event) =>
-                        updateItem(index, { quantity: event.target.value })
-                      }
-                      sx={{ width: 90 }}
-                    />
-                    <Input
-                      label="Rate"
-                      value={item.rate}
-                      onChange={(event) =>
-                        updateItem(index, { rate: event.target.value })
-                      }
-                      sx={{ width: 120 }}
-                    />
-                    <Typography variant="body2" sx={{ minWidth: 90, pt: 3 }}>
-                      {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
-                    </Typography>
-                    <IconButton
-                      aria-label="Remove item"
-                      onClick={() => removeItem(index)}
+                  <Box key={index} sx={{ border: 1, borderColor: "divider", p: 2, borderRadius: 1 }}>
+                    <Box
+                      sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}
                     >
-                      <DeleteIcon />
-                    </IconButton>
+                      <Stack spacing={1} sx={{ flexGrow: 1 }}>
+                        <Input
+                          label="Description"
+                          value={item.description}
+                          onChange={(event) =>
+                            updateItem(index, {
+                              description: event.target.value,
+                            })
+                          }
+                        />
+                        <Input
+                          label="Secondary description"
+                          value={item.secondaryDescription}
+                          onChange={(event) =>
+                            updateItem(index, {
+                              secondaryDescription: event.target.value,
+                            })
+                          }
+                        />
+                      </Stack>
+                      <Input
+                        label="Qty"
+                        value={item.quantity}
+                        onChange={(event) =>
+                          updateItem(index, { quantity: event.target.value })
+                        }
+                        sx={{ width: 90 }}
+                      />
+                      <Input
+                        label="Rate"
+                        value={item.rate}
+                        onChange={(event) =>
+                          updateItem(index, { rate: event.target.value })
+                        }
+                        sx={{ width: 120 }}
+                      />
+                      <Typography variant="body2" sx={{ minWidth: 90, pt: 3 }}>
+                        {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
+                      </Typography>
+                      <IconButton
+                        aria-label="Remove item"
+                        onClick={() => removeItem(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+
+                    <Stack spacing={1} sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2">Taxes</Typography>
+                      {(item.appliedTaxes ?? []).map((tax, taxIndex) => (
+                        <Box
+                          key={taxIndex}
+                          sx={{ display: "flex", gap: 1 }}
+                        >
+                          <Input
+                            label="Tax name"
+                            value={tax.name}
+                            onChange={(event) =>
+                              updateTax(index, taxIndex, {
+                                name: event.target.value,
+                              })
+                            }
+                            sx={{ flexGrow: 1 }}
+                          />
+                          <Input
+                            label="Rate %"
+                            value={tax.rate}
+                            onChange={(event) =>
+                              updateTax(index, taxIndex, {
+                                rate: event.target.value,
+                              })
+                            }
+                            sx={{ width: 120 }}
+                          />
+                          <IconButton
+                            aria-label="Remove tax"
+                            onClick={() => removeTax(index, taxIndex)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ))}
+                      <Button
+                        variant="text"
+                        onClick={() => addTax(index)}
+                      >
+                        Add tax
+                      </Button>
+                    </Stack>
                   </Box>
                 ))}
                 <Button variant="outlined" onClick={addItem}>
@@ -342,6 +443,12 @@ export default function NewInvoicePage() {
                   <Box sx={{ textAlign: "right" }}>
                     <Typography variant="body1">
                       Subtotal: {totals.subtotal.toDecimalString()}
+                    </Typography>
+                    <Typography variant="body1">
+                      Tax: {totals.taxTotal.toDecimalString()}
+                    </Typography>
+                    <Typography variant="h6">
+                      Total: {totals.total.toDecimalString()}
                     </Typography>
                   </Box>
                 )}
