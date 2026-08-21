@@ -234,7 +234,7 @@ function amountFor(invoice: Invoice): string {
       discount: invoice.discount,
       depositTerms: invoice.depositTerms,
     });
-    return totals.total.toFixed(2);
+    return totals.total.toDecimalString();
   } catch {
     return "0.00";
   }
