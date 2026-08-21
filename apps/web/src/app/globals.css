@@ -158,6 +158,92 @@ body {
   gap: 10px;
 }
 
+/* Table (sample) */
+.if-table {
+  overflow: hidden;
+}
+.if-table-head,
+.if-table-row {
+  display: grid;
+  grid-template-columns: 140px minmax(220px, 1fr) 160px 150px 140px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+}
+.if-table-head {
+  height: 42px;
+  background: #fcfcfd;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 800;
+}
+.if-table-row {
+  min-height: 70px;
+  border-top: 1px solid #e4e7ec;
+  cursor: pointer;
+}
+.if-table-row:hover {
+  background: #fcfcfd;
+}
+.if-table-row strong {
+  font-size: 13px;
+  color: #101828;
+}
+.if-table-row span {
+  font-size: 12px;
+  color: #667085;
+}
+.if-mobile-list {
+  display: none;
+}
+
+/* Toolbar / search */
+.if-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.if-search {
+  position: relative;
+  flex: 1;
+  max-width: 520px;
+}
+.if-search:before {
+  content: "⌕";
+  position: absolute;
+  left: 12px;
+  top: 11px;
+  color: #98a2b3;
+  font-size: 18px;
+  z-index: 1;
+}
+.if-search .if-search-input {
+  padding-left: 38px;
+}
+.if-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.if-tab {
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #667085;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.if-tab.if-active {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
 /* Mobile head + bottom nav */
 .if-mobile-head {
   display: none;
@@ -393,5 +479,37 @@ body {
   }
   .if-settings {
     grid-template-columns: 1fr;
+  }
+  .if-toolbar {
+    align-items: stretch;
+  }
+  .if-search {
+    max-width: none;
+  }
+  .if-table {
+    display: none;
+  }
+  .if-mobile-list {
+    display: block;
+  }
+  .if-mobile-card {
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 1px solid #e4e7ec;
+    border-radius: 14px;
+    background: #fff;
+  }
+  .if-mobile-card .top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .if-mobile-card strong {
+    font-size: 13px;
+  }
+  .if-mobile-card p {
+    font-size: 12px;
+    color: #667085;
+    margin: 5px 0;
   }
 }
