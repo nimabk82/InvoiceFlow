@@ -7,7 +7,7 @@ import { ApiClient, type Invoice } from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import { Alert, Box, Card, CircularProgress, Typography } from "@mui/material";
 
-import { Input, StatusBadge, type StatusTone } from "@/components/ui";
+import { Button, Input, StatusBadge, type StatusTone } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -119,7 +119,7 @@ export default function InvoicesPage() {
           />
         </div>
         <Link href={`/app/${businessId}/invoices/new`} style={{ textDecoration: "none" }}>
-          <button className="btn" style={btnPrimary}>+ New Invoice</button>
+          <Button>+ New Invoice</Button>
         </Link>
       </div>
 
@@ -204,21 +204,6 @@ export default function InvoicesPage() {
   );
 }
 
-const btnPrimary: React.CSSProperties = {
-  height: 44,
-  border: "1px solid transparent",
-  borderRadius: 9,
-  padding: "0 17px",
-  fontSize: 13,
-  fontWeight: 750,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 8,
-  background: "#2563EB",
-  color: "#fff",
-  cursor: "pointer",
-};
 
 function amountFor(invoice: Invoice): string {
   try {

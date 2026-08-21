@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ApiClient,
   type Client,
@@ -288,34 +288,16 @@ export default function NewInvoicePage() {
     <form onSubmit={handleSubmit}>
       {/* Client selector */}
       <Card sx={{ p: 2, mb: 3 }}>
-        <div className="eyebrow" style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#667085", marginBottom: 12 }}>
-          Bill to
-        </div>
+        <div className="if-eyebrow">Bill to</div>
         {selectedClient ? (
-          <div
-            className="client-selector"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "15px 16px",
-              border: "1px solid #E4E7EC",
-              borderRadius: 13,
-              background: "#fff",
-            }}
-          >
-            <div className="selector-main" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className="avatar" style={{ width: 38, height: 38, borderRadius: 11, background: "#EFF6FF", color: "#2563EB", display: "grid", placeItems: "center", fontSize: 13, fontWeight: 800 }}>
+          <div className="if-client-selector">
+            <div className="if-selector-main">
+              <div className="if-avatar">
                 {(selectedClient.name ?? selectedClient.company ?? "?").slice(0, 2).toUpperCase()}
               </div>
               <div>
-                <strong style={{ fontSize: 14, display: "block", color: "#101828" }}>
-                  {selectedClient.name ?? selectedClient.company ?? "Unnamed client"}
-                </strong>
-                <span style={{ fontSize: 11, color: "#667085" }}>
-                  {selectedClient.emails[0]?.address ?? "No email"}
-                </span>
+                <strong>{selectedClient.name ?? selectedClient.company ?? "Unnamed client"}</strong>
+                <span>{selectedClient.emails[0]?.address ?? "No email"}</span>
               </div>
             </div>
             <Button variant="outlined" onClick={() => setClientId("")}>
@@ -344,38 +326,18 @@ export default function NewInvoicePage() {
         {/* Line items */}
         <div>
           <Card sx={{ overflow: "hidden" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px",
-                gap: 10,
-                alignItems: "center",
-                padding: "0 16px",
-                height: 42,
-                background: "#FCFCFD",
-                color: "#667085",
-                fontSize: 11,
-                fontWeight: 800,
-              }}
-            >
+            <div className="if-row-grid if-row-head" style={{ gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px" }}>
               <div>Description</div>
               <div>Qty</div>
               <div>Rate</div>
-              <div style={{ textAlign: "right" }}>Amount</div>
+              <div className="if-right">Amount</div>
               <div />
             </div>
             {items.map((item, index) => (
               <div
                 key={index}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px",
-                  gap: 10,
-                  alignItems: "center",
-                  padding: "10px 16px",
-                  borderTop: "1px solid #E4E7EC",
-                  minHeight: 66,
-                }}
+                className="if-row-grid if-row"
+                style={{ gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px" }}
               >
                 <div>
                   <Input
@@ -428,7 +390,7 @@ export default function NewInvoicePage() {
                   value={item.rate}
                   onChange={(event) => updateItem(index, { rate: event.target.value })}
                 />
-                <div className="money" style={{ textAlign: "right", fontWeight: 700 }}>
+                <div className="if-right if-amount money">
                   {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
                 </div>
                 <IconButton aria-label="Remove item" onClick={() => removeItem(index)}>
@@ -437,13 +399,13 @@ export default function NewInvoicePage() {
               </div>
             ))}
             <div style={{ borderTop: "1px solid #E4E7EC", padding: "11px 16px", background: "#FCFCFD" }}>
-              <button type="button" onClick={addItem} style={textAction}>+ Add line item</button>
+              <button type="button" onClick={addItem} className="if-text-action">+ Add line item</button>
             </div>
           </Card>
 
           {/* Deposit + More options */}
           <Card sx={{ p: 3, mt: 3 }}>
-            <div className="eyebrow" style={eyebrow}>Deposit</div>
+            <div className="if-eyebrow">Deposit</div>
             <Select
               label="Deposit type"
               value={depositType}
@@ -486,7 +448,7 @@ export default function NewInvoicePage() {
           </Card>
 
           <Card sx={{ p: 3, mt: 3 }}>
-            <div className="eyebrow" style={eyebrow}>More options</div>
+            <div className="if-eyebrow">More options</div>
             <Input label="PO #" value={poNumber} onChange={(event) => setPoNumber(event.target.value)} />
             <Select
               label="Discount type"
@@ -510,9 +472,7 @@ export default function NewInvoicePage() {
 
         {/* Sticky summary */}
         <Card className="if-summary" sx={{ p: 2 }}>
-          <div className="section-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>
-            Summary
-          </div>
+          <div className="if-section-title">Summary</div>
           {totals ? (
             <>
               <SumRow label="Subtotal" value={totals.subtotal.toDecimalString()} />
@@ -520,29 +480,19 @@ export default function NewInvoicePage() {
                 <SumRow label="Discount" value={`-${totals.discountAmount.toDecimalString()}`} />
               )}
               <SumRow label="Tax" value={totals.taxTotal.toDecimalString()} />
-              <div
-                className="sumrow total money"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  borderTop: "1px solid #E4E7EC",
-                  marginTop: 7,
-                  paddingTop: 14,
-                  fontWeight: 800,
-                }}
-              >
+              <div className="if-sumrow if-total money">
                 <span>Total</span>
-                <strong style={{ fontSize: 20 }}>{totals.total.toDecimalString()}</strong>
+                <strong>{totals.total.toDecimalString()}</strong>
               </div>
               {totals.deposit && (
-                <div className="depositbox" style={{ background: "#EFF6FF", border: "1px solid #DBEAFE", borderRadius: 12, padding: 13, marginTop: 12 }}>
-                  <div className="dtop" style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span className="label" style={{ fontSize: 11, fontWeight: 800, color: "#2563EB" }}>Deposit due</span>
-                    <span className="amt money" style={{ fontSize: 17, fontWeight: 800 }}>{totals.deposit.required.toDecimalString()}</span>
+                <div className="if-depositbox">
+                  <div className="if-dtop">
+                    <span className="if-label">Deposit due</span>
+                    <span className="if-amt money">{totals.deposit.required.toDecimalString()}</span>
                   </div>
-                  <div className="dtop" style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                    <span className="label" style={{ fontSize: 11, fontWeight: 800, color: "#2563EB" }}>Remaining</span>
-                    <span className="amt money" style={{ fontSize: 15, fontWeight: 800 }}>{totals.deposit.remaining.toDecimalString()}</span>
+                  <div className="if-dtop" style={{ marginTop: 4 }}>
+                    <span className="if-label">Remaining</span>
+                    <span className="if-amt money" style={{ fontSize: 15 }}>{totals.deposit.remaining.toDecimalString()}</span>
                   </div>
                 </div>
               )}
@@ -581,32 +531,10 @@ export default function NewInvoicePage() {
   );
 }
 
-const eyebrow: CSSProperties = {
-  fontSize: 11,
-  fontWeight: 800,
-  letterSpacing: ".08em",
-  textTransform: "uppercase",
-  color: "#667085",
-  marginBottom: 12,
-};
-
-const textAction: CSSProperties = {
-  border: 0,
-  background: "transparent",
-  color: "#2563EB",
-  fontSize: 13,
-  fontWeight: 750,
-  padding: "4px 0",
-  cursor: "pointer",
-};
-
 function SumRow({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className="sumrow money"
-      style={{ display: "flex", justifyContent: "space-between", gap: 20, padding: "7px 0", fontSize: 13 }}
-    >
-      <span style={{ color: "#667085" }}>{label}</span>
+    <div className="if-sumrow money">
+      <span>{label}</span>
       <strong>{value}</strong>
     </div>
   );

@@ -102,16 +102,10 @@ export default function ClientsPage() {
               href={`/app/${businessId}/clients/${client.id}/edit`}
               style={{ textDecoration: "none" }}
             >
-              <div className="if-entity" style={{ padding: 16, border: "1px solid #E4E7EC", borderRadius: 14, background: "#fff" }}>
-                <h3 style={{ fontSize: 14, margin: 0, color: "#101828" }}>
-                  {client.name ?? client.company ?? "Unnamed client"}
-                </h3>
-                <p style={{ fontSize: 12, color: "#667085", margin: "5px 0" }}>
-                  {client.emails.map((e) => e.address).join(", ")}
-                </p>
-                {client.phone && (
-                  <p style={{ fontSize: 12, color: "#667085", margin: "5px 0" }}>{client.phone}</p>
-                )}
+              <div className="if-entity">
+                <h3>{client.name ?? client.company ?? "Unnamed client"}</h3>
+                <p>{client.emails.map((e) => e.address).join(", ")}</p>
+                {client.phone && <p>{client.phone}</p>}
               </div>
             </Link>
           ))}

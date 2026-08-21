@@ -146,98 +146,53 @@ export default function DashboardPage() {
       </div>
 
       <div className="stats" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
-        <Card sx={{ p: 2 }}>
-          <div className="label" style={{ fontSize: 12, color: "#667085", fontWeight: 650 }}>
-            Total invoiced
-          </div>
-          <div className="value money" style={{ fontSize: 27, fontWeight: 800, marginTop: 12 }}>
-            {stats.total.toFixed(2)}
-          </div>
+        <Card className="if-stat">
+          <div className="if-label">Total invoiced</div>
+          <div className="if-value money">{stats.total.toFixed(2)}</div>
         </Card>
-        <Card sx={{ p: 2 }}>
-          <div className="label" style={{ fontSize: 12, color: "#667085", fontWeight: 650 }}>
-            Outstanding
-          </div>
-          <div className="value money" style={{ fontSize: 27, fontWeight: 800, marginTop: 12, color: "#B45309" }}>
-            {stats.outstanding.toFixed(2)}
-          </div>
+        <Card className="if-stat">
+          <div className="if-label">Outstanding</div>
+          <div className="if-value money" style={{ color: "#B45309" }}>{stats.outstanding.toFixed(2)}</div>
         </Card>
-        <Card sx={{ p: 2 }}>
-          <div className="label" style={{ fontSize: 12, color: "#667085", fontWeight: 650 }}>
-            Overdue
-          </div>
-          <div className="value money" style={{ fontSize: 27, fontWeight: 800, marginTop: 12, color: "#B42318" }}>
-            {stats.overdue.toFixed(2)}
-          </div>
+        <Card className="if-stat">
+          <div className="if-label">Overdue</div>
+          <div className="if-value money" style={{ color: "#B42318" }}>{stats.overdue.toFixed(2)}</div>
         </Card>
       </div>
 
       <div className="if-twocol">
         <Card sx={{ p: 2 }}>
-          <div className="section-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>
-            Needs attention
-          </div>
+          <div className="if-section-title">Needs attention</div>
           {needsAttention.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              Nothing needs attention.
-            </Typography>
+            <Typography variant="body2" color="text.secondary">Nothing needs attention.</Typography>
           ) : (
             needsAttention.map((invoice) => (
-              <div
-                key={invoice.id}
-                className="attention-item"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 16,
-                  padding: "13px 0",
-                  borderBottom: "1px solid #E4E7EC",
-                }}
-              >
+              <div key={invoice.id} className="if-timeline-row" style={{ justifyContent: "space-between" }}>
                 <div>
-                  <Link
-                    href={`/app/${businessId}/invoices/${invoice.id}`}
-                    style={{ textDecoration: "none" }}
-                  >
+                  <Link href={`/app/${businessId}/invoices/${invoice.id}`} style={{ textDecoration: "none" }}>
                     <strong style={{ fontSize: 13 }}>{invoice.number}</strong>
                   </Link>
-                  <div className="meta" style={{ fontSize: 11, color: "#667085", marginTop: 3 }}>
+                  <div style={{ fontSize: 11, color: "#667085", marginTop: 3 }}>
                     {invoice.clientSnapshot.displayName}
                   </div>
                 </div>
-                <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>
-                  {invoice.status}
-                </StatusBadge>
+                <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>{invoice.status}</StatusBadge>
               </div>
             ))
           )}
         </Card>
 
         <Card sx={{ p: 2 }}>
-          <div className="section-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>
-            Recent activity
-          </div>
+          <div className="if-section-title">Recent activity</div>
           {invoices.slice(0, 6).map((invoice) => (
-            <div
-              key={invoice.id}
-              className="activity-item"
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 16,
-                padding: "13px 0",
-                borderBottom: "1px solid #E4E7EC",
-              }}
-            >
+            <div key={invoice.id} className="if-timeline-row" style={{ justifyContent: "space-between" }}>
               <div>
                 <strong style={{ fontSize: 13 }}>{invoice.number}</strong>
-                <div className="meta" style={{ fontSize: 11, color: "#667085", marginTop: 3 }}>
+                <div style={{ fontSize: 11, color: "#667085", marginTop: 3 }}>
                   {invoice.clientSnapshot.displayName}
                 </div>
               </div>
-              <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>
-                {invoice.status}
-              </StatusBadge>
+              <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>{invoice.status}</StatusBadge>
             </div>
           ))}
         </Card>

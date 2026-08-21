@@ -102,13 +102,9 @@ export default function ProductsPage() {
               href={`/app/${businessId}/products/${product.id}/edit`}
               style={{ textDecoration: "none" }}
             >
-              <div className="if-entity" style={{ padding: 16, border: "1px solid #E4E7EC", borderRadius: 14, background: "#fff" }}>
-                <h3 style={{ fontSize: 14, margin: 0, color: "#101828" }}>
-                  {product.name}
-                </h3>
-                <p style={{ fontSize: 12, color: "#667085", margin: "5px 0" }}>
-                  {product.description ?? product.type}
-                </p>
+              <div className="if-entity">
+                <h3>{product.name}</h3>
+                <p>{product.description ?? product.type}</p>
                 {product.defaultRate && (
                   <div className="money" style={{ marginTop: 16, fontSize: 12, color: "#667085" }}>
                     <strong style={{ float: "right", color: "#101828", fontSize: 14 }}>{product.defaultRate}</strong>
