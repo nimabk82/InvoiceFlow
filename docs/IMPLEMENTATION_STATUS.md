@@ -73,10 +73,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - FOUND-04 — Business context & switcher (Web): `BusinessSwitcher` (list + switch via URL context) and `CurrentBusiness` in the app shell; business is the workspace context, data isolated per `businessId`.
 - CLIENT-03 — Multiple emails (Web): client form supports adding/removing multiple email addresses.
 - Activity timeline (Stage 3): audit module (`SupabaseActivityEventRepository`) + events recorded on create/send/payment/void; `GET /invoices/:id/activity`; timeline on Invoice Detail.
+- Stage 3 polish — Invoice list (Web): status tabs (All/Draft/Sent/Partial/Paid/Overdue/Void), search by number/client, and status pills on rows.
 
 ## Current ticket
 
-- Stage 3 polish — dialogs/pills/tabs/search (next).
+- Stage 4 — Settings finish (Payments/Numbering/Manage Businesses + Branding).
 
 ## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
@@ -290,6 +291,7 @@ Watchman: VERIFIED
 - FOUND-04 — web lint/typecheck/build
 - CLIENT-03 — web lint/typecheck/build
 - Activity timeline — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; end-to-end activity recording verified
+- Invoice list polish — web lint/typecheck/build
 
 ## Status update format
 
