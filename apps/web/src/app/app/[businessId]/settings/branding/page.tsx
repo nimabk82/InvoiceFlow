@@ -8,7 +8,7 @@ import {
 } from "@invoiceflow/api-client";
 import { Alert, Box, Stack, Typography } from "@mui/material";
 
-import { Button, Input, Select } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -105,20 +105,35 @@ export default function BrandingSettingsPage() {
                   onChange={(event) => setAccentColor(event.target.value)}
                   sx={{ width: 120 }}
                 />
-                <Select
-                  label="Invoice style"
-                  value={style}
-                  onValueChange={setStyle}
-                  options={[
-                    { value: "clean", label: "Clean" },
-                    { value: "modern", label: "Modern" },
-                    { value: "minimal", label: "Minimal" },
-                  ]}
-                />
+                <Typography variant="subtitle2">Invoice style</Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 2 }}>
+                  {["clean", "modern", "minimal"].map((option) => (
+                    <Box
+                      key={option}
+                      onClick={() => setStyle(option)}
+                      sx={{
+                        height: 100,
+                        borderRadius: 2,
+                        border: 1,
+                        borderColor: style === option ? "primary.main" : "divider",
+                        color: style === option ? "primary.main" : "text.primary",
+                        fontWeight: 800,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        background: "surface",
+                      }}
+                    >
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                      {style === option ? " ✓" : ""}
+                    </Box>
+                  ))}
+                </Box>
                 {saved && <Alert severity="success">Branding saved.</Alert>}
                 <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                   <Button type="submit" disabled={saving}>
-                    {saving ? "Saving…" : "Save"}
+                    {saving ? "Saving…" : "Save Changes"}
                   </Button>
                 </Box>
               </Stack>

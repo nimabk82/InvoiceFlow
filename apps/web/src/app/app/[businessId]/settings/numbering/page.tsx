@@ -138,7 +138,7 @@ export default function NumberingSettingsPage() {
                 )}
                 <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                   <Button type="submit" disabled={saving}>
-                    {saving ? "Saving…" : "Save"}
+                    {saving ? "Saving…" : "Save Changes"}
                   </Button>
                 </Box>
               </Stack>

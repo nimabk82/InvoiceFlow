@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-import { Button, Dialog, Input } from "@/components/ui";
+import { Button, Dialog, Input, StatusBadge } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -162,18 +162,21 @@ export default function TaxesPage() {
           {taxes.map((tax) => (
             <div
               key={tax.id}
-              className="if-taxrow"
               style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: "1px solid #E4E7EC" }}
             >
               <div>
                 <strong style={{ fontSize: 14, color: "#101828" }}>{tax.name}</strong>
                 <div className="small" style={{ fontSize: 12, color: "#667085", marginTop: 2 }}>
-                  {tax.rate}% · {tax.isDefault ? "Default" : tax.registrationNumber ?? ""}
+                  {tax.rate}%{tax.registrationNumber ? ` · ${tax.registrationNumber}` : ""}
                 </div>
               </div>
-              <Button variant="text" size="small" onClick={() => openEdit(tax)}>
-                Edit
-              </Button>
+              {tax.isDefault ? (
+                <StatusBadge tone="success">Default</StatusBadge>
+              ) : (
+                <Button variant="text" size="small" onClick={() => openEdit(tax)}>
+                  Edit
+                </Button>
+              )}
             </div>
           ))}
         </div>

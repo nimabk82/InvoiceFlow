@@ -2,10 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import {
-  ApiClient,
-  type DocumentDefaults,
-} from "@invoiceflow/api-client";
+import { ApiClient, type Tax } from "@invoiceflow/api-client";
 import { Alert, Box, Stack, Typography } from "@mui/material";
 
 import { Button, Input, Select } from "@/components/ui";
@@ -22,7 +19,8 @@ export default function DocumentDefaultsPage() {
   const [defaultDueRule, setDefaultDueRule] = useState("");
   const [defaultNotes, setDefaultNotes] = useState("");
   const [defaultTerms, setDefaultTerms] = useState("");
-  const [defaultTaxIds, setDefaultTaxIds] = useState("");
+  const [defaultTaxId, setDefaultTaxId] = useState("");
+  const [taxes, setTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -46,15 +44,16 @@ export default function DocumentDefaultsPage() {
       }
 
       try {
-        const defaults: DocumentDefaults = await apiClient.getDocumentDefaults(
-          businessId,
-          token,
-        );
+        const [defaults, taxList] = await Promise.all([
+          apiClient.getDocumentDefaults(businessId, token),
+          apiClient.listTaxes(businessId, token),
+        ]);
         if (!cancelled) {
           setDefaultDueRule(defaults.defaultDueRule ?? "");
           setDefaultNotes(defaults.defaultNotes ?? "");
           setDefaultTerms(defaults.defaultTerms ?? "");
-          setDefaultTaxIds((defaults.defaultTaxIds ?? []).join(","));
+          setDefaultTaxId(defaults.defaultTaxIds?.[0] ?? "");
+          setTaxes([...taxList]);
           setLoading(false);
         }
       } catch (caught) {
@@ -99,10 +98,7 @@ export default function DocumentDefaultsPage() {
           defaultDueRule: defaultDueRule || undefined,
           defaultNotes: defaultNotes || undefined,
           defaultTerms: defaultTerms || undefined,
-          defaultTaxIds: defaultTaxIds
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean),
+          defaultTaxIds: defaultTaxId ? [defaultTaxId] : undefined,
         },
         token,
       );
@@ -127,19 +123,35 @@ export default function DocumentDefaultsPage() {
         <div className="if-settings-section">
           <form onSubmit={handleSubmit}>
             <Stack spacing={2}>
-              <Select
-                label="Default due date"
-                value={defaultDueRule}
-                onValueChange={setDefaultDueRule}
-                options={[
-                  { value: "", label: "No default" },
-                  { value: "on_receipt", label: "On receipt" },
-                  { value: "days_7", label: "7 days" },
-                  { value: "days_15", label: "15 days" },
-                  { value: "days_30", label: "30 days" },
-                  { value: "days_60", label: "60 days" },
-                ]}
-              />
+              <Stack direction="row" spacing={2}>
+                <Select
+                  label="Default invoice due date"
+                  value={defaultDueRule}
+                  onValueChange={setDefaultDueRule}
+                  options={[
+                    { value: "", label: "No default" },
+                    { value: "on_receipt", label: "On receipt" },
+                    { value: "days_7", label: "7 days after issue" },
+                    { value: "days_15", label: "15 days after issue" },
+                    { value: "days_30", label: "30 days after issue" },
+                    { value: "days_60", label: "60 days after issue" },
+                  ]}
+                  sx={{ flexGrow: 1 }}
+                />
+                <Select
+                  label="Default tax"
+                  value={defaultTaxId}
+                  onValueChange={setDefaultTaxId}
+                  options={[
+                    { value: "", label: "No tax" },
+                    ...taxes.map((tax) => ({
+                      value: tax.id,
+                      label: `${tax.name} ${tax.rate}%`,
+                    })),
+                  ]}
+                  sx={{ flexGrow: 1 }}
+                />
+              </Stack>
               <Input
                 label="Default notes"
                 multiline
@@ -154,17 +166,12 @@ export default function DocumentDefaultsPage() {
                 value={defaultTerms}
                 onChange={(event) => setDefaultTerms(event.target.value)}
               />
-              <Input
-                label="Default tax IDs (comma-separated)"
-                value={defaultTaxIds}
-                onChange={(event) => setDefaultTaxIds(event.target.value)}
-              />
 
               {saved && <Alert severity="success">Document defaults saved.</Alert>}
 
               <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving…" : "Save"}
+                  {saving ? "Saving…" : "Save Changes"}
                 </Button>
               </Box>
             </Stack>

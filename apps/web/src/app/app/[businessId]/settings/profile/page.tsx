@@ -207,25 +207,34 @@ export default function BusinessProfilePage() {
                   sx={{ flexGrow: 1 }}
                 />
                 <Input
-                  label="Country code"
+                  label="Region"
+                  value={region}
+                  onChange={(event) => setRegion(event.target.value)}
+                  sx={{ flexGrow: 1 }}
+                />
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <Input
+                  label="Country"
                   value={countryCode}
                   onChange={(event) => setCountryCode(event.target.value)}
-                  sx={{ width: 140 }}
+                  sx={{ flexGrow: 1 }}
+                  required
+                />
+                <Input
+                  label="Currency"
+                  value={currencyCode}
+                  onChange={(event) => setCurrencyCode(event.target.value)}
+                  sx={{ flexGrow: 1 }}
                   required
                 />
               </Stack>
-              <Input
-                label="Currency code"
-                value={currencyCode}
-                onChange={(event) => setCurrencyCode(event.target.value)}
-                required
-              />
 
               {saved && <Alert severity="success">Business profile saved.</Alert>}
 
               <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving…" : "Save"}
+                  {saving ? "Saving…" : "Save Changes"}
                 </Button>
               </Box>
             </Stack>
