@@ -1,6 +1,6 @@
 "use client";
 
-import { createTheme } from "@mui/material/styles";
+import { createTheme, alpha } from "@mui/material/styles";
 import {
   invoiceFlowDesignTokens,
   type InvoiceFlowDesignTokens,
@@ -9,6 +9,9 @@ import {
 export function createInvoiceFlowTheme(
   tokens: InvoiceFlowDesignTokens = invoiceFlowDesignTokens,
 ) {
+  const c = tokens.color;
+  const shadow = "0 18px 50px rgba(16,24,40,.14)";
+
   return createTheme({
     cssVariables: true,
     spacing: tokens.spacing[0],
@@ -23,99 +26,151 @@ export function createInvoiceFlowTheme(
     },
     palette: {
       mode: "light",
-      primary: {
-        main: tokens.color.primary,
-        dark: tokens.color.primaryHover,
-        light: tokens.color.primarySoft,
-      },
-      background: {
-        default: tokens.color.background,
-        paper: tokens.color.surface,
-      },
-      text: {
-        primary: tokens.color.textPrimary,
-        secondary: tokens.color.textSecondary,
-        disabled: tokens.color.textMuted,
-      },
-      divider: tokens.color.border,
-      success: {
-        main: tokens.color.success,
-        light: tokens.color.successSoft,
-      },
-      warning: {
-        main: tokens.color.warning,
-        light: tokens.color.warningSoft,
-      },
-      error: {
-        main: tokens.color.danger,
-        light: tokens.color.dangerSoft,
-      },
+      primary: { main: c.primary, dark: c.primaryHover, light: c.primarySoft },
+      background: { default: c.background, paper: c.surface },
+      text: { primary: c.textPrimary, secondary: c.textSecondary, disabled: c.textMuted },
+      divider: c.border,
+      success: { main: c.success, light: c.successSoft },
+      warning: { main: c.warning, light: c.warningSoft },
+      error: { main: c.danger, light: c.dangerSoft },
     },
-    shape: {
-      borderRadius: tokens.radius.control,
-    },
+    shape: { borderRadius: 9 },
     typography: {
-      fontFamily: `${tokens.typography.family}, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`,
-      h1: {
-        fontSize: tokens.typography.pageTitle.size,
-        fontWeight: tokens.typography.pageTitle.weight,
-      },
-      h2: {
-        fontSize: tokens.typography.sectionTitle.size,
-        fontWeight: tokens.typography.sectionTitle.weight,
-      },
-      h3: {
-        fontSize: tokens.typography.total.size,
-        fontWeight: tokens.typography.total.weight,
-      },
-      body1: {
-        fontSize: tokens.typography.body.size,
-        fontWeight: tokens.typography.body.weight,
-      },
-      subtitle2: {
-        fontSize: tokens.typography.label.size,
-        fontWeight: tokens.typography.label.weight,
-      },
-      caption: {
-        fontSize: tokens.typography.meta.size,
-        fontWeight: tokens.typography.meta.weight,
-      },
+      fontFamily: `'${tokens.typography.family}', ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`,
+      h1: { fontSize: 28, fontWeight: 800, letterSpacing: "-.035em" },
+      h2: { fontSize: 20, fontWeight: 800, letterSpacing: "-.02em" },
+      h3: { fontSize: tokens.typography.total.size, fontWeight: 800 },
+      h4: { fontSize: 25, fontWeight: 800, letterSpacing: "-.035em" },
+      h5: { fontSize: 18, fontWeight: 800 },
+      h6: { fontSize: 16, fontWeight: 800 },
+      body1: { fontSize: 14, fontWeight: 400 },
+      body2: { fontSize: 13, fontWeight: 400 },
+      subtitle1: { fontSize: 14, fontWeight: 700 },
+      subtitle2: { fontSize: tokens.typography.label.size, fontWeight: 700, color: c.textSecondary },
+      caption: { fontSize: 11, fontWeight: 400, color: c.textSecondary },
+      button: { fontSize: 13, fontWeight: 750, textTransform: "none" },
     },
     components: {
-      MuiButton: {
-        defaultProps: {
-          disableElevation: true,
-        },
-        styleOverrides: {
-          root: {
-            minHeight: tokens.sizing.desktopControl,
-            borderRadius: tokens.radius.control,
-            textTransform: "none",
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: tokens.radius.card,
-          },
-        },
-      },
       MuiCssBaseline: {
         styleOverrides: {
+          "html, body": { minHeight: "100%" },
           body: {
-            backgroundColor: tokens.color.background,
-            color: tokens.color.textPrimary,
+            backgroundColor: c.background,
+            color: c.textPrimary,
+            fontFamily: `'${tokens.typography.family}', ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`,
           },
+          ":focus-visible": {
+            outline: "3px solid rgba(37,99,235,.22)",
+            outlineOffset: 2,
+          },
+          ".money": { fontVariantNumeric: "tabular-nums" },
+        },
+      },
+      MuiButton: {
+        defaultProps: { disableElevation: true },
+        styleOverrides: {
+          root: {
+            height: 44,
+            minWidth: 0,
+            borderRadius: 9,
+            padding: "0 17px",
+            fontSize: 13,
+            fontWeight: 750,
+            letterSpacing: 0,
+          },
+          sizeSmall: { height: 36, padding: "0 13px", fontSize: 12 },
+          contained: { backgroundColor: c.primary, color: "#fff", "&:hover": { backgroundColor: c.primaryHover } },
+          outlined: { backgroundColor: c.surface, borderColor: c.borderStrong, color: c.textPrimary, "&:hover": { borderColor: c.borderStrong, backgroundColor: c.background } },
+          text: { color: c.primary, fontWeight: 750 },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 999,
+            height: 22,
+            fontSize: 11,
+            fontWeight: 750,
+            padding: "5px 9px",
+          },
+          label: { padding: 0 },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 9,
+            fontSize: 13,
+            backgroundColor: c.surface,
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: c.borderStrong },
+            "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: c.borderStrong },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: c.primary, borderWidth: 1 },
+          },
+          input: { height: 20, padding: "11px 12px" },
+        },
+      },
+      MuiTextField: { styleOverrides: { root: { fontSize: 13 } } },
+      MuiInputLabel: { styleOverrides: { root: { fontSize: 12, fontWeight: 700, color: c.textSecondary } } },
+      MuiCard: {
+        styleOverrides: {
+          root: { borderRadius: 14, border: `1px solid ${c.border}`, boxShadow: "none", backgroundColor: c.surface },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: { borderRadius: 14, backgroundImage: "none" },
         },
       },
       MuiDialog: {
         styleOverrides: {
-          paper: {
-            borderRadius: tokens.radius.modal,
+          paper: { borderRadius: 16, boxShadow: shadow, color: c.textPrimary },
+          root: { "& .MuiBackdrop-root": { backgroundColor: alpha("#101828", 0.42), backdropFilter: "blur(2px)" } },
+        },
+      },
+      MuiTabs: { styleOverrides: { root: { minHeight: 34 } } },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            height: 34,
+            minHeight: 34,
+            borderRadius: 999,
+            backgroundColor: "#F2F4F7",
+            color: c.textSecondary,
+            fontSize: 12,
+            fontWeight: 700,
+            padding: "0 12px",
+            textTransform: "none",
+            marginRight: 8,
+            "&.Mui-selected": { backgroundColor: c.primarySoft, color: c.primary },
           },
         },
       },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            "&:hover": { backgroundColor: "#FCFCFD" },
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: { borderColor: c.border, fontSize: 13 },
+          head: { backgroundColor: "#FCFCFD", color: c.textSecondary, fontSize: 11, fontWeight: 800 },
+        },
+      },
+      MuiListItemButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 9,
+            fontSize: 13,
+            fontWeight: 650,
+            color: c.textSecondary,
+            "&.Mui-selected": { backgroundColor: c.primarySoft, color: c.primary },
+            "&.Mui-selected:hover": { backgroundColor: c.primarySoft },
+          },
+        },
+      },
+      MuiMenuItem: { styleOverrides: { root: { fontSize: 13 } } },
     },
   });
 }

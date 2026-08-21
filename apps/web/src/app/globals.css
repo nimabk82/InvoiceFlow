@@ -2,3 +2,193 @@ html,
 body {
   min-height: 100%;
 }
+
+/* App shell layout primitives (match sample.html) */
+.if-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.if-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 248px;
+  background: #fff;
+  border-right: 1px solid var(--mui-palette-divider, #E4E7EC);
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+}
+
+.if-app-main {
+  margin-left: 248px;
+  min-height: 100vh;
+  flex: 1;
+  min-width: 0;
+}
+
+.if-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 72px;
+  background: rgba(248, 250, 252, 0.95);
+  backdrop-filter: blur(9px);
+  border-bottom: 1px solid var(--mui-palette-divider, #E4E7EC);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.if-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 32px 110px;
+}
+
+/* Sticky editor bar */
+.if-sticky-editor {
+  position: fixed;
+  left: 248px;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid var(--mui-palette-divider, #E4E7EC);
+  padding: 13px 32px;
+  z-index: 25;
+}
+.if-sticky-inner {
+  max-width: 1240px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.if-saved {
+  font-size: 12px;
+  color: #15803d;
+  font-weight: 700;
+}
+
+/* Editor grid */
+.if-editor-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 24px;
+  align-items: start;
+}
+.if-summary {
+  position: sticky;
+  top: 96px;
+}
+
+/* Paper (review/detail) */
+.if-paper {
+  width: min(700px, 100%);
+  min-height: 790px;
+  background: #fff;
+  border: 1px solid var(--mui-palette-divider, #E4E7EC);
+  padding: 42px;
+}
+
+/* Entity grid (clients/products) */
+.if-entity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+/* Dashboard two-column */
+.if-twocol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* Settings layout */
+.if-settings {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 20px;
+}
+
+/* Toast */
+.if-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 88px;
+  background: #101828;
+  color: #fff;
+  padding: 12px 15px;
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 100;
+}
+
+@media (max-width: 1199px) {
+  .if-sidebar {
+    width: 72px;
+    padding: 18px 12px;
+    align-items: center;
+  }
+  .if-app-main {
+    margin-left: 72px;
+  }
+  .if-sticky-editor {
+    left: 72px;
+  }
+  .if-page {
+    padding: 24px 24px 106px;
+  }
+  .if-topbar {
+    padding: 0 24px;
+  }
+  .if-entity-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .if-sidebar,
+  .if-topbar {
+    display: none;
+  }
+  .if-app-main {
+    margin-left: 0;
+  }
+  .if-page {
+    padding: 18px 16px 146px;
+    max-width: none;
+  }
+  .if-editor-bottom {
+    grid-template-columns: 1fr;
+  }
+  .if-summary {
+    position: static;
+  }
+  .if-sticky-editor {
+    left: 0;
+    padding: 9px 16px 72px;
+    background: #fff;
+  }
+  .if-sticky-inner .if-saved {
+    display: none;
+  }
+  .if-twocol {
+    grid-template-columns: 1fr;
+  }
+  .if-entity-grid {
+    grid-template-columns: 1fr;
+  }
+  .if-settings {
+    grid-template-columns: 1fr;
+  }
+}
