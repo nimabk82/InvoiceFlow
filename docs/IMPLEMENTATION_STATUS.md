@@ -75,11 +75,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - Activity timeline (Stage 3): audit module (`SupabaseActivityEventRepository`) + events recorded on create/send/payment/void; `GET /invoices/:id/activity`; timeline on Invoice Detail.
 - Stage 3 polish — Invoice list (Web): status tabs (All/Draft/Sent/Partial/Paid/Overdue/Void), search by number/client, and status pills on rows.
 - Stage 4 — Settings finish (Web + API): `business_settings` table + `GET/PATCH /businesses/:id/settings`; Payments, Numbering, Branding screens; Manage Businesses screen; settings sub-navigation layout.
-- Design pass (web, match `sample.html`): rethemed MUI to the sample design system; app shell (sidebar/topbar/mobile nav); dashboard, invoice list, invoice editor (client card, inline items, sticky summary + sticky editor bar), invoice detail (hero + amount-strip + timeline), clients/products entity grids.
+- Design pass (web, match `sample.html`): rethemed MUI to the sample design system; app shell (sidebar/topbar/mobile nav); dashboard, invoice list, invoice editor (client card, inline items, sticky summary + sticky editor bar), invoice detail (hero + amount-strip + timeline), clients/products entity grids; review page to preview layout; toast; inline styles moved to reusable CSS classes.
 
 ## Current ticket
 
-- Design pass completion — review paper restyle, settings/onboarding polish, responsive parity (Phase C/D remainder).
+- Design pass done (web). Next: deferred breadth (Quotes, Theme Builder, Print/PDF) or mobile parity.
 
 ## Next recommended tickets
 
