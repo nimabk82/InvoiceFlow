@@ -66,10 +66,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - SET-03 — Taxes (Web + API): taxes module with `GET/POST /businesses/:id/taxes` + `GET/PATCH /taxes/:taxId`; Taxes settings screen (create/edit, rate, registration number, default).
 - RENDER-03 — Semantic section renderer (`@invoiceflow/renderer`): platform-neutral `renderDocumentSections` producing ordered semantic sections (header→footer) with theme presentation + protected totals/items/deposit.
 - RENDER-04 — Item table renderer (`@invoiceflow/renderer`): `renderItemTable` builds table columns (description/amount always, qty/rate per theme) and aligned rows.
+- RENDER-05 — Totals + Deposit block (`@invoiceflow/renderer`): `renderTotalsAndDeposit` builds totals rows (subtotal/discount/taxes/total) + deposit block with theme layout/emphasis/style.
 
 ## Current ticket
 
-- RENDER-05 — Totals + Deposit block (Stage 1).
+- INV-11 — Theme selector in Review (Stage 1).
 
 ## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
@@ -276,6 +277,7 @@ Watchman: VERIFIED
 - SET-03 — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; end-to-end taxes CRUD verified
 - RENDER-03 — renderer package lint/typecheck/build + test (3 passed); root typecheck
 - RENDER-04 — renderer package lint/typecheck/build + test (6 passed)
+- RENDER-05 — renderer package lint/typecheck/build + test (10 passed)
 
 ## Status update format
 

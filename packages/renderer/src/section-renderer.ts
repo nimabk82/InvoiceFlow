@@ -11,6 +11,8 @@ import type {
   TotalsLayout,
 } from '@invoiceflow/theme-schema';
 
+import { buildTotalsRows, type RenderedTotalsRow } from './totals-renderer.js';
+
 export type RenderOutput = 'preview' | 'client_view' | 'print' | 'pdf';
 
 export type RenderContext = Readonly<{
@@ -25,12 +27,6 @@ export type RenderedItemRow = Readonly<{
   quantity: string;
   rate: string;
   amount: string;
-}>;
-
-export type RenderedTotalsRow = Readonly<{
-  label: string;
-  value: string;
-  emphasis?: boolean;
 }>;
 
 export type RenderedSection =
@@ -246,30 +242,6 @@ function sectionEnabled(theme: ThemeConfig) {
     map.set(section.id, section.enabled);
   }
   return (id: SectionId): boolean => map.get(id) ?? true;
-}
-
-function buildTotalsRows(document: RenderableDocument): RenderedTotalsRow[] {
-  const rows: RenderedTotalsRow[] = [
-    { label: 'Subtotal', value: document.subtotal },
-  ];
-
-  if (document.discount) {
-    rows.push({
-      label:
-        document.discount.type === 'percentage'
-          ? `Discount (${document.discount.value}%)`
-          : 'Discount',
-      value: `-${document.discount.amount}`,
-    });
-  }
-
-  for (const tax of document.taxComponents) {
-    rows.push({ label: `${tax.name} (${tax.rate}%)`, value: tax.amount });
-  }
-
-  rows.push({ label: 'Total', value: document.total, emphasis: true });
-
-  return rows;
 }
 
 function renderAddress(
