@@ -78,23 +78,23 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 
 ## Current ticket
 
-- Stage 5 — Deferred breadth (Quotes, Theme Builder, Print/PDF) — (on hold per design-first plan).
+- QUOTE-01 — Quote list (first of the deferred Quotes domain, now being picked up).
 
-## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
+## Next recommended tickets
 
-1. RENDER-04 — Item table renderer
-2. RENDER-05 — Totals + Deposit block
-3. INV-11 — Theme selector in Review
-4. DASH-01 — First-Time Dashboard (Stage 2)
-5. FOUND-03 — App shell & navigation
+Design-first Stages 1–4 are complete (renderer core, theme selector in Review, dashboard, app shell/nav, business context, activity timeline, list polish, settings finish). Proceeding into the deferred breadth:
+
+1. QUOTE-01 — Quote list
+2. QUOTE-02 — Quote editor via shared DocumentEditor
+3. QUOTE-03 — Quote Review
+4. QUOTE-04 — Send Quote
 
 ## Deferred to the end (design plan)
 
-- QUOTE-01..08 — Quotes
+- QUOTE-05..08 — acceptance, detail, convert, quote↔invoice
 - RENDER-06..11 — pagination, continuation headers, print/PDF adapters
 - THEME-08..21 — full visual Theme Builder
 - TVER-02..08 — theme lifecycle complexity
-- SET-04 — Payments, SET-05 — Numbering, SET-06 — Manage Businesses
 - CLIENT-04 — Detail, CLIENT-05 — Archive
 - PRODUCT-03 — library selector
 - AUTH-03 — Forgot/Reset Password
