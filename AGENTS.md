@@ -26,6 +26,18 @@ Supabase is infrastructure behind repository/provider abstractions. Do not coupl
 4. Inspect the existing implementation relevant to the task.
 5. Do not scan or summarize the entire repository unless the task genuinely requires it.
 
+## Session management
+
+Manage sessions by task boundaries and context relevance, not context % alone.
+
+- Stay in the current session while working on the same task and the context is still relevant.
+- Around 65–75% context usage, recommend `/compact` if continuing the same task.
+- Start a new session when the current task is complete and the next task is substantially different, even if context usage is low.
+- At 75–80%+ context, strongly recommend a new session if history contains lots of old debugging, unrelated work, or obsolete context.
+- You cannot run `/compact` or `/new` yourself — recommend them to the user when genuinely useful, without being noisy.
+- Before recommending a new session, ensure a handoff exists: completed work, important decisions, files changed, test/build status, unresolved issues, next recommended task. Persist it to `docs/IMPLEMENTATION_STATUS.md` and any relevant `docs/handoff/` file so nothing is lost.
+- Keep permanent project knowledge in AGENTS.md, docs, rules, code, tests, and Git — not in the chat session.
+
 ## Working behavior
 
 - Do not ask permission to read or edit files inside this repository.
