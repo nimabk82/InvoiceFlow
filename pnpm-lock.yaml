@@ -232,6 +232,15 @@ importers:
       '@invoiceflow/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@invoiceflow/document-schema':
+        specifier: workspace:*
+        version: link:../../packages/document-schema
+      '@invoiceflow/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      '@invoiceflow/theme-schema':
+        specifier: workspace:*
+        version: link:../../packages/theme-schema
       '@invoiceflow/validation':
         specifier: workspace:*
         version: link:../../packages/validation

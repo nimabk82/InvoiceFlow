@@ -67,10 +67,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - RENDER-03 — Semantic section renderer (`@invoiceflow/renderer`): platform-neutral `renderDocumentSections` producing ordered semantic sections (header→footer) with theme presentation + protected totals/items/deposit.
 - RENDER-04 — Item table renderer (`@invoiceflow/renderer`): `renderItemTable` builds table columns (description/amount always, qty/rate per theme) and aligned rows.
 - RENDER-05 — Totals + Deposit block (`@invoiceflow/renderer`): `renderTotalsAndDeposit` builds totals rows (subtotal/discount/taxes/total) + deposit block with theme layout/emphasis/style.
+- INV-11 — Theme selector in Review (Web): Invoice Review now renders the shared "paper" via `DocumentPaper` + `@invoiceflow/renderer`; built-in preset theme selector (Clean/Modern/Minimal/Blank) changes appearance only.
 
 ## Current ticket
 
-- INV-11 — Theme selector in Review (Stage 1).
+- DASH-01 — First-Time Dashboard (Stage 2).
 
 ## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
@@ -278,6 +279,7 @@ Watchman: VERIFIED
 - RENDER-03 — renderer package lint/typecheck/build + test (3 passed); root typecheck
 - RENDER-04 — renderer package lint/typecheck/build + test (6 passed)
 - RENDER-05 — renderer package lint/typecheck/build + test (10 passed)
+- INV-11 — web lint/typecheck/build; api-client lint/typecheck/test/build; renderer/document-schema/theme-schema tests pass; shared render packages export dist
 
 ## Status update format
 

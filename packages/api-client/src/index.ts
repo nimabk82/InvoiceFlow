@@ -188,6 +188,7 @@ export type Invoice = Readonly<{
   number: string;
   status: string;
   currencyCode: string;
+  themeVersionId?: string;
   issueDate: string;
   dueDate?: string;
   poNumber?: string;
