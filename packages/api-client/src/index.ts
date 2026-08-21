@@ -65,6 +65,29 @@ export type UpdateDocumentDefaultsInput = Readonly<{
   defaultTaxIds?: readonly string[];
 }>;
 
+export type BusinessSettings = Readonly<{
+  businessId: string;
+  bankTransferInstructions?: string;
+  chequeInstructions?: string;
+  invoicePrefix?: string;
+  nextInvoiceNumber?: number;
+  quotePrefix?: string;
+  nextQuoteNumber?: number;
+  accentColor?: string;
+  style?: string;
+}>;
+
+export type UpdateBusinessSettingsInput = Readonly<{
+  bankTransferInstructions?: string;
+  chequeInstructions?: string;
+  invoicePrefix?: string;
+  nextInvoiceNumber?: number;
+  quotePrefix?: string;
+  nextQuoteNumber?: number;
+  accentColor?: string;
+  style?: string;
+}>;
+
 export type ClientEmail = Readonly<{
   id: string;
   address: string;
@@ -368,6 +391,31 @@ export class ApiClient {
   ): Promise<DocumentDefaults> {
     return this.request<DocumentDefaults>(
       `/businesses/${businessId}/document-defaults`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async getBusinessSettings(
+    businessId: string,
+    token: string,
+  ): Promise<BusinessSettings> {
+    return this.request<BusinessSettings>(
+      `/businesses/${businessId}/settings`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async updateBusinessSettings(
+    businessId: string,
+    input: UpdateBusinessSettingsInput,
+    token: string,
+  ): Promise<BusinessSettings> {
+    return this.request<BusinessSettings>(
+      `/businesses/${businessId}/settings`,
       {
         method: 'PATCH',
         body: JSON.stringify(input),

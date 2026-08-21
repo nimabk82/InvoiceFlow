@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { HttpLoggingInterceptor } from './common/logging/http-logging.interceptor';
 import { validateEnvironment } from './config/environment';
 import { BusinessesModule } from './modules/businesses/businesses.module';
+import { BusinessSettingsModule } from './modules/business-settings/business-settings.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { DocumentDefaultsModule } from './modules/document-defaults/document-defaults.module';
 import { HealthModule } from './modules/health/health.module';
@@ -23,6 +24,7 @@ import { TaxesModule } from './modules/taxes/taxes.module';
     }),
     HealthModule,
     BusinessesModule,
+    BusinessSettingsModule,
     ClientsModule,
     ProductsModule,
     InvoicesModule,

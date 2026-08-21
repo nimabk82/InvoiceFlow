@@ -74,10 +74,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - CLIENT-03 — Multiple emails (Web): client form supports adding/removing multiple email addresses.
 - Activity timeline (Stage 3): audit module (`SupabaseActivityEventRepository`) + events recorded on create/send/payment/void; `GET /invoices/:id/activity`; timeline on Invoice Detail.
 - Stage 3 polish — Invoice list (Web): status tabs (All/Draft/Sent/Partial/Paid/Overdue/Void), search by number/client, and status pills on rows.
+- Stage 4 — Settings finish (Web + API): `business_settings` table + `GET/PATCH /businesses/:id/settings`; Payments, Numbering, Branding screens; Manage Businesses screen; settings sub-navigation layout.
 
 ## Current ticket
 
-- Stage 4 — Settings finish (Payments/Numbering/Manage Businesses + Branding).
+- Stage 5 — Deferred breadth (Quotes, Theme Builder, Print/PDF) — (on hold per design-first plan).
 
 ## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
@@ -292,6 +293,7 @@ Watchman: VERIFIED
 - CLIENT-03 — web lint/typecheck/build
 - Activity timeline — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; end-to-end activity recording verified
 - Invoice list polish — web lint/typecheck/build
+- Stage 4 settings — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; sqlfluff migration clean; migration applied; end-to-end settings GET/PATCH verified
 
 ## Status update format
 

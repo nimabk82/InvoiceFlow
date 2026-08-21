@@ -33,6 +33,18 @@ export type DocumentDefaults = {
   defaultTaxIds?: string[];
 };
 
+export type BusinessSettings = {
+  businessId: string;
+  bankTransferInstructions?: string;
+  chequeInstructions?: string;
+  invoicePrefix?: string;
+  nextInvoiceNumber?: number;
+  quotePrefix?: string;
+  nextQuoteNumber?: number;
+  accentColor?: string;
+  style?: string;
+};
+
 export type BusinessSnapshot = {
   displayName: string;
   legalName?: string;
