@@ -46,6 +46,25 @@ export type CreateBusinessInput = Readonly<{
   logoAssetId?: string;
 }>;
 
+export type DocumentDefaults = Readonly<{
+  businessId: string;
+  defaultDueRule?: string;
+  defaultNotes?: string;
+  defaultTerms?: string;
+  defaultInvoiceThemeId?: string;
+  defaultQuoteThemeId?: string;
+  defaultTaxIds?: readonly string[];
+}>;
+
+export type UpdateDocumentDefaultsInput = Readonly<{
+  defaultDueRule?: string;
+  defaultNotes?: string;
+  defaultTerms?: string;
+  defaultInvoiceThemeId?: string;
+  defaultQuoteThemeId?: string;
+  defaultTaxIds?: readonly string[];
+}>;
+
 export type ClientEmail = Readonly<{
   id: string;
   address: string;
@@ -293,6 +312,31 @@ export class ApiClient {
       body: JSON.stringify(input),
       headers: { authorization: `Bearer ${token}` },
     });
+  }
+
+  async getDocumentDefaults(
+    businessId: string,
+    token: string,
+  ): Promise<DocumentDefaults> {
+    return this.request<DocumentDefaults>(
+      `/businesses/${businessId}/document-defaults`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async updateDocumentDefaults(
+    businessId: string,
+    input: UpdateDocumentDefaultsInput,
+    token: string,
+  ): Promise<DocumentDefaults> {
+    return this.request<DocumentDefaults>(
+      `/businesses/${businessId}/document-defaults`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
   }
 
   async listClients(

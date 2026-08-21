@@ -23,6 +23,16 @@ export type Business = {
   defaultQuoteThemeId?: string;
 };
 
+export type DocumentDefaults = {
+  businessId: string;
+  defaultDueRule?: string;
+  defaultNotes?: string;
+  defaultTerms?: string;
+  defaultInvoiceThemeId?: string;
+  defaultQuoteThemeId?: string;
+  defaultTaxIds?: string[];
+};
+
 export type BusinessSnapshot = {
   displayName: string;
   legalName?: string;

@@ -8,6 +8,7 @@ import { HttpLoggingInterceptor } from './common/logging/http-logging.intercepto
 import { validateEnvironment } from './config/environment';
 import { BusinessesModule } from './modules/businesses/businesses.module';
 import { ClientsModule } from './modules/clients/clients.module';
+import { DocumentDefaultsModule } from './modules/document-defaults/document-defaults.module';
 import { HealthModule } from './modules/health/health.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -24,6 +25,7 @@ import { ProductsModule } from './modules/products/products.module';
     ClientsModule,
     ProductsModule,
     InvoicesModule,
+    DocumentDefaultsModule,
   ],
   controllers: [AppController],
   providers: [
