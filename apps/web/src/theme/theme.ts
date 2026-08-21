@@ -96,6 +96,25 @@ export function createInvoiceFlowTheme(
           label: { padding: 0 },
         },
       },
+      MuiTextField: {
+        defaultProps: {
+          slotProps: {
+            inputLabel: {
+              shrink: true,
+              sx: {
+                position: "static",
+                transform: "none",
+                fontSize: 12,
+                fontWeight: 700,
+                color: c.textSecondary,
+                marginBottom: "7px",
+              },
+            },
+          },
+        },
+        styleOverrides: { root: { fontSize: 13 } },
+      },
+      MuiInputLabel: { styleOverrides: { root: { fontSize: 12, fontWeight: 700, color: c.textSecondary } } },
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
@@ -109,8 +128,6 @@ export function createInvoiceFlowTheme(
           input: { height: 20, padding: "11px 12px" },
         },
       },
-      MuiTextField: { styleOverrides: { root: { fontSize: 13 } } },
-      MuiInputLabel: { styleOverrides: { root: { fontSize: 12, fontWeight: 700, color: c.textSecondary } } },
       MuiCard: {
         styleOverrides: {
           root: { borderRadius: 14, border: `1px solid ${c.border}`, boxShadow: "none", backgroundColor: c.surface },
