@@ -5,19 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ApiClient, type Invoice } from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
-import {
-  Alert,
-  Box,
-  Card,
-  CardContent,
-  CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Card, CircularProgress, Typography } from "@mui/material";
 
 import { Button, StatusBadge, type StatusTone } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
@@ -36,11 +24,7 @@ const statusTone: Record<string, StatusTone> = {
   void: "neutral",
 };
 
-type InvoiceStats = {
-  total: number;
-  outstanding: number;
-  overdue: number;
-};
+type InvoiceStats = { total: number; outstanding: number; overdue: number };
 
 export default function DashboardPage() {
   const params = useParams<{ businessId: string }>();
@@ -85,7 +69,6 @@ export default function DashboardPage() {
     }
 
     void load();
-
     return () => {
       cancelled = true;
     };
@@ -99,7 +82,6 @@ export default function DashboardPage() {
     for (const invoice of invoices) {
       const amounts = invoiceTotals(invoice);
       if (!amounts) continue;
-
       total += amounts.total;
 
       if (invoice.status === "partially_paid") {
@@ -129,133 +111,142 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <main>
-        <Box sx={{ maxWidth: 900, mx: "auto", px: 2, py: 4 }}>
-          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress />
-          </Box>
-        </Box>
-      </main>
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
+
+  if (invoices.length === 0) {
+    return (
+      <Card sx={{ p: 4, textAlign: "center" }}>
+        <Typography variant="h6" gutterBottom>
+          Welcome! Create your first invoice
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          Send your first invoice to get paid.
+        </Typography>
+        <Link href={`/app/${businessId}/invoices/new`}>
+          <Button>+ New Invoice</Button>
+        </Link>
+      </Card>
     );
   }
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 900, mx: "auto", px: 2, py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Dashboard
-        </Typography>
+    <div>
+      <div className="hero-actions" style={{ display: "flex", gap: 10, marginBottom: 28 }}>
+        <Link href={`/app/${businessId}/invoices/new`} style={{ textDecoration: "none" }}>
+          <Button>+ New Invoice</Button>
+        </Link>
+      </div>
 
-        {error && <Alert severity="error">{error}</Alert>}
+      <div className="stats" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
+        <Card sx={{ p: 2 }}>
+          <div className="label" style={{ fontSize: 12, color: "#667085", fontWeight: 650 }}>
+            Total invoiced
+          </div>
+          <div className="value money" style={{ fontSize: 27, fontWeight: 800, marginTop: 12 }}>
+            {stats.total.toFixed(2)}
+          </div>
+        </Card>
+        <Card sx={{ p: 2 }}>
+          <div className="label" style={{ fontSize: 12, color: "#667085", fontWeight: 650 }}>
+            Outstanding
+          </div>
+          <div className="value money" style={{ fontSize: 27, fontWeight: 800, marginTop: 12, color: "#B45309" }}>
+            {stats.outstanding.toFixed(2)}
+          </div>
+        </Card>
+        <Card sx={{ p: 2 }}>
+          <div className="label" style={{ fontSize: 12, color: "#667085", fontWeight: 650 }}>
+            Overdue
+          </div>
+          <div className="value money" style={{ fontSize: 27, fontWeight: 800, marginTop: 12, color: "#B42318" }}>
+            {stats.overdue.toFixed(2)}
+          </div>
+        </Card>
+      </div>
 
-        {!error && invoices.length === 0 && (
-          <Paper elevation={1} sx={{ p: 4, textAlign: "center" }}>
-            <Typography variant="h6" gutterBottom>
-              Welcome! Create your first invoice
+      <div className="if-twocol">
+        <Card sx={{ p: 2 }}>
+          <div className="section-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>
+            Needs attention
+          </div>
+          {needsAttention.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              Nothing needs attention.
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-              Send your first invoice to get paid.
-            </Typography>
-            <Link href={`/app/${businessId}/invoices/new`}>
-              <Button>+ New Invoice</Button>
-            </Link>
-          </Paper>
-        )}
+          ) : (
+            needsAttention.map((invoice) => (
+              <div
+                key={invoice.id}
+                className="attention-item"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  padding: "13px 0",
+                  borderBottom: "1px solid #E4E7EC",
+                }}
+              >
+                <div>
+                  <Link
+                    href={`/app/${businessId}/invoices/${invoice.id}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <strong style={{ fontSize: 13 }}>{invoice.number}</strong>
+                  </Link>
+                  <div className="meta" style={{ fontSize: 11, color: "#667085", marginTop: 3 }}>
+                    {invoice.clientSnapshot.displayName}
+                  </div>
+                </div>
+                <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>
+                  {invoice.status}
+                </StatusBadge>
+              </div>
+            ))
+          )}
+        </Card>
 
-        {!error && invoices.length > 0 && (
-          <Stack spacing={3}>
-            <Stack direction="row" spacing={2}>
-              <Card sx={{ flexGrow: 1 }}>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">
-                    Total invoiced
-                  </Typography>
-                  <Typography variant="h5">
-                    {stats.total.toFixed(2)}
-                  </Typography>
-                </CardContent>
-              </Card>
-              <Card sx={{ flexGrow: 1 }}>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">
-                    Outstanding
-                  </Typography>
-                  <Typography variant="h5" sx={{ color: "warning.main" }}>
-                    {stats.outstanding.toFixed(2)}
-                  </Typography>
-                </CardContent>
-              </Card>
-              <Card sx={{ flexGrow: 1 }}>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">
-                    Overdue
-                  </Typography>
-                  <Typography variant="h5" sx={{ color: "error.main" }}>
-                    {stats.overdue.toFixed(2)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Stack>
-
-            <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
-              <Paper elevation={1} sx={{ flexGrow: 1, p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Needs attention
-                </Typography>
-                {needsAttention.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    Nothing needs attention.
-                  </Typography>
-                ) : (
-                  <List>
-                    {needsAttention.map((invoice) => (
-                      <ListItem key={invoice.id} divider disablePadding>
-                        <Link
-                          href={`/app/${businessId}/invoices/${invoice.id}`}
-                          style={{ textDecoration: "none", width: "100%" }}
-                        >
-                          <ListItemText
-                            sx={{ px: 1, py: 1 }}
-                            primary={invoice.number}
-                            secondary={invoice.clientSnapshot.displayName}
-                          />
-                        </Link>
-                        <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>
-                          {invoice.status}
-                        </StatusBadge>
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
-              </Paper>
-
-              <Paper elevation={1} sx={{ flexGrow: 1, p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Recent activity
-                </Typography>
-                <List>
-                  {invoices.slice(0, 6).map((invoice) => (
-                    <ListItem key={invoice.id} divider disablePadding>
-                      <ListItemText
-                        sx={{ px: 1, py: 1 }}
-                        primary={invoice.number}
-                        secondary={`${invoice.clientSnapshot.displayName} · ${invoice.status}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-            </Stack>
-          </Stack>
-        )}
-      </Box>
-    </main>
+        <Card sx={{ p: 2 }}>
+          <div className="section-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>
+            Recent activity
+          </div>
+          {invoices.slice(0, 6).map((invoice) => (
+            <div
+              key={invoice.id}
+              className="activity-item"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 16,
+                padding: "13px 0",
+                borderBottom: "1px solid #E4E7EC",
+              }}
+            >
+              <div>
+                <strong style={{ fontSize: 13 }}>{invoice.number}</strong>
+                <div className="meta" style={{ fontSize: 11, color: "#667085", marginTop: 3 }}>
+                  {invoice.clientSnapshot.displayName}
+                </div>
+              </div>
+              <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>
+                {invoice.status}
+              </StatusBadge>
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
   );
 }
 
-function invoiceTotals(
-  invoice: Invoice,
-): { total: number } | undefined {
+function invoiceTotals(invoice: Invoice): { total: number } | undefined {
   try {
     const totals = calculateDocumentTotals({
       currencyCode: invoice.currencyCode,
