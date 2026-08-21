@@ -1,12 +1,12 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ApiClient,
   type BusinessSettings,
 } from "@invoiceflow/api-client";
-import { Alert, Box, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Stack, Typography } from "@mui/material";
 
 import { Button, Input } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
@@ -18,7 +18,6 @@ const apiClient = new ApiClient({
 export default function NumberingSettingsPage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
-  const router = useRouter();
 
   const [invoicePrefix, setInvoicePrefix] = useState("INV-");
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState("1");
@@ -98,22 +97,14 @@ export default function NumberingSettingsPage() {
   }
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 640, mx: "auto", px: 2, py: 4 }}>
-        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            Numbering
-          </Typography>
-          <Button variant="outlined" onClick={() => router.back()}>
-            Back
-          </Button>
-        </Stack>
+    <div>
+      <h2>Numbering</h2>
 
         {loading && <Typography variant="body1">Loading…</Typography>}
         {error && <Alert severity="error">{error}</Alert>}
 
         {!loading && !error && (
-          <Paper elevation={1} sx={{ p: 3 }}>
+          <div className="if-settings-section">
             <form onSubmit={handleSubmit}>
               <Stack spacing={2}>
                 <Stack direction="row" spacing={2}>
@@ -152,9 +143,8 @@ export default function NumberingSettingsPage() {
                 </Box>
               </Stack>
             </form>
-          </Paper>
+          </div>
         )}
-      </Box>
-    </main>
+    </div>
   );
 }

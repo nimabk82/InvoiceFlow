@@ -791,3 +791,19 @@ body {
   padding-top: 11px;
   margin-top: 6px;
 }
+
+.if-settings-nav button.if-active {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+.if-settings-panel h2 {
+  font-size: 20px;
+  margin: 0 0 24px;
+  color: #101828;
+}
+.if-settings-section {
+  max-width: 650px;
+}
+.if-settings-section .if-field {
+  margin-bottom: 16px;
+}

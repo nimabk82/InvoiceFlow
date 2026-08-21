@@ -1,9 +1,9 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { ApiClient, type Business } from "@invoiceflow/api-client";
-import { Alert, Box, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Stack, Typography } from "@mui/material";
 
 import { Button, Input } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
@@ -15,7 +15,6 @@ const apiClient = new ApiClient({
 export default function BusinessProfilePage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
-  const router = useRouter();
 
   const [name, setName] = useState("");
   const [legalName, setLegalName] = useState("");
@@ -137,112 +136,102 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            Business Profile
-          </Typography>
-          <Button variant="outlined" onClick={() => router.back()}>
-            Back
-          </Button>
-        </Stack>
+    <div>
+      <h2>Business Profile</h2>
 
-        {loading && <Typography variant="body1">Loading…</Typography>}
+      {loading && <Typography variant="body1">Loading…</Typography>}
+      {error && <Alert severity="error">{error}</Alert>}
 
-        {error && <Alert severity="error">{error}</Alert>}
+      {!loading && !error && (
+        <div className="if-settings-section">
+          <form onSubmit={handleSubmit}>
+            <Stack spacing={2}>
+              <Input
+                label="Business name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+              <Input
+                label="Legal name"
+                value={legalName}
+                onChange={(event) => setLegalName(event.target.value)}
+              />
+              <Input
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+              <Input
+                label="Phone"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+              />
+              <Input
+                label="Website"
+                value={website}
+                onChange={(event) => setWebsite(event.target.value)}
+              />
 
-        {!loading && !error && (
-          <Paper elevation={1} sx={{ p: 3 }}>
-            <form onSubmit={handleSubmit}>
-              <Stack spacing={2}>
+              <Typography variant="subtitle1">Address</Typography>
+              <Input
+                label="Address line 1"
+                value={line1}
+                onChange={(event) => setLine1(event.target.value)}
+              />
+              <Input
+                label="Address line 2"
+                value={line2}
+                onChange={(event) => setLine2(event.target.value)}
+              />
+              <Stack direction="row" spacing={2}>
                 <Input
-                  label="Business name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  required
+                  label="City"
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                  sx={{ flexGrow: 1 }}
                 />
                 <Input
-                  label="Legal name"
-                  value={legalName}
-                  onChange={(event) => setLegalName(event.target.value)}
+                  label="Region"
+                  value={region}
+                  onChange={(event) => setRegion(event.target.value)}
+                  sx={{ flexGrow: 1 }}
                 />
-                <Input
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-                <Input
-                  label="Phone"
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                />
-                <Input
-                  label="Website"
-                  value={website}
-                  onChange={(event) => setWebsite(event.target.value)}
-                />
-
-                <Typography variant="subtitle1">Address</Typography>
-                <Input
-                  label="Address line 1"
-                  value={line1}
-                  onChange={(event) => setLine1(event.target.value)}
-                />
-                <Input
-                  label="Address line 2"
-                  value={line2}
-                  onChange={(event) => setLine2(event.target.value)}
-                />
-                <Stack direction="row" spacing={2}>
-                  <Input
-                    label="City"
-                    value={city}
-                    onChange={(event) => setCity(event.target.value)}
-                    sx={{ flexGrow: 1 }}
-                  />
-                  <Input
-                    label="Region"
-                    value={region}
-                    onChange={(event) => setRegion(event.target.value)}
-                    sx={{ flexGrow: 1 }}
-                  />
-                </Stack>
-                <Stack direction="row" spacing={2}>
-                  <Input
-                    label="Postal code"
-                    value={postalCode}
-                    onChange={(event) => setPostalCode(event.target.value)}
-                    sx={{ flexGrow: 1 }}
-                  />
-                  <Input
-                    label="Country code"
-                    value={countryCode}
-                    onChange={(event) => setCountryCode(event.target.value)}
-                    sx={{ width: 140 }}
-                    required
-                  />
-                </Stack>
-                <Input
-                  label="Currency code"
-                  value={currencyCode}
-                  onChange={(event) => setCurrencyCode(event.target.value)}
-                  required
-                />
-
-                {saved && <Alert severity="success">Business profile saved.</Alert>}
-
-                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Saving…" : "Save"}
-                  </Button>
-                </Box>
               </Stack>
-            </form>
-          </Paper>
-        )}
-      </Box>
-    </main>
+              <Stack direction="row" spacing={2}>
+                <Input
+                  label="Postal code"
+                  value={postalCode}
+                  onChange={(event) => setPostalCode(event.target.value)}
+                  sx={{ flexGrow: 1 }}
+                />
+                <Input
+                  label="Country code"
+                  value={countryCode}
+                  onChange={(event) => setCountryCode(event.target.value)}
+                  sx={{ width: 140 }}
+                  required
+                />
+              </Stack>
+              <Input
+                label="Currency code"
+                value={currencyCode}
+                onChange={(event) => setCurrencyCode(event.target.value)}
+                required
+              />
+
+              {saved && <Alert severity="success">Business profile saved.</Alert>}
+
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving…" : "Save"}
+                </Button>
+              </Box>
+            </Stack>
+          </form>
+        </div>
+      )}
+    </div>
   );
 }

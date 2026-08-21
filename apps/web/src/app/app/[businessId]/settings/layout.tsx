@@ -3,8 +3,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { useParams, usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { Box, List, ListItemButton, ListItemText, Stack } from "@mui/material";
+import type { CSSProperties, ReactNode } from "react";
 
 type SettingsItem = { label: string; href: Route };
 
@@ -28,25 +27,39 @@ export default function SettingsLayout({
   ];
 
   return (
-    <Stack direction="row" sx={{ gap: 3, maxWidth: 960, mx: "auto", px: 2, py: 4 }}>
-      <Box
-        component="nav"
-        sx={{ width: 220, flexShrink: 0, display: { xs: "none", sm: "block" } }}
-      >
-        <List dense>
-          {items.map((item) => (
-            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-              <ListItemButton
-                selected={pathname === item.href}
-                sx={{ borderRadius: 1 }}
-              >
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            </Link>
-          ))}
-        </List>
-      </Box>
-      <Box sx={{ flexGrow: 1, minWidth: 0 }}>{children}</Box>
-    </Stack>
+    <div className="if-settings">
+      <nav className="if-card if-settings-nav" style={{ padding: 10, alignSelf: "start" }}>
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            style={{ textDecoration: "none", display: "block" }}
+          >
+            <button
+              className={pathname === item.href ? "if-active" : undefined}
+              style={navButtonStyle}
+            >
+              {item.label}
+            </button>
+          </Link>
+        ))}
+      </nav>
+      <div className="if-card if-settings-panel" style={{ padding: 22 }}>
+        {children}
+      </div>
+    </div>
   );
 }
+
+const navButtonStyle: CSSProperties = {
+  width: "100%",
+  border: 0,
+  background: "transparent",
+  borderRadius: 8,
+  textAlign: "left",
+  padding: "10px 12px",
+  color: "#667085",
+  fontSize: 13,
+  fontWeight: 650,
+  cursor: "pointer",
+};

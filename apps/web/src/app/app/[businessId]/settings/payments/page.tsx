@@ -1,12 +1,12 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ApiClient,
   type BusinessSettings,
 } from "@invoiceflow/api-client";
-import { Alert, Box, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Stack, Typography } from "@mui/material";
 
 import { Button, Input } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
@@ -18,7 +18,6 @@ const apiClient = new ApiClient({
 export default function PaymentsSettingsPage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
-  const router = useRouter();
 
   const [bank, setBank] = useState("");
   const [cheque, setCheque] = useState("");
@@ -92,22 +91,14 @@ export default function PaymentsSettingsPage() {
   }
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 640, mx: "auto", px: 2, py: 4 }}>
-        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            Payments
-          </Typography>
-          <Button variant="outlined" onClick={() => router.back()}>
-            Back
-          </Button>
-        </Stack>
+    <div>
+      <h2>Payments</h2>
 
         {loading && <Typography variant="body1">Loading…</Typography>}
         {error && <Alert severity="error">{error}</Alert>}
 
         {!loading && !error && (
-          <Paper elevation={1} sx={{ p: 3 }}>
+          <div className="if-settings-section">
             <form onSubmit={handleSubmit}>
               <Stack spacing={2}>
                 <Input
@@ -134,9 +125,8 @@ export default function PaymentsSettingsPage() {
                 </Box>
               </Stack>
             </form>
-          </Paper>
+          </div>
         )}
-      </Box>
-    </main>
+    </div>
   );
 }

@@ -1,23 +1,16 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiClient, type Tax } from "@invoiceflow/api-client";
 import {
   Alert,
-  Box,
   Checkbox,
   FormControlLabel,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
   Stack,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 
 import { Button, Dialog, Input } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
@@ -29,7 +22,6 @@ const apiClient = new ApiClient({
 export default function TaxesPage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
-  const router = useRouter();
 
   const [taxes, setTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,106 +140,89 @@ export default function TaxesPage() {
   }
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            Taxes
-          </Typography>
-          <Stack direction="row" spacing={1}>
-            <Button variant="outlined" onClick={() => router.back()}>
-              Back
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <h2>Taxes</h2>
+        <Button onClick={openCreate}>
+          <AddIcon sx={{ mr: 0.5 }} /> Add tax
+        </Button>
+      </div>
+
+      {loading && <Typography variant="body1">Loading…</Typography>}
+      {error && <Alert severity="error">{error}</Alert>}
+
+      {!loading && !error && taxes.length === 0 && (
+        <Typography variant="body1" color="text.secondary">
+          No taxes yet.
+        </Typography>
+      )}
+
+      {!loading && !error && taxes.length > 0 && (
+        <div>
+          {taxes.map((tax) => (
+            <div
+              key={tax.id}
+              className="if-taxrow"
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: "1px solid #E4E7EC" }}
+            >
+              <div>
+                <strong style={{ fontSize: 14, color: "#101828" }}>{tax.name}</strong>
+                <div className="small" style={{ fontSize: 12, color: "#667085", marginTop: 2 }}>
+                  {tax.rate}% · {tax.isDefault ? "Default" : tax.registrationNumber ?? ""}
+                </div>
+              </div>
+              <Button variant="text" size="small" onClick={() => openEdit(tax)}>
+                Edit
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={editingId ? "Edit Tax" : "Add Tax"}
+        actions={
+          <>
+            <Button variant="outlined" onClick={() => setDialogOpen(false)}>
+              Cancel
             </Button>
-            <Button onClick={openCreate}>
-              <AddIcon sx={{ mr: 0.5 }} /> Add tax
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save"}
             </Button>
-          </Stack>
+          </>
+        }
+      >
+        <Stack spacing={2} sx={{ pt: 1 }}>
+          <Input
+            label="Name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+          />
+          <Input
+            label="Rate (%)"
+            value={rate}
+            onChange={(event) => setRate(event.target.value)}
+            required
+          />
+          <Input
+            label="Registration number"
+            value={registrationNumber}
+            onChange={(event) => setRegistrationNumber(event.target.value)}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isDefault}
+                onChange={(event) => setIsDefault(event.target.checked)}
+              />
+            }
+            label="Default tax"
+          />
         </Stack>
-
-        {loading && <Typography variant="body1">Loading…</Typography>}
-        {error && <Alert severity="error">{error}</Alert>}
-
-        {!loading && !error && taxes.length === 0 && (
-          <Typography variant="body1" color="text.secondary">
-            No taxes yet.
-          </Typography>
-        )}
-
-        {!loading && !error && taxes.length > 0 && (
-          <Paper elevation={1}>
-            <List>
-              {taxes.map((tax) => (
-                <ListItem
-                  key={tax.id}
-                  divider
-                  secondaryAction={
-                    <IconButton
-                      aria-label="Edit tax"
-                      onClick={() => openEdit(tax)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  }
-                >
-                  <ListItemText
-                    primary={`${tax.name} — ${tax.rate}%`}
-                    secondary={
-                      tax.isDefault
-                        ? "Default"
-                        : tax.registrationNumber ?? ""
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        )}
-
-        <Dialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          title={editingId ? "Edit Tax" : "Add Tax"}
-          actions={
-            <>
-              <Button variant="outlined" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? "Saving…" : "Save"}
-              </Button>
-            </>
-          }
-        >
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            <Input
-              label="Name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-            />
-            <Input
-              label="Rate (%)"
-              value={rate}
-              onChange={(event) => setRate(event.target.value)}
-              required
-            />
-            <Input
-              label="Registration number"
-              value={registrationNumber}
-              onChange={(event) => setRegistrationNumber(event.target.value)}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isDefault}
-                  onChange={(event) => setIsDefault(event.target.checked)}
-                />
-              }
-              label="Default tax"
-            />
-          </Stack>
-        </Dialog>
-      </Box>
-    </main>
+      </Dialog>
+    </div>
   );
 }

@@ -1,12 +1,12 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ApiClient,
   type BusinessSettings,
 } from "@invoiceflow/api-client";
-import { Alert, Box, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Stack, Typography } from "@mui/material";
 
 import { Button, Input, Select } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
@@ -18,7 +18,6 @@ const apiClient = new ApiClient({
 export default function BrandingSettingsPage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
-  const router = useRouter();
 
   const [accentColor, setAccentColor] = useState("#2563EB");
   const [style, setStyle] = useState("clean");
@@ -89,22 +88,14 @@ export default function BrandingSettingsPage() {
   }
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 640, mx: "auto", px: 2, py: 4 }}>
-        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            Branding
-          </Typography>
-          <Button variant="outlined" onClick={() => router.back()}>
-            Back
-          </Button>
-        </Stack>
+    <div>
+      <h2>Branding</h2>
 
         {loading && <Typography variant="body1">Loading…</Typography>}
         {error && <Alert severity="error">{error}</Alert>}
 
         {!loading && !error && (
-          <Paper elevation={1} sx={{ p: 3 }}>
+          <div className="if-settings-section">
             <form onSubmit={handleSubmit}>
               <Stack spacing={2}>
                 <Input
@@ -132,9 +123,8 @@ export default function BrandingSettingsPage() {
                 </Box>
               </Stack>
             </form>
-          </Paper>
+          </div>
         )}
-      </Box>
-    </main>
+    </div>
   );
 }

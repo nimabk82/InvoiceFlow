@@ -7,10 +7,6 @@ import {
   Alert,
   Box,
   Button as MuiButton,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
   Typography,
 } from "@mui/material";
 
@@ -59,57 +55,51 @@ export default function ManageBusinessesPage() {
   }, []);
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 640, mx: "auto", px: 2, py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Manage Businesses
-        </Typography>
+    <div>
+      <h2>Manage Businesses</h2>
 
-        {loading && <Typography variant="body1">Loading…</Typography>}
-        {error && <Alert severity="error">{error}</Alert>}
+      {loading && <Typography variant="body1">Loading…</Typography>}
+      {error && <Alert severity="error">{error}</Alert>}
 
-        {!loading && !error && (
-          <Paper elevation={1}>
-            <List>
-              {businesses.map((business) => {
-                const isCurrent = business.id === businessId;
-                return (
-                  <ListItem
-                    key={business.id}
-                    divider
-                    secondaryAction={
-                      isCurrent ? (
-                        <MuiButton size="small" variant="outlined" disabled>
-                          Current
-                        </MuiButton>
-                      ) : (
-                        <MuiButton
-                          size="small"
-                          variant="outlined"
-                          onClick={() => router.push(`/app/${business.id}`)}
-                        >
-                          Switch
-                        </MuiButton>
-                      )
-                    }
+      {!loading && !error && (
+        <div>
+          {businesses.map((business) => {
+            const isCurrent = business.id === businessId;
+            return (
+              <div
+                key={business.id}
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: "1px solid #E4E7EC" }}
+              >
+                <div>
+                  <strong style={{ fontSize: 14, color: "#101828" }}>{business.name}</strong>
+                  <div className="small" style={{ fontSize: 12, color: "#667085", marginTop: 2 }}>
+                    {business.countryCode} · {business.currencyCode}
+                  </div>
+                </div>
+                {isCurrent ? (
+                  <MuiButton size="small" variant="outlined" disabled>
+                    Current
+                  </MuiButton>
+                ) : (
+                  <MuiButton
+                    size="small"
+                    variant="outlined"
+                    onClick={() => router.push(`/app/${business.id}`)}
                   >
-                    <ListItemText
-                      primary={business.name}
-                      secondary={`${business.countryCode} · ${business.currencyCode}`}
-                    />
-                  </ListItem>
-                );
-              })}
-            </List>
-          </Paper>
-        )}
+                    Switch
+                  </MuiButton>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-        <Box sx={{ mt: 2 }}>
-          <Button onClick={() => router.push("/onboarding/business")}>
-            + Add Business
-          </Button>
-        </Box>
+      <Box sx={{ mt: 2 }}>
+        <Button onClick={() => router.push("/onboarding/business")}>
+          + Add Business
+        </Button>
       </Box>
-    </main>
+    </div>
   );
 }
