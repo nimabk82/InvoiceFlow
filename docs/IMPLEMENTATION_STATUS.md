@@ -64,10 +64,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - INV-16 — Duplicate / Void / Delete Draft (Web + API): `POST /invoices/:id/duplicate`, `POST /invoices/:id/void`, `DELETE /invoices/:id` (draft-only); Detail actions.
 - SET-02 — Document Defaults (Web + API): `document_defaults` table + `GET/PATCH /businesses/:id/document-defaults`; screen for default due rule, notes, terms, default tax IDs (theme defaults stored but no picker yet).
 - SET-03 — Taxes (Web + API): taxes module with `GET/POST /businesses/:id/taxes` + `GET/PATCH /taxes/:taxId`; Taxes settings screen (create/edit, rate, registration number, default).
+- RENDER-03 — Semantic section renderer (`@invoiceflow/renderer`): platform-neutral `renderDocumentSections` producing ordered semantic sections (header→footer) with theme presentation + protected totals/items/deposit.
 
 ## Current ticket
 
-- RENDER-03 — Semantic section renderer (Stage 1: styled document "paper" for Review/Detail).
+- RENDER-04 — Item table renderer (Stage 1).
 
 ## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
@@ -272,6 +273,7 @@ Watchman: VERIFIED
 - INV-16 — web lint/typecheck/build; api lint/typecheck/test (113 passed)/build; api-client lint/typecheck/test/build; end-to-end duplicate/void/delete verified
 - SET-02 — web lint/typecheck/build; api lint/typecheck/test (115 passed)/build; api-client lint/typecheck/test/build; sqlfluff migration clean; migration applied; end-to-end GET/PATCH defaults verified
 - SET-03 — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; end-to-end taxes CRUD verified
+- RENDER-03 — renderer package lint/typecheck/build + test (3 passed); root typecheck
 
 ## Status update format
 
