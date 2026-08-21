@@ -91,6 +91,14 @@ export class InvoicesController {
     return this.invoicesService.listPayments(businessId, invoiceId);
   }
 
+  @Get(':invoiceId/activity')
+  listActivity(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+  ) {
+    return this.invoicesService.listActivity(businessId, invoiceId);
+  }
+
   @Post(':invoiceId/duplicate')
   duplicate(
     @Param('businessId') businessId: string,

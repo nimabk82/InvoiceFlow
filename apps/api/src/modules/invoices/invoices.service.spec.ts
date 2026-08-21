@@ -25,6 +25,10 @@ function createRepository() {
     listByInvoice: jest.fn().mockResolvedValue([]),
     save: jest.fn().mockResolvedValue(undefined),
   };
+  const activityEventRepository = {
+    record: jest.fn().mockResolvedValue(undefined),
+    list: jest.fn().mockResolvedValue({ items: [] }),
+  };
 
   return {
     invoiceRepository,
@@ -32,6 +36,7 @@ function createRepository() {
     clientRepository,
     emailProvider,
     paymentRepository,
+    activityEventRepository,
     list,
     save,
   };
@@ -45,6 +50,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       list,
     } = createRepository();
     const service = new InvoicesService(
@@ -53,6 +59,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     await service.list('business-1', { status: 'draft' });
@@ -70,6 +77,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       save,
     } = createRepository();
     (businessRepository.findById as jest.Mock).mockResolvedValue({
@@ -90,6 +98,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     const invoice = await service.createInvoice('business-1', {
@@ -114,6 +123,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     } = createRepository();
     const service = new InvoicesService(
       invoiceRepository,
@@ -121,6 +131,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     await expect(
@@ -139,6 +150,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -154,6 +166,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     const sent = await service.sendInvoice('business-1', 'invoice-1', {
@@ -182,6 +195,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -197,6 +211,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     await expect(
@@ -215,6 +230,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -233,6 +249,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     const { invoice } = await service.recordPayment('business-1', 'invoice-1', {
@@ -254,6 +271,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -271,6 +289,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     const { invoice } = await service.recordPayment('business-1', 'invoice-1', {
@@ -291,6 +310,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
       id: 'invoice-1',
@@ -308,6 +328,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     const invoice = await service.getInvoiceWithStatus(
@@ -325,6 +346,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -340,6 +362,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     const copy = await service.duplicateInvoice('business-1', 'invoice-1');
@@ -357,6 +380,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
       save,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
@@ -372,6 +396,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     const voided = await service.voidInvoice('business-1', 'invoice-1');
@@ -389,6 +414,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
       id: 'invoice-1',
@@ -405,6 +431,7 @@ describe('InvoicesService', () => {
       clientRepository,
       emailProvider,
       paymentRepository,
+      activityEventRepository,
     );
 
     await service.deleteInvoice('business-1', 'invoice-1');

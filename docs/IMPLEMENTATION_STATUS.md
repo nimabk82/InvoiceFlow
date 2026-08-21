@@ -71,10 +71,12 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - DASH-01 — First-Time Dashboard (Web): `/app/:businessId` landing with empty state CTA + stats (total/outstanding/overdue), needs-attention and recent-activity lists.
 - FOUND-03 — App shell & navigation (Web): business-scoped layout with desktop sidebar + mobile bottom nav (Dashboard/Invoices/Clients/Products/Settings), active-state highlighting.
 - FOUND-04 — Business context & switcher (Web): `BusinessSwitcher` (list + switch via URL context) and `CurrentBusiness` in the app shell; business is the workspace context, data isolated per `businessId`.
+- CLIENT-03 — Multiple emails (Web): client form supports adding/removing multiple email addresses.
+- Activity timeline (Stage 3): audit module (`SupabaseActivityEventRepository`) + events recorded on create/send/payment/void; `GET /invoices/:id/activity`; timeline on Invoice Detail.
 
 ## Current ticket
 
-- Stage 3 — Detail parity + Clients (next).
+- Stage 3 polish — dialogs/pills/tabs/search (next).
 
 ## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
@@ -286,6 +288,8 @@ Watchman: VERIFIED
 - DASH-01 — web lint/typecheck/build
 - FOUND-03 — web lint/typecheck/build
 - FOUND-04 — web lint/typecheck/build
+- CLIENT-03 — web lint/typecheck/build
+- Activity timeline — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; end-to-end activity recording verified
 
 ## Status update format
 

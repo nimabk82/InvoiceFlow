@@ -261,6 +261,24 @@ export type Payment = Readonly<{
   reference?: string;
 }>;
 
+export type ActivityEvent = Readonly<{
+  id: string;
+  businessId: string;
+  entityType: 'invoice' | 'quote';
+  entityId: string;
+  type:
+    | 'created'
+    | 'sent'
+    | 'viewed'
+    | 'accepted'
+    | 'declined'
+    | 'payment_recorded'
+    | 'voided'
+    | 'converted';
+  occurredAt: string;
+  metadata?: Readonly<Record<string, unknown>>;
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -569,6 +587,17 @@ export class ApiClient {
   ): Promise<Payment[]> {
     return this.request<Payment[]>(
       `/businesses/${businessId}/invoices/${invoiceId}/payments`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async listActivity(
+    businessId: string,
+    invoiceId: string,
+    token: string,
+  ): Promise<ActivityEvent[]> {
+    return this.request<ActivityEvent[]>(
+      `/businesses/${businessId}/invoices/${invoiceId}/activity`,
       { headers: { authorization: `Bearer ${token}` } },
     );
   }

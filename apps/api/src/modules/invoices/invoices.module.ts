@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { SupabaseModule } from '../../infrastructure/supabase/supabase.module';
 import { AuthModule } from '../auth/auth.module';
+import { AuditModule } from '../audit/audit.module';
 import { BusinessAccessModule } from '../businesses/access/business-access.module';
 import { BusinessesModule } from '../businesses/businesses.module';
 import { ClientsModule } from '../clients/clients.module';
@@ -15,6 +16,7 @@ import { InvoicesService } from './invoices.service';
 @Module({
   imports: [
     AuthModule,
+    AuditModule,
     BusinessAccessModule,
     BusinessesModule,
     ClientsModule,

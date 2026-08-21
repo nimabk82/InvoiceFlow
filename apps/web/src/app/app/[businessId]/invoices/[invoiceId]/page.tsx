@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   ApiClient,
+  type ActivityEvent,
   type Invoice,
   type Payment,
 } from "@invoiceflow/api-client";
@@ -12,6 +13,8 @@ import {
   Alert,
   Box,
   Divider,
+  List,
+  ListItem,
   Paper,
   Stack,
   Table,
@@ -46,6 +49,7 @@ export default function InvoiceDetailPage() {
   const router = useRouter();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [activity, setActivity] = useState<ActivityEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [amount, setAmount] = useState("");
@@ -70,13 +74,15 @@ export default function InvoiceDetailPage() {
       }
 
       try {
-        const [found, paymentList] = await Promise.all([
+        const [found, paymentList, activityList] = await Promise.all([
           apiClient.getInvoice(businessId, invoiceId, token),
           apiClient.listPayments(businessId, invoiceId, token),
+          apiClient.listActivity(businessId, invoiceId, token),
         ]);
         if (!cancelled) {
           setInvoice(found);
           setPayments([...paymentList]);
+          setActivity([...activityList]);
         }
       } catch (caught) {
         if (!cancelled)
@@ -399,6 +405,30 @@ export default function InvoiceDetailPage() {
           </Stack>
         </Paper>
 
+        <Paper elevation={1} sx={{ p: 3, mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Activity
+          </Typography>
+          {activity.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No activity yet.
+            </Typography>
+          ) : (
+            <List>
+              {activity.map((event) => (
+                <ListItem key={event.id} divider>
+                  <Stack direction="row" sx={{ justifyContent: "space-between", width: "100%", gap: 2 }}>
+                    <Typography variant="body1">{activityLabel(event)}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {new Date(event.occurredAt).toLocaleString()}
+                    </Typography>
+                  </Stack>
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </Paper>
+
         <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 1 }}>
           {invoice.status === "draft" && (
             <Button
@@ -473,4 +503,23 @@ export default function InvoiceDetailPage() {
       </Box>
     </main>
   );
+}
+
+function activityLabel(event: ActivityEvent): string {
+  switch (event.type) {
+    case "created":
+      return "Invoice created";
+    case "sent":
+      return "Invoice sent";
+    case "viewed":
+      return "Invoice viewed by client";
+    case "payment_recorded": {
+      const amount = event.metadata?.amount;
+      return amount ? `Payment of ${amount} recorded` : "Payment recorded";
+    }
+    case "voided":
+      return "Invoice voided";
+    default:
+      return event.type;
+  }
 }

@@ -10,6 +10,7 @@ import type {
   BusinessSnapshot,
   Client,
   ClientSnapshot,
+  ActivityEvent,
   Invoice,
   Payment,
 } from '@invoiceflow/domain';
@@ -23,6 +24,10 @@ import {
   type ClientRepository,
 } from '../clients/repositories/client.repository';
 import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
+import {
+  ACTIVITY_EVENT_REPOSITORY,
+  type ActivityEventRepository,
+} from '../audit/repositories/activity-event.repository';
 import {
   PAYMENT_REPOSITORY,
   type PaymentRepository,
@@ -100,6 +105,8 @@ export class InvoicesService {
     private readonly emailProvider: EmailProvider,
     @Inject(PAYMENT_REPOSITORY)
     private readonly paymentRepository: PaymentRepository,
+    @Inject(ACTIVITY_EVENT_REPOSITORY)
+    private readonly activityEventRepository: ActivityEventRepository,
   ) {}
 
   async list(
@@ -163,6 +170,7 @@ export class InvoicesService {
     };
 
     await this.invoiceRepository.save(sent);
+    await this.recordActivity(businessId, invoiceId, 'sent');
 
     return sent;
   }
@@ -216,6 +224,9 @@ export class InvoicesService {
     };
 
     await this.invoiceRepository.save(updated);
+    await this.recordActivity(businessId, invoiceId, 'payment_recorded', {
+      amount: input.amount,
+    });
 
     return { invoice: updated, paymentId };
   }
@@ -281,6 +292,7 @@ export class InvoicesService {
     };
 
     await this.invoiceRepository.save(updated);
+    await this.recordActivity(businessId, invoiceId, 'voided');
 
     return updated;
   }
@@ -349,8 +361,39 @@ export class InvoicesService {
     };
 
     await this.invoiceRepository.save(invoice);
+    await this.recordActivity(businessId, invoice.id, 'created');
 
     return invoice;
+  }
+
+  private async recordActivity(
+    businessId: string,
+    invoiceId: string,
+    type: ActivityEvent['type'],
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
+    await this.activityEventRepository.record({
+      id: randomUUID(),
+      businessId,
+      entityType: 'invoice',
+      entityId: invoiceId,
+      type,
+      occurredAt: new Date().toISOString(),
+      metadata,
+    });
+  }
+
+  async listActivity(
+    businessId: string,
+    invoiceId: string,
+  ): Promise<ActivityEvent[]> {
+    await this.findById(businessId, invoiceId);
+    const page = await this.activityEventRepository.list({
+      businessId,
+      entityType: 'invoice',
+      entityId: invoiceId,
+    });
+    return [...page.items];
   }
 }
 
