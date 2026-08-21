@@ -11,6 +11,8 @@ import PeopleIcon from "@mui/icons-material/People";
 import CategoryIcon from "@mui/icons-material/Category";
 import SettingsIcon from "@mui/icons-material/Settings";
 
+import { BusinessSwitcher, CurrentBusiness } from "@/components/navigation/BusinessSwitcher";
+
 type NavItem = {
   label: string;
   href: Route;
@@ -57,10 +59,12 @@ export default function BusinessLayout({
           height: "100vh",
         }}
       >
-        <Typography variant="h6" component="div" sx={{ px: 1.5, pb: 2 }}>
+        <Typography variant="h6" component="div" sx={{ px: 1.5, pb: 1 }}>
           InvoiceFlow
         </Typography>
-        <List dense>
+        <CurrentBusiness businessId={businessId} />
+        <List dense sx={{ pt: 1 }}>
+          <BusinessSwitcher businessId={businessId} />
           {navItems.map((item) => (
             <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
               <ListItemButton

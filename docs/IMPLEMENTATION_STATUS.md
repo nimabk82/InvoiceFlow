@@ -70,10 +70,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - INV-11 — Theme selector in Review (Web): Invoice Review now renders the shared "paper" via `DocumentPaper` + `@invoiceflow/renderer`; built-in preset theme selector (Clean/Modern/Minimal/Blank) changes appearance only.
 - DASH-01 — First-Time Dashboard (Web): `/app/:businessId` landing with empty state CTA + stats (total/outstanding/overdue), needs-attention and recent-activity lists.
 - FOUND-03 — App shell & navigation (Web): business-scoped layout with desktop sidebar + mobile bottom nav (Dashboard/Invoices/Clients/Products/Settings), active-state highlighting.
+- FOUND-04 — Business context & switcher (Web): `BusinessSwitcher` (list + switch via URL context) and `CurrentBusiness` in the app shell; business is the workspace context, data isolated per `businessId`.
 
 ## Current ticket
 
-- FOUND-04 — Business context & switcher (next).
+- Stage 3 — Detail parity + Clients (next).
 
 ## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
@@ -284,6 +285,7 @@ Watchman: VERIFIED
 - INV-11 — web lint/typecheck/build; api-client lint/typecheck/test/build; renderer/document-schema/theme-schema tests pass; shared render packages export dist
 - DASH-01 — web lint/typecheck/build
 - FOUND-03 — web lint/typecheck/build
+- FOUND-04 — web lint/typecheck/build
 
 ## Status update format
 
