@@ -11,11 +11,6 @@ import {
   Alert,
   Box,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Stack,
   Typography,
 } from "@mui/material";
 
@@ -78,59 +73,53 @@ export default function ProductsPage() {
   }, [businessId]);
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-        <Stack
-          direction="row"
-          sx={{
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h4" component="h1">
-            Products &amp; Services
-          </Typography>
-          <Link href={`/app/${businessId}/products/new`}>
-            <Button>New item</Button>
-          </Link>
-        </Stack>
+    <div>
+      <div className="if-toolbar">
+        <Link href={`/app/${businessId}/products/new`} style={{ textDecoration: "none", marginLeft: "auto" }}>
+          <Button>+ New Item</Button>
+        </Link>
+      </div>
 
-        {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        )}
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress />
+        </Box>
+      )}
 
-        {error && <Alert severity="error">{error}</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
 
-        {!loading && !error && products.length === 0 && (
-          <Typography variant="body1" color="text.secondary">
-            No products or services yet.
-          </Typography>
-        )}
+      {!loading && !error && products.length === 0 && (
+        <Typography variant="body1" color="text.secondary">
+          No products or services yet.
+        </Typography>
+      )}
 
-        {!loading && !error && products.length > 0 && (
-          <Paper elevation={1}>
-            <List>
-              {products.map((product) => (
-                <ListItem
-                  key={product.id}
-                  divider
-                  component={Link}
-                  href={`/app/${businessId}/products/${product.id}/edit`}
-                  sx={{ textDecoration: "none" }}
-                >
-                  <ListItemText
-                    primary={product.name}
-                    secondary={product.description ?? product.type}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        )}
-      </Box>
-    </main>
+      {!loading && !error && products.length > 0 && (
+        <div className="if-entity-grid">
+          {products.map((product) => (
+            <Link
+              key={product.id}
+              href={`/app/${businessId}/products/${product.id}/edit`}
+              style={{ textDecoration: "none" }}
+            >
+              <div className="if-entity" style={{ padding: 16, border: "1px solid #E4E7EC", borderRadius: 14, background: "#fff" }}>
+                <h3 style={{ fontSize: 14, margin: 0, color: "#101828" }}>
+                  {product.name}
+                </h3>
+                <p style={{ fontSize: 12, color: "#667085", margin: "5px 0" }}>
+                  {product.description ?? product.type}
+                </p>
+                {product.defaultRate && (
+                  <div className="money" style={{ marginTop: 16, fontSize: 12, color: "#667085" }}>
+                    <strong style={{ float: "right", color: "#101828", fontSize: 14 }}>{product.defaultRate}</strong>
+                    Default rate
+                  </div>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

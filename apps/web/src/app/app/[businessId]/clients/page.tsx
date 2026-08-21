@@ -11,11 +11,6 @@ import {
   Alert,
   Box,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Stack,
   Typography,
 } from "@mui/material";
 
@@ -78,59 +73,50 @@ export default function ClientsPage() {
   }, [businessId]);
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-        <Stack
-          direction="row"
-          sx={{
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h4" component="h1">
-            Clients
-          </Typography>
-          <Link href={`/app/${businessId}/clients/new`}>
-            <Button>New client</Button>
-          </Link>
-        </Stack>
+    <div>
+      <div className="if-toolbar">
+        <Link href={`/app/${businessId}/clients/new`} style={{ textDecoration: "none", marginLeft: "auto" }}>
+          <Button>+ New Client</Button>
+        </Link>
+      </div>
 
-        {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        )}
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress />
+        </Box>
+      )}
 
-        {error && <Alert severity="error">{error}</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
 
-        {!loading && !error && clients.length === 0 && (
-          <Typography variant="body1" color="text.secondary">
-            No clients yet.
-          </Typography>
-        )}
+      {!loading && !error && clients.length === 0 && (
+        <Typography variant="body1" color="text.secondary">
+          No clients yet.
+        </Typography>
+      )}
 
-        {!loading && !error && clients.length > 0 && (
-          <Paper elevation={1}>
-            <List>
-              {clients.map((client) => (
-                <ListItem
-                  key={client.id}
-                  divider
-                  component={Link}
-                  href={`/app/${businessId}/clients/${client.id}/edit`}
-                  sx={{ textDecoration: "none" }}
-                >
-                  <ListItemText
-                    primary={client.name ?? client.company ?? "Unnamed client"}
-                    secondary={client.emails[0]?.address}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        )}
-      </Box>
-    </main>
+      {!loading && !error && clients.length > 0 && (
+        <div className="if-entity-grid">
+          {clients.map((client) => (
+            <Link
+              key={client.id}
+              href={`/app/${businessId}/clients/${client.id}/edit`}
+              style={{ textDecoration: "none" }}
+            >
+              <div className="if-entity" style={{ padding: 16, border: "1px solid #E4E7EC", borderRadius: 14, background: "#fff" }}>
+                <h3 style={{ fontSize: 14, margin: 0, color: "#101828" }}>
+                  {client.name ?? client.company ?? "Unnamed client"}
+                </h3>
+                <p style={{ fontSize: 12, color: "#667085", margin: "5px 0" }}>
+                  {client.emails.map((e) => e.address).join(", ")}
+                </p>
+                {client.phone && (
+                  <p style={{ fontSize: 12, color: "#667085", margin: "5px 0" }}>{client.phone}</p>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
