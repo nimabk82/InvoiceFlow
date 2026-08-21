@@ -6,7 +6,7 @@ import { ApiClient, type Invoice } from "@invoiceflow/api-client";
 import { normalizeDocumentForRendering } from "@invoiceflow/document-schema";
 import { themePresets } from "@invoiceflow/theme-schema";
 import type { ThemeConfig } from "@invoiceflow/theme-schema";
-import { Alert, Box, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Typography } from "@mui/material";
 
 import { Button, Select } from "@/components/ui";
 import { DocumentPaper } from "@/components/documents/DocumentPaper";
@@ -129,18 +129,9 @@ export default function InvoiceReviewPage() {
   }
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 900, mx: "auto", px: 2, py: 4 }}>
-        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            Review Invoice
-          </Typography>
-          <Button variant="outlined" onClick={() => router.back()}>
-            Back to Edit
-          </Button>
-        </Stack>
-
-        <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: "center" }}>
+    <div>
+      <div className="if-toolbar">
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Select
             label="Theme"
             value={preset}
@@ -149,48 +140,66 @@ export default function InvoiceReviewPage() {
               value: name,
               label: name.charAt(0).toUpperCase() + name.slice(1),
             }))}
+            sx={{ minWidth: 160 }}
           />
           <Typography variant="body2" color="text.secondary">
             Theme changes appearance only — financial values are unchanged.
           </Typography>
-        </Stack>
+        </div>
+        <Button variant="outlined" onClick={() => router.back()}>
+          Back to Edit
+        </Button>
+      </div>
 
-        <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
-          <Paper
-            elevation={1}
-            sx={{ flexGrow: 1, background: "#eef2f6", p: 2 }}
-          >
-            <DocumentPaper document={renderable} theme={theme} />
-          </Paper>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0,1fr) 330px",
+          gap: 0,
+          background: "#EEF2F6",
+          border: "1px solid #E4E7EC",
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ padding: 28, display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+          <DocumentPaper document={renderable} theme={theme} />
+        </div>
 
-          <Paper elevation={1} sx={{ width: 260, p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Invoice Summary
-            </Typography>
-            <Typography variant="subtitle2" color="text.secondary">
-              Client
-            </Typography>
-            <Typography variant="body1">
-              {invoice.clientSnapshot.displayName}
-            </Typography>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 2 }}>
-              Total
-            </Typography>
-            <Typography variant="h5">
-              {invoice.currencyCode} {renderable.total}
-            </Typography>
-            <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 1 }}>
-              <Button
-                onClick={() =>
-                  router.push(`/app/${businessId}/invoices/${invoiceId}/send`)
-                }
-              >
-                Continue to Send
-              </Button>
-            </Box>
-          </Paper>
-        </Stack>
-      </Box>
-    </main>
+        <div style={{ padding: 22, background: "#fff", borderLeft: "1px solid #E4E7EC" }}>
+          <h3 style={{ fontSize: 18, margin: "0 0 20px", color: "#101828" }}>Invoice Summary</h3>
+          <div className="if-eyebrow" style={{ marginBottom: 4 }}>Client</div>
+          <strong style={{ fontSize: 14, color: "#101828" }}>
+            {invoice.clientSnapshot.displayName}
+          </strong>
+          <div style={{ marginTop: 18 }}>
+            <div className="if-eyebrow" style={{ marginBottom: 4 }}>Total</div>
+            <div className="big money" style={{ fontSize: 26, fontWeight: 800, margin: "4px 0 18px", color: "#101828" }}>
+              {renderable.total}
+            </div>
+          </div>
+          {renderable.deposit && (
+            <div>
+              <div className="if-eyebrow" style={{ marginBottom: 4 }}>Deposit due</div>
+              <strong className="money" style={{ color: "#2563EB" }}>{renderable.deposit.required}</strong>
+            </div>
+          )}
+          <div className="if-actions" style={{ flexDirection: "column", marginTop: 24 }}>
+            <Button
+              onClick={() => router.push(`/app/${businessId}/invoices/${invoiceId}/send`)}
+              sx={{ width: "100%" }}
+            >
+              Send Invoice
+            </Button>
+            <Button variant="outlined" sx={{ width: "100%" }}>
+              Download PDF
+            </Button>
+            <Button variant="text" onClick={() => router.back()} sx={{ width: "100%" }}>
+              Back to Edit
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
