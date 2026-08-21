@@ -120,12 +120,17 @@ export function createInvoiceFlowTheme(
           root: {
             borderRadius: 9,
             fontSize: 13,
-            backgroundColor: c.surface,
-            "& .MuiOutlinedInput-notchedOutline": { borderColor: c.borderStrong },
-            "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: c.borderStrong },
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: c.primary, borderWidth: 1 },
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E0E3E7",
+            transition: "border-color .2s, box-shadow .2s",
+            "&:hover": { borderColor: "#B9BFC7" },
+            "&.Mui-focused": {
+              borderColor: c.primary,
+              boxShadow: "0 0 0 3px rgba(37,99,235,.15)",
+            },
+            "& .MuiOutlinedInput-notchedOutline": { border: "none" },
           },
-          input: { height: 20, padding: "11px 12px" },
+          input: { height: 20, padding: "11px 12px", fontSize: 13 },
         },
       },
       MuiCard: {
