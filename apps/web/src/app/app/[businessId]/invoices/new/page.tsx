@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import {
   ApiClient,
   type Client,
@@ -10,14 +10,7 @@ import {
 } from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import { validateDocumentForReview } from "@invoiceflow/validation";
-import {
-  Alert,
-  Box,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Card, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import { Button, Input, Select } from "@/components/ui";
@@ -45,10 +38,6 @@ export default function NewInvoicePage() {
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState("");
-  const [showAddClient, setShowAddClient] = useState(false);
-  const [newClientName, setNewClientName] = useState("");
-  const [newClientCompany, setNewClientCompany] = useState("");
-  const [newClientEmail, setNewClientEmail] = useState("");
   const [number, setNumber] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -167,37 +156,6 @@ export default function NewInvoicePage() {
           : item,
       ),
     );
-  }
-
-  async function handleAddClient() {
-    setError(null);
-    const token = await getToken();
-    if (!token) {
-      setError("You must be signed in.");
-      return;
-    }
-
-    try {
-      const client = await apiClient.createClient(
-        businessId,
-        {
-          name: newClientName || undefined,
-          company: newClientCompany || undefined,
-          emails: newClientEmail ? [{ address: newClientEmail }] : undefined,
-        },
-        token,
-      );
-      setClients((current) => [...current, client]);
-      setClientId(client.id);
-      setShowAddClient(false);
-      setNewClientName("");
-      setNewClientCompany("");
-      setNewClientEmail("");
-    } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : "Failed to add client.",
-      );
-    }
   }
 
   function buildInvoiceInput(): Parameters<typeof apiClient.createInvoice>[1] {
@@ -324,350 +282,332 @@ export default function NewInvoicePage() {
     }
   }, [items, currencyCode, depositType, depositValue, discountType, discountValue]);
 
+  const selectedClient = clients.find((client) => client.id === clientId);
+
   return (
-    <main>
-      <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          New Invoice
-        </Typography>
+    <form onSubmit={handleSubmit}>
+      {/* Client selector */}
+      <Card sx={{ p: 2, mb: 3 }}>
+        <div className="eyebrow" style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#667085", marginBottom: 12 }}>
+          Bill to
+        </div>
+        {selectedClient ? (
+          <div
+            className="client-selector"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              padding: "15px 16px",
+              border: "1px solid #E4E7EC",
+              borderRadius: 13,
+              background: "#fff",
+            }}
+          >
+            <div className="selector-main" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div className="avatar" style={{ width: 38, height: 38, borderRadius: 11, background: "#EFF6FF", color: "#2563EB", display: "grid", placeItems: "center", fontSize: 13, fontWeight: 800 }}>
+                {(selectedClient.name ?? selectedClient.company ?? "?").slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <strong style={{ fontSize: 14, display: "block", color: "#101828" }}>
+                  {selectedClient.name ?? selectedClient.company ?? "Unnamed client"}
+                </strong>
+                <span style={{ fontSize: 11, color: "#667085" }}>
+                  {selectedClient.emails[0]?.address ?? "No email"}
+                </span>
+              </div>
+            </div>
+            <Button variant="outlined" onClick={() => setClientId("")}>
+              Change
+            </Button>
+          </div>
+        ) : (
+          <Select
+            id="client-select"
+            label="Select a client"
+            value=""
+            onValueChange={(value) => setClientId(value)}
+            options={clientOptions}
+          />
+        )}
 
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            <Paper elevation={1} sx={{ p: 3 }}>
-              <Stack spacing={2}>
-                <Select
-                  id="client-select"
-                  label="Client"
-                  value={clientId}
-                  onValueChange={(value) => {
-                    setClientId(value);
-                    setShowAddClient(false);
-                  }}
-                  options={[
-                    { value: "", label: "Select a client" },
-                    ...clientOptions,
-                  ]}
-                />
-                {!showAddClient && (
-                  <Button variant="text" onClick={() => setShowAddClient(true)}>
-                    Add new client
-                  </Button>
-                )}
-                {showAddClient && (
-                  <Paper variant="outlined" sx={{ p: 2 }}>
-                    <Stack spacing={2}>
-                      <Input
-                        label="Client name"
-                        value={newClientName}
-                        onChange={(event) =>
-                          setNewClientName(event.target.value)
-                        }
-                      />
-                      <Input
-                        label="Company"
-                        value={newClientCompany}
-                        onChange={(event) =>
-                          setNewClientCompany(event.target.value)
-                        }
-                      />
-                      <Input
-                        label="Email"
-                        type="email"
-                        value={newClientEmail}
-                        onChange={(event) =>
-                          setNewClientEmail(event.target.value)
-                        }
-                      />
-                      <Stack direction="row" spacing={1}>
-                        <Button onClick={handleAddClient}>Add client</Button>
-                        <Button
-                          variant="outlined"
-                          onClick={() => setShowAddClient(false)}
-                        >
-                          Cancel
-                        </Button>
-                      </Stack>
-                    </Stack>
-                  </Paper>
-                )}
-                <Input
-                  label="Invoice number"
-                  value={number}
-                  onChange={(event) => setNumber(event.target.value)}
-                  placeholder="INV-001"
-                />
-                <Input
-                  label="Issue date"
-                  type="date"
-                  value={issueDate}
-                  onChange={(event) => setIssueDate(event.target.value)}
-                  required
-                />
-                <Input
-                  label="Due date"
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => setDueDate(event.target.value)}
-                />
-                <Input
-                  label="Currency"
-                  value={currencyCode}
-                  onChange={(event) => setCurrencyCode(event.target.value)}
-                  required
-                />
-              </Stack>
-            </Paper>
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mt: 2 }}>
+          <Input label="Invoice #" value={number} onChange={(event) => setNumber(event.target.value)} placeholder="INV-001" />
+          <Input label="Currency" value={currencyCode} onChange={(event) => setCurrencyCode(event.target.value)} />
+          <Input label="Issue date" type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} required />
+          <Input label="Due date" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+        </Box>
+      </Card>
 
-            <Paper elevation={1} sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Line items
-              </Typography>
-              <Stack spacing={2}>
-                {items.map((item, index) => (
-                  <Box key={index} sx={{ border: 1, borderColor: "divider", p: 2, borderRadius: 1 }}>
-                    <Box
-                      sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}
-                    >
-                      <Stack spacing={1} sx={{ flexGrow: 1 }}>
-                        <Input
-                          label="Description"
-                          value={item.description}
-                          onChange={(event) =>
-                            updateItem(index, {
-                              description: event.target.value,
-                            })
-                          }
-                        />
-                        <Input
-                          label="Secondary description"
-                          value={item.secondaryDescription}
-                          onChange={(event) =>
-                            updateItem(index, {
-                              secondaryDescription: event.target.value,
-                            })
-                          }
-                        />
-                      </Stack>
+      <div className="if-editor-bottom">
+        {/* Line items */}
+        <div>
+          <Card sx={{ overflow: "hidden" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px",
+                gap: 10,
+                alignItems: "center",
+                padding: "0 16px",
+                height: 42,
+                background: "#FCFCFD",
+                color: "#667085",
+                fontSize: 11,
+                fontWeight: 800,
+              }}
+            >
+              <div>Description</div>
+              <div>Qty</div>
+              <div>Rate</div>
+              <div style={{ textAlign: "right" }}>Amount</div>
+              <div />
+            </div>
+            {items.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "10px 16px",
+                  borderTop: "1px solid #E4E7EC",
+                  minHeight: 66,
+                }}
+              >
+                <div>
+                  <Input
+                    label="Description"
+                    value={item.description}
+                    onChange={(event) => updateItem(index, { description: event.target.value })}
+                    size="small"
+                  />
+                  <Input
+                    label="Details"
+                    value={item.secondaryDescription}
+                    onChange={(event) => updateItem(index, { secondaryDescription: event.target.value })}
+                    size="small"
+                    sx={{ mt: 1 }}
+                  />
+                  {(item.appliedTaxes ?? []).map((tax, taxIndex) => (
+                    <Box key={taxIndex} sx={{ display: "flex", gap: 1, mt: 1 }}>
                       <Input
-                        label="Qty"
-                        value={item.quantity}
-                        onChange={(event) =>
-                          updateItem(index, { quantity: event.target.value })
-                        }
-                        sx={{ width: 90 }}
+                        size="small"
+                        label="Tax name"
+                        value={tax.name}
+                        onChange={(event) => updateTax(index, taxIndex, { name: event.target.value })}
                       />
                       <Input
-                        id={`items[${index}].rate`}
-                        label="Rate"
-                        value={item.rate}
-                        onChange={(event) =>
-                          updateItem(index, { rate: event.target.value })
-                        }
-                        sx={{ width: 120 }}
+                        size="small"
+                        label="%"
+                        value={tax.rate}
+                        onChange={(event) => updateTax(index, taxIndex, { rate: event.target.value })}
+                        sx={{ width: 80 }}
                       />
-                      <Typography variant="body2" sx={{ minWidth: 90, pt: 3 }}>
-                        {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
-                      </Typography>
-                      <IconButton
-                        aria-label="Remove item"
-                        onClick={() => removeItem(index)}
-                      >
+                      <IconButton aria-label="Remove tax" onClick={() => removeTax(index, taxIndex)}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>
-
-                    <Stack spacing={1} sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2">Taxes</Typography>
-                      {(item.appliedTaxes ?? []).map((tax, taxIndex) => (
-                        <Box
-                          key={taxIndex}
-                          sx={{ display: "flex", gap: 1 }}
-                        >
-                          <Input
-                            label="Tax name"
-                            value={tax.name}
-                            onChange={(event) =>
-                              updateTax(index, taxIndex, {
-                                name: event.target.value,
-                              })
-                            }
-                            sx={{ flexGrow: 1 }}
-                          />
-                          <Input
-                            label="Rate %"
-                            value={tax.rate}
-                            onChange={(event) =>
-                              updateTax(index, taxIndex, {
-                                rate: event.target.value,
-                              })
-                            }
-                            sx={{ width: 120 }}
-                          />
-                          <IconButton
-                            aria-label="Remove tax"
-                            onClick={() => removeTax(index, taxIndex)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      ))}
-                      <Button
-                        variant="text"
-                        onClick={() => addTax(index)}
-                      >
-                        Add tax
-                      </Button>
-                    </Stack>
-                  </Box>
-                ))}
-                <Button variant="outlined" onClick={addItem}>
-                  Add item
-                </Button>
-                {totals && (
-                  <Box sx={{ textAlign: "right" }}>
-                    <Typography variant="body1">
-                      Subtotal: {totals.subtotal.toDecimalString()}
-                    </Typography>
-                    {totals.discountAmount && !totals.discountAmount.isZero && (
-                      <Typography variant="body1">
-                        Discount: -{totals.discountAmount.toDecimalString()}
-                      </Typography>
-                    )}
-                    <Typography variant="body1">
-                      Tax: {totals.taxTotal.toDecimalString()}
-                    </Typography>
-                    <Typography variant="h6">
-                      Total: {totals.total.toDecimalString()}
-                    </Typography>
-                    {totals.deposit && (
-                      <>
-                        <Typography variant="body1">
-                          Deposit{" "}
-                          {totals.deposit.type === "percentage"
-                            ? `${totals.deposit.rate}%`
-                            : ""}
-                          : {totals.deposit.required.toDecimalString()}
-                        </Typography>
-                        <Typography variant="body1">
-                          Remaining: {totals.deposit.remaining.toDecimalString()}
-                        </Typography>
-                      </>
-                    )}
-                  </Box>
-                )}
-              </Stack>
-            </Paper>
-
-            <Paper elevation={1} sx={{ p: 3 }}>
-              <Stack spacing={2}>
-                <Typography variant="h6" gutterBottom>
-                  Deposit
-                </Typography>
-                <Select
-                  label="Deposit type"
-                  value={depositType}
-                  onValueChange={(value) => setDepositType(value as "" | "percentage" | "fixed")}
-                  options={[
-                    { value: "", label: "No deposit" },
-                    { value: "percentage", label: "Percentage" },
-                    { value: "fixed", label: "Fixed amount" },
-                  ]}
-                />
-                {depositType !== "" && (
-                  <>
-                    <Input
-                      label={depositType === "percentage" ? "Deposit %" : "Deposit amount"}
-                      value={depositValue}
-                      onChange={(event) => setDepositValue(event.target.value)}
-                    />
-                    <Select
-                      label="Deposit due"
-                      value={depositDueRule}
-                      onValueChange={(value) => setDepositDueRule(value as DepositDueRule)}
-                      options={[
-                        { value: "on_receipt", label: "On receipt" },
-                        { value: "days_7", label: "Within 7 days" },
-                        { value: "days_15", label: "Within 15 days" },
-                        { value: "custom", label: "Custom date" },
-                      ]}
-                    />
-                    {depositDueRule === "custom" && (
-                      <Input
-                        label="Deposit due date"
-                        type="date"
-                        value={depositDueDate}
-                        onChange={(event) => setDepositDueDate(event.target.value)}
-                      />
-                    )}
-                  </>
-                )}
-              </Stack>
-            </Paper>
-
-            <Paper elevation={1} sx={{ p: 3 }}>
-              <Stack spacing={2}>
-                <Typography variant="h6" gutterBottom>
-                  More options
-                </Typography>
+                  ))}
+                  <Button variant="text" size="small" onClick={() => addTax(index)}>
+                    + Tax
+                  </Button>
+                </div>
                 <Input
-                  label="PO #"
-                  value={poNumber}
-                  onChange={(event) => setPoNumber(event.target.value)}
+                  size="small"
+                  label="Qty"
+                  value={item.quantity}
+                  onChange={(event) => updateItem(index, { quantity: event.target.value })}
+                />
+                <Input
+                  size="small"
+                  id={`items[${index}].rate`}
+                  label="Rate"
+                  value={item.rate}
+                  onChange={(event) => updateItem(index, { rate: event.target.value })}
+                />
+                <div className="money" style={{ textAlign: "right", fontWeight: 700 }}>
+                  {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
+                </div>
+                <IconButton aria-label="Remove item" onClick={() => removeItem(index)}>
+                  <DeleteIcon />
+                </IconButton>
+              </div>
+            ))}
+            <div style={{ borderTop: "1px solid #E4E7EC", padding: "11px 16px", background: "#FCFCFD" }}>
+              <button type="button" onClick={addItem} style={textAction}>+ Add line item</button>
+            </div>
+          </Card>
+
+          {/* Deposit + More options */}
+          <Card sx={{ p: 3, mt: 3 }}>
+            <div className="eyebrow" style={eyebrow}>Deposit</div>
+            <Select
+              label="Deposit type"
+              value={depositType}
+              onValueChange={(value) => setDepositType(value as "" | "percentage" | "fixed")}
+              options={[
+                { value: "", label: "No deposit" },
+                { value: "percentage", label: "Percentage" },
+                { value: "fixed", label: "Fixed amount" },
+              ]}
+            />
+            {depositType !== "" && (
+              <>
+                <Input
+                  label={depositType === "percentage" ? "Deposit %" : "Deposit amount"}
+                  value={depositValue}
+                  onChange={(event) => setDepositValue(event.target.value)}
+                  sx={{ mt: 2 }}
                 />
                 <Select
-                  label="Discount type"
-                  value={discountType}
-                  onValueChange={(value) =>
-                    setDiscountType(value as "" | "percentage" | "fixed")
-                  }
+                  label="Deposit due"
+                  value={depositDueRule}
+                  onValueChange={(value) => setDepositDueRule(value as DepositDueRule)}
                   options={[
-                    { value: "", label: "No discount" },
-                    { value: "percentage", label: "Percentage" },
-                    { value: "fixed", label: "Fixed amount" },
+                    { value: "on_receipt", label: "On receipt" },
+                    { value: "days_7", label: "Within 7 days" },
+                    { value: "days_15", label: "Within 15 days" },
+                    { value: "custom", label: "Custom date" },
                   ]}
                 />
-                {discountType !== "" && (
+                {depositDueRule === "custom" && (
                   <Input
-                    label={
-                      discountType === "percentage" ? "Discount %" : "Discount amount"
-                    }
-                    value={discountValue}
-                    onChange={(event) => setDiscountValue(event.target.value)}
+                    label="Deposit due date"
+                    type="date"
+                    value={depositDueDate}
+                    onChange={(event) => setDepositDueDate(event.target.value)}
                   />
                 )}
-              </Stack>
-            </Paper>
-
-            {error && <Alert severity="error">{error}</Alert>}
-
-            {reviewIssues.length > 0 && (
-              <Alert severity="warning">
-                <Typography variant="subtitle2" gutterBottom>
-                  Review blocked
-                </Typography>
-                <ul style={{ margin: 0, paddingLeft: 20 }}>
-                  {reviewIssues.map((message) => (
-                    <li key={message}>{message}</li>
-                  ))}
-                </ul>
-              </Alert>
+              </>
             )}
+          </Card>
 
-            <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-              <Button type="submit" variant="outlined" disabled={submitting}>
-                Save draft
-              </Button>
-              <Button
-                type="button"
-                onClick={handleReview}
-                disabled={submitting}
+          <Card sx={{ p: 3, mt: 3 }}>
+            <div className="eyebrow" style={eyebrow}>More options</div>
+            <Input label="PO #" value={poNumber} onChange={(event) => setPoNumber(event.target.value)} />
+            <Select
+              label="Discount type"
+              value={discountType}
+              onValueChange={(value) => setDiscountType(value as "" | "percentage" | "fixed")}
+              options={[
+                { value: "", label: "No discount" },
+                { value: "percentage", label: "Percentage" },
+                { value: "fixed", label: "Fixed amount" },
+              ]}
+            />
+            {discountType !== "" && (
+              <Input
+                label={discountType === "percentage" ? "Discount %" : "Discount amount"}
+                value={discountValue}
+                onChange={(event) => setDiscountValue(event.target.value)}
+              />
+            )}
+          </Card>
+        </div>
+
+        {/* Sticky summary */}
+        <Card className="if-summary" sx={{ p: 2 }}>
+          <div className="section-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>
+            Summary
+          </div>
+          {totals ? (
+            <>
+              <SumRow label="Subtotal" value={totals.subtotal.toDecimalString()} />
+              {totals.discountAmount && !totals.discountAmount.isZero && (
+                <SumRow label="Discount" value={`-${totals.discountAmount.toDecimalString()}`} />
+              )}
+              <SumRow label="Tax" value={totals.taxTotal.toDecimalString()} />
+              <div
+                className="sumrow total money"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  borderTop: "1px solid #E4E7EC",
+                  marginTop: 7,
+                  paddingTop: 14,
+                  fontWeight: 800,
+                }}
               >
-                {submitting ? "Saving…" : "Review Invoice"}
-              </Button>
-            </Box>
-          </Stack>
-        </form>
-      </Box>
-    </main>
+                <span>Total</span>
+                <strong style={{ fontSize: 20 }}>{totals.total.toDecimalString()}</strong>
+              </div>
+              {totals.deposit && (
+                <div className="depositbox" style={{ background: "#EFF6FF", border: "1px solid #DBEAFE", borderRadius: 12, padding: 13, marginTop: 12 }}>
+                  <div className="dtop" style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span className="label" style={{ fontSize: 11, fontWeight: 800, color: "#2563EB" }}>Deposit due</span>
+                    <span className="amt money" style={{ fontSize: 17, fontWeight: 800 }}>{totals.deposit.required.toDecimalString()}</span>
+                  </div>
+                  <div className="dtop" style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                    <span className="label" style={{ fontSize: 11, fontWeight: 800, color: "#2563EB" }}>Remaining</span>
+                    <span className="amt money" style={{ fontSize: 15, fontWeight: 800 }}>{totals.deposit.remaining.toDecimalString()}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : null}
+        </Card>
+      </div>
+
+      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      {reviewIssues.length > 0 && (
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          <strong>Review blocked</strong>
+          <ul style={{ margin: "6px 0 0", paddingLeft: 20 }}>
+            {reviewIssues.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      {/* Sticky editor bar */}
+      <div className="if-sticky-editor">
+        <div className="if-sticky-inner">
+          <span className="if-saved">Saved ✓</span>
+          <Button
+            type="button"
+            onClick={handleReview}
+            disabled={submitting}
+            sx={{ height: 44, padding: "0 24px" }}
+          >
+            {submitting ? "Saving…" : "Review Invoice →"}
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+const eyebrow: CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: ".08em",
+  textTransform: "uppercase",
+  color: "#667085",
+  marginBottom: 12,
+};
+
+const textAction: CSSProperties = {
+  border: 0,
+  background: "transparent",
+  color: "#2563EB",
+  fontSize: 13,
+  fontWeight: 750,
+  padding: "4px 0",
+  cursor: "pointer",
+};
+
+function SumRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      className="sumrow money"
+      style={{ display: "flex", justifyContent: "space-between", gap: 20, padding: "7px 0", fontSize: 13 }}
+    >
+      <span style={{ color: "#667085" }}>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
