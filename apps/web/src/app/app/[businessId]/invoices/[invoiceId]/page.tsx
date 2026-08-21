@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { Button, Dialog, Input, StatusBadge, type StatusTone } from "@/components/ui";
+import { Button, Dialog, Input, StatusBadge, Toast, useToast, type StatusTone } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -49,6 +49,7 @@ export default function InvoiceDetailPage() {
   const [reference, setReference] = useState("");
   const [savingPayment, setSavingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const { toast, setToast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -149,6 +150,7 @@ export default function InvoiceDetailPage() {
       const paymentList = await apiClient.listPayments(businessId, invoiceId, token);
       setPayments([...paymentList]);
       setPaymentOpen(false);
+      setToast("Payment recorded");
     } catch (caught) {
       setPaymentError(
         caught instanceof Error ? caught.message : "Failed to record payment.",
@@ -355,6 +357,7 @@ export default function InvoiceDetailPage() {
             {paymentError && <Alert severity="error">{paymentError}</Alert>}
           </Stack>
         </Dialog>
+      <Toast key={toast ?? "none"} message={toast} />
     </div>
   );
 }

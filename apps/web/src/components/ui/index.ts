@@ -13,4 +13,4 @@ export {
   type StatusBadgeProps,
   type StatusTone,
 } from "./StatusBadge";
-export { Toast, type ToastProps } from "./Toast";
+export { Toast, useToast } from "./Toast";

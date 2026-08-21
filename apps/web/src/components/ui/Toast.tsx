@@ -1,26 +1,22 @@
 "use client";
 
-import Alert, { type AlertColor } from "@mui/material/Alert";
-import Snackbar, { type SnackbarProps } from "@mui/material/Snackbar";
+import { useEffect, useState } from "react";
 
-export type ToastProps = Omit<SnackbarProps, "children" | "message" | "onClose"> & {
-  message: string;
-  onClose: () => void;
-  severity?: AlertColor;
-};
+export function Toast({ message }: { message: string | null }) {
+  const [visible, setVisible] = useState(Boolean(message));
 
-export function Toast({
-  autoHideDuration = 5000,
-  message,
-  onClose,
-  severity = "info",
-  ...props
-}: ToastProps) {
-  return (
-    <Snackbar autoHideDuration={autoHideDuration} onClose={onClose} {...props}>
-      <Alert onClose={onClose} severity={severity} variant="filled">
-        {message}
-      </Alert>
-    </Snackbar>
-  );
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setVisible(false), 2200);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  if (!message || !visible) return null;
+
+  return <div className="if-toast">{message}</div>;
+}
+
+export function useToast() {
+  const [toast, setToast] = useState<string | null>(null);
+  return { toast, setToast };
 }
