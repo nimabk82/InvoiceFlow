@@ -12,6 +12,7 @@ import { DocumentDefaultsModule } from './modules/document-defaults/document-def
 import { HealthModule } from './modules/health/health.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { ProductsModule } from './modules/products/products.module';
+import { TaxesModule } from './modules/taxes/taxes.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ProductsModule } from './modules/products/products.module';
     ProductsModule,
     InvoicesModule,
     DocumentDefaultsModule,
+    TaxesModule,
   ],
   controllers: [AppController],
   providers: [

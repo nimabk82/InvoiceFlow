@@ -117,6 +117,24 @@ export type CreateProductInput = Readonly<{
 
 export type UpdateProductInput = CreateProductInput;
 
+export type Tax = Readonly<{
+  id: string;
+  businessId: string;
+  name: string;
+  rate: string;
+  registrationNumber?: string;
+  isDefault: boolean;
+}>;
+
+export type CreateTaxInput = Readonly<{
+  name: string;
+  rate: string;
+  registrationNumber?: string;
+  isDefault?: boolean;
+}>;
+
+export type UpdateTaxInput = CreateTaxInput;
+
 export type InvoiceItem = Readonly<{
   description: string;
   secondaryDescription?: string;
@@ -443,6 +461,37 @@ export class ApiClient {
         headers: { authorization: `Bearer ${token}` },
       },
     );
+  }
+
+  async listTaxes(businessId: string, token: string): Promise<Tax[]> {
+    return this.request<Tax[]>(`/businesses/${businessId}/taxes`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async createTax(
+    businessId: string,
+    input: CreateTaxInput,
+    token: string,
+  ): Promise<Tax> {
+    return this.request<Tax>(`/businesses/${businessId}/taxes`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async updateTax(
+    businessId: string,
+    taxId: string,
+    input: UpdateTaxInput,
+    token: string,
+  ): Promise<Tax> {
+    return this.request<Tax>(`/businesses/${businessId}/taxes/${taxId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+      headers: { authorization: `Bearer ${token}` },
+    });
   }
 
   async listInvoices(

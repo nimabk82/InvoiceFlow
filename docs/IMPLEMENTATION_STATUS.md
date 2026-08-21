@@ -63,10 +63,11 @@ Sprint 0 — Platform foundation
 - SET-01 — Business Profile (Web + API): `GET/PATCH /businesses/:businessId`; profile screen (name, legal name, email, phone, website, address, country, currency).
 - INV-16 — Duplicate / Void / Delete Draft (Web + API): `POST /invoices/:id/duplicate`, `POST /invoices/:id/void`, `DELETE /invoices/:id` (draft-only); Detail actions.
 - SET-02 — Document Defaults (Web + API): `document_defaults` table + `GET/PATCH /businesses/:id/document-defaults`; screen for default due rule, notes, terms, default tax IDs (theme defaults stored but no picker yet).
+- SET-03 — Taxes (Web + API): taxes module with `GET/POST /businesses/:id/taxes` + `GET/PATCH /taxes/:taxId`; Taxes settings screen (create/edit, rate, registration number, default).
 
 ## Current ticket
 
-- SET-03 — Taxes (next).
+- SET-04 — Payments (next).
 
 ## Next recommended tickets
 
@@ -255,6 +256,7 @@ Watchman: VERIFIED
 - SET-01 — web lint/typecheck/build; api lint/typecheck/test/build; api-client lint/typecheck/test/build; end-to-end business GET/PATCH verified
 - INV-16 — web lint/typecheck/build; api lint/typecheck/test (113 passed)/build; api-client lint/typecheck/test/build; end-to-end duplicate/void/delete verified
 - SET-02 — web lint/typecheck/build; api lint/typecheck/test (115 passed)/build; api-client lint/typecheck/test/build; sqlfluff migration clean; migration applied; end-to-end GET/PATCH defaults verified
+- SET-03 — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; end-to-end taxes CRUD verified
 
 ## Status update format
 
