@@ -4,7 +4,7 @@ Keep this file short. Update it at the end of every completed ticket.
 
 ## Current phase
 
-Sprint 0 — Platform foundation
+Design-First — prioritize matching `sample.html`; defer feature breadth to the end. See `docs/PLAN_DESIGN_FIRST.md`.
 
 ## Completed
 
@@ -67,12 +67,27 @@ Sprint 0 — Platform foundation
 
 ## Current ticket
 
-- SET-04 — Payments (next).
+- RENDER-03 — Semantic section renderer (Stage 1: styled document "paper" for Review/Detail).
 
-## Next recommended tickets
+## Next recommended tickets (design-first, per PLAN_DESIGN_FIRST.md)
 
-1. INV-16 — Duplicate / Void / Delete Draft
-2. SET-02 — Document Defaults
+1. RENDER-04 — Item table renderer
+2. RENDER-05 — Totals + Deposit block
+3. INV-11 — Theme selector in Review
+4. DASH-01 — First-Time Dashboard (Stage 2)
+5. FOUND-03 — App shell & navigation
+
+## Deferred to the end (design plan)
+
+- QUOTE-01..08 — Quotes
+- RENDER-06..11 — pagination, continuation headers, print/PDF adapters
+- THEME-08..21 — full visual Theme Builder
+- TVER-02..08 — theme lifecycle complexity
+- SET-04 — Payments, SET-05 — Numbering, SET-06 — Manage Businesses
+- CLIENT-04 — Detail, CLIENT-05 — Archive
+- PRODUCT-03 — library selector
+- AUTH-03 — Forgot/Reset Password
+- QA-01..09 — matrices (acceptance at end)
 
 ## Locked decisions
 

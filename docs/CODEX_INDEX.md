@@ -9,8 +9,9 @@ Do not read every handoff file by default.
 For every implementation ticket:
 
 1. `docs/IMPLEMENTATION_STATUS.md`
-2. the ticket entry in `docs/handoff/08_DEVELOPMENT_TICKETS.md`
-3. only the mapped documents below
+2. `docs/PLAN_DESIGN_FIRST.md` (current design-first delivery plan; defer/priority)
+3. the ticket entry in `docs/handoff/08_DEVELOPMENT_TICKETS.md`
+4. only the mapped documents below
 
 The nearest `AGENTS.md` is also authoritative for the directory being changed.
 
