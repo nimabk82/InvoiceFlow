@@ -12,17 +12,8 @@ import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import {
   Alert,
   Box,
-  Divider,
-  List,
-  ListItem,
-  Paper,
+  Card,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from "@mui/material";
 
@@ -244,220 +235,88 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const clientAddressLines = [
-    invoice.clientSnapshot.address?.line1,
-    invoice.clientSnapshot.address?.line2,
-    [invoice.clientSnapshot.address?.city, invoice.clientSnapshot.address?.region]
-      .filter(Boolean)
-      .join(", "),
-    [
-      invoice.clientSnapshot.address?.postalCode,
-      invoice.clientSnapshot.address?.countryCode,
-    ]
-      .filter(Boolean)
-      .join(" "),
-  ].filter(Boolean);
 
   return (
-    <main>
-      <Box sx={{ maxWidth: 760, mx: "auto", px: 2, py: 4 }}>
-        <Stack
-          direction="row"
-          sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}
-        >
-          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Typography variant="h4" component="h1">
-              {invoice.number}
-            </Typography>
-            <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>
-              {invoice.status}
-            </StatusBadge>
-          </Stack>
-          <Button variant="outlined" onClick={() => router.back()}>
-            Back
-          </Button>
-        </Stack>
+    <div>
+      {/* Detail hero */}
+      <Card sx={{ p: 2, mb: 3 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 18 }}>
+          <div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <h2 style={{ fontSize: 20, margin: 0, color: "#101828" }}>{invoice.number}</h2>
+              <StatusBadge tone={statusTone[invoice.status] ?? "neutral"}>{invoice.status}</StatusBadge>
+            </div>
+            <p style={{ fontSize: 12, color: "#667085", margin: "5px 0 0" }}>
+              {invoice.clientSnapshot.displayName} · {invoice.clientSnapshot.emails[0] ?? ""}
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
+            {invoice.status === "draft" && (
+              <Button variant="outlined" color="error" onClick={handleDelete}>Delete</Button>
+            )}
+            <Button variant="outlined" onClick={openPayment}>Record Payment</Button>
+            <Button variant="outlined" onClick={handleDuplicate}>Duplicate</Button>
+            {invoice.status !== "draft" && invoice.status !== "void" && (
+              <Button variant="outlined" color="error" onClick={handleVoid}>Void</Button>
+            )}
+            <Button onClick={() => router.push(`/app/${businessId}/invoices/${invoiceId}/send`)}>Send Again</Button>
+          </div>
+        </div>
+      </Card>
 
-        <Paper elevation={1} sx={{ p: 3 }}>
-          <Stack spacing={3}>
-            <Stack direction="row" sx={{ justifyContent: "space-between" }}>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  From
-                </Typography>
-                <Typography variant="body1">
-                  {invoice.businessSnapshot.displayName}
-                </Typography>
-                {invoice.businessSnapshot.email && (
-                  <Typography variant="body2" color="text.secondary">
-                    {invoice.businessSnapshot.email}
-                  </Typography>
-                )}
-              </Box>
-              <Box sx={{ textAlign: "right" }}>
-                <Typography variant="body2" color="text.secondary">
-                  Issue date: {invoice.issueDate}
-                </Typography>
-                {invoice.dueDate && (
-                  <Typography variant="body2" color="text.secondary">
-                    Due date: {invoice.dueDate}
-                  </Typography>
-                )}
-                {invoice.poNumber && (
-                  <Typography variant="body2" color="text.secondary">
-                    PO #: {invoice.poNumber}
-                  </Typography>
-                )}
-              </Box>
-            </Stack>
+      {/* Amount strip */}
+      <Card sx={{ overflow: "hidden", mb: 3 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", borderTop: "1px solid #E4E7EC" }}>
+          <AmountBlock label="Total" value={totals ? `${totals.total.toDecimalString()}` : "—"} />
+          <AmountBlock label="Paid" value={totals ? `${paidAmount.toFixed(2)} ${invoice.currencyCode}` : "—"} />
+          <AmountBlock label="Balance" value={totals ? `${(totals.total.toNumber() - paidAmount).toFixed(2)} ${invoice.currencyCode}` : "—"} />
+        </div>
+      </Card>
 
-            <Divider />
+      {/* Items + totals */}
+      <Card sx={{ overflow: "hidden", mb: 3 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(200px,1fr) 80px 100px 110px", gap: 10, alignItems: "center", padding: "0 18px", height: 42, background: "#FCFCFD", color: "#667085", fontSize: 11, fontWeight: 800 }}>
+          <div>Description</div>
+          <div>Qty</div>
+          <div>Rate</div>
+          <div style={{ textAlign: "right" }}>Amount</div>
+        </div>
+        {invoice.items.map((item, index) => (
+          <div key={index} style={{ display: "grid", gridTemplateColumns: "minmax(200px,1fr) 80px 100px 110px", gap: 10, alignItems: "center", padding: "10px 18px", borderTop: "1px solid #E4E7EC", minHeight: 56 }}>
+            <div>
+              <strong style={{ fontSize: 13, color: "#101828" }}>{item.description}</strong>
+              {item.secondaryDescription && <div style={{ fontSize: 11, color: "#667085" }}>{item.secondaryDescription}</div>}
+            </div>
+            <span style={{ fontSize: 12, color: "#667085" }}>{item.quantity}</span>
+            <span style={{ fontSize: 12, color: "#667085" }}>{item.rate}</span>
+            <div className="money" style={{ textAlign: "right", fontWeight: 700 }}>{totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}</div>
+          </div>
+        ))}
+        <div style={{ width: 300, marginLeft: "auto", padding: "0 18px 14px", marginTop: 8 }}>
+          <TotalRow label="Subtotal" value={totals?.subtotal.toDecimalString() ?? "0.00"} />
+          {totals?.discountAmount && !totals.discountAmount.isZero && <TotalRow label="Discount" value={`-${totals.discountAmount.toDecimalString()}`} />}
+          <TotalRow label="Tax" value={totals?.taxTotal.toDecimalString() ?? "0.00"} />
+          <TotalRow label="Total" value={totals?.total.toDecimalString() ?? "0.00"} total />
+        </div>
+      </Card>
 
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">
-                Bill to
-              </Typography>
-              <Typography variant="body1">
-                {invoice.clientSnapshot.displayName}
-              </Typography>
-              {invoice.clientSnapshot.emails.map((email) => (
-                <Typography key={email} variant="body2" color="text.secondary">
-                  {email}
-                </Typography>
-              ))}
-              {clientAddressLines.map((line) => (
-                <Typography key={line} variant="body2" color="text.secondary">
-                  {line}
-                </Typography>
-              ))}
-            </Box>
-
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Qty</TableCell>
-                    <TableCell align="right">Rate</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {invoice.items.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {item.description}
-                        {item.secondaryDescription && (
-                          <Typography variant="body2" color="text.secondary">
-                            {item.secondaryDescription}
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">{item.rate}</TableCell>
-                      <TableCell align="right">
-                        {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <Box sx={{ textAlign: "right" }}>
-              {totals && (
-                <>
-                  <Typography variant="body1">
-                    Subtotal: {totals.subtotal.toDecimalString()}
-                  </Typography>
-                  {totals.discountAmount && !totals.discountAmount.isZero && (
-                    <Typography variant="body1">
-                      Discount: -{totals.discountAmount.toDecimalString()}
-                    </Typography>
-                  )}
-                  <Typography variant="body1">
-                    Tax: {totals.taxTotal.toDecimalString()}
-                  </Typography>
-                  <Typography variant="h6">
-                    Total: {totals.total.toDecimalString()}
-                  </Typography>
-                </>
-              )}
-            </Box>
-
-            <Divider />
-
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">
-                Summary
-              </Typography>
-              <Typography variant="body1">
-                Paid:{" "}
-                {totals ? `${paidAmount.toFixed(2)} ${invoice.currencyCode}` : "—"}
-              </Typography>
-              <Typography variant="body1">
-                Balance:{" "}
-                {totals
-                  ? `${(totals.total.toNumber() - paidAmount).toFixed(2)} ${invoice.currencyCode}`
-                  : "—"}
-              </Typography>
-            </Box>
-          </Stack>
-        </Paper>
-
-        <Paper elevation={1} sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Activity
-          </Typography>
-          {activity.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No activity yet.
-            </Typography>
-          ) : (
-            <List>
-              {activity.map((event) => (
-                <ListItem key={event.id} divider>
-                  <Stack direction="row" sx={{ justifyContent: "space-between", width: "100%", gap: 2 }}>
-                    <Typography variant="body1">{activityLabel(event)}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {new Date(event.occurredAt).toLocaleString()}
-                    </Typography>
-                  </Stack>
-                </ListItem>
-              ))}
-            </List>
-          )}
-        </Paper>
-
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 1 }}>
-          {invoice.status === "draft" && (
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
-          )}
-          <Button variant="outlined" onClick={openPayment}>
-            Record Payment
-          </Button>
-          <Button variant="outlined" onClick={handleDuplicate}>
-            Duplicate
-          </Button>
-          {invoice.status !== "draft" && invoice.status !== "void" && (
-            <Button variant="outlined" color="error" onClick={handleVoid}>
-              Void
-            </Button>
-          )}
-          <Button
-            onClick={() =>
-              router.push(`/app/${businessId}/invoices/${invoiceId}/send`)
-            }
-          >
-            Send Again
-          </Button>
-        </Box>
+      {/* Activity */}
+      <Card sx={{ p: 2 }}>
+        <div className="section-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Activity</div>
+        {activity.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">No activity yet.</Typography>
+        ) : (
+          activity.map((event) => (
+            <div key={event.id} className="timeline-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: "1px solid #E4E7EC" }}>
+              <div className="dot" style={{ width: 28, height: 28, borderRadius: "50%", display: "grid", placeItems: "center", background: "#ECFDF3", color: "#15803D", fontSize: 12, fontWeight: 800 }}>✓</div>
+              <div>
+                <strong style={{ fontSize: 13, color: "#101828" }}>{activityLabel(event)}</strong>
+                <div style={{ fontSize: 11, color: "#667085" }}>{new Date(event.occurredAt).toLocaleString()}</div>
+              </div>
+            </div>
+          ))
+        )}
+      </Card>
 
         <Dialog
           open={paymentOpen}
@@ -500,13 +359,43 @@ export default function InvoiceDetailPage() {
             {paymentError && <Alert severity="error">{paymentError}</Alert>}
           </Stack>
         </Dialog>
-      </Box>
-    </main>
+    </div>
   );
 }
 
-function activityLabel(event: ActivityEvent): string {
-  switch (event.type) {
+function AmountBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ padding: 18, borderRight: "1px solid #E4E7EC" }}>
+      <div style={{ fontSize: 11, color: "#667085" }}>{label}</div>
+      <div className="money" style={{ display: "block", fontSize: 23, marginTop: 8, fontWeight: 800, color: "#101828" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function TotalRow({ label, value, total }: { label: string; value: string; total?: boolean }) {
+  return (
+    <div
+      className="money"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        fontSize: total ? 16 : 12,
+        fontWeight: total ? 800 : 400,
+        padding: "5px 0",
+        borderTop: total ? "1px solid #E4E7EC" : "none",
+        marginTop: total ? 6 : 0,
+        paddingTop: total ? 11 : 0,
+      }}
+    >
+      <span style={{ color: "#667085" }}>{label}</span>
+      <strong style={{ color: "#101828" }}>{value}</strong>
+    </div>
+  );
+}
+
+function activityLabel(event: ActivityEvent): string {  switch (event.type) {
     case "created":
       return "Invoice created";
     case "sent":
