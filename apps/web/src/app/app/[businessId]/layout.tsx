@@ -1,39 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import type { Route } from "next";
 import { useParams, usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Stack, Typography } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import PeopleIcon from "@mui/icons-material/People";
 import CategoryIcon from "@mui/icons-material/Category";
 import SettingsIcon from "@mui/icons-material/Settings";
 
-import { BusinessSwitcher, CurrentBusiness } from "@/components/navigation/BusinessSwitcher";
+import { CurrentBusiness } from "@/components/navigation/BusinessSwitcher";
 
 type NavItem = {
   label: string;
-  href: Route;
+  href: string;
   icon: ReactNode;
 };
 
-export default function BusinessLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function BusinessLayout({ children }: { children: ReactNode }) {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
   const pathname = usePathname();
 
   const navItems: NavItem[] = [
-    { label: "Dashboard", href: `/app/${businessId}` as Route, icon: <HomeIcon /> },
-    { label: "Invoices", href: `/app/${businessId}/invoices` as Route, icon: <ReceiptIcon /> },
-    { label: "Clients", href: `/app/${businessId}/clients` as Route, icon: <PeopleIcon /> },
-    { label: "Products", href: `/app/${businessId}/products` as Route, icon: <CategoryIcon /> },
-    { label: "Settings", href: `/app/${businessId}/settings/profile` as Route, icon: <SettingsIcon /> },
+    { label: "Dashboard", href: `/app/${businessId}`, icon: <HomeIcon /> },
+    { label: "Invoices", href: `/app/${businessId}/invoices`, icon: <ReceiptIcon /> },
+    { label: "Clients", href: `/app/${businessId}/clients`, icon: <PeopleIcon /> },
+    { label: "Products", href: `/app/${businessId}/products`, icon: <CategoryIcon /> },
   ];
 
   function isActive(item: NavItem): boolean {
@@ -43,73 +36,80 @@ export default function BusinessLayout({
     return pathname.startsWith(item.href);
   }
 
-  return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      <Box
-        component="aside"
-        sx={{
-          width: 220,
-          borderRight: 1,
-          borderColor: "divider",
-          px: 1.5,
-          py: 2,
-          display: { xs: "none", md: "block" },
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-        }}
-      >
-        <Typography variant="h6" component="div" sx={{ px: 1.5, pb: 1 }}>
-          InvoiceFlow
-        </Typography>
-        <CurrentBusiness businessId={businessId} />
-        <List dense sx={{ pt: 1 }}>
-          <BusinessSwitcher businessId={businessId} />
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-              <ListItemButton
-                selected={isActive(item)}
-                sx={{ borderRadius: 1, color: isActive(item) ? "primary.main" : "inherit" }}
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            </Link>
-          ))}
-        </List>
-      </Box>
+  const title = navItems.find((item) => isActive(item))?.label ?? "Invoices";
 
-      <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
-        <Box sx={{ flexGrow: 1 }}>{children}</Box>
-        <Box
-          component="nav"
-          sx={{
-            display: { xs: "flex", md: "none" },
-            borderTop: 1,
-            borderColor: "divider",
-            position: "sticky",
-            bottom: 0,
-            background: "background.paper",
-          }}
-        >
+  return (
+    <div className="if-shell">
+      <aside className="if-sidebar">
+        <div className="if-logo">InvoiceFlow</div>
+        <Link href={`/app/${businessId}/settings/businesses`} className="if-business-switch">
+          <strong>
+            <CurrentBusiness businessId={businessId} />
+          </strong>
+          <span>Switch</span>
+        </Link>
+
+        <nav className="if-nav">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              style={{
-                flex: 1,
-                textDecoration: "none",
-                textAlign: "center",
-                padding: "10px 0",
-                color: isActive(item) ? "var(--mui-palette-primary-main)" : "inherit",
-              }}
+              className={isActive(item) ? "if-active" : undefined}
             >
-              <Box sx={{ display: "flex", justifyContent: "center" }}>{item.icon}</Box>
-              <Typography variant="caption">{item.label}</Typography>
+              <span className="if-ico">{item.icon}</span>
+              <span className="if-label">{item.label}</span>
             </Link>
           ))}
-        </Box>
-      </Stack>
-    </Box>
+        </nav>
+
+        <div className="if-sidefoot">
+          <Link href={`/app/${businessId}/settings/profile`}>
+            <span className="if-ico" style={{ width: 18, display: "inline-flex", justifyContent: "center" }}>
+              <SettingsIcon />
+            </span>
+            <span className="if-label">Settings</span>
+          </Link>
+        </div>
+      </aside>
+
+      <div className="if-app-main">
+        <header className="if-topbar">
+          <div>
+            <h1>{title}</h1>
+            <div className="if-sub">
+              <CurrentBusiness businessId={businessId} />
+            </div>
+          </div>
+        </header>
+
+        <div className="if-mobile-head">
+          <h1>{title}</h1>
+        </div>
+
+        <div className="if-page">{children}</div>
+
+        <nav className="if-bottom-nav">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={isActive(item) ? "if-active" : undefined}
+            >
+              <span className="if-ico">{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
+          <Link
+            href={`/app/${businessId}/settings/profile`}
+            className={pathname.startsWith(`/app/${businessId}/settings`) ? "if-active" : undefined}
+          >
+            <span className="if-ico">
+              <SettingsIcon />
+            </span>
+            Settings
+          </Link>
+        </nav>
+      </div>
+    </div>
   );
 }
