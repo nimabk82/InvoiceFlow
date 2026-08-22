@@ -323,10 +323,7 @@ export class QuotesService {
     return { quote: updated, invoice };
   }
 
-  async adoptLatestTheme(
-    businessId: string,
-    quoteId: string,
-  ): Promise<Quote> {
+  async adoptLatestTheme(businessId: string, quoteId: string): Promise<Quote> {
     const quote = await this.findById(businessId, quoteId);
 
     if (quote.status !== 'draft') {

@@ -94,24 +94,20 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - TVER-02..08 — Theme lifecycle (Web + API): `ThemeAssignmentModule` resolves the default invoice/quote theme and assigns `themeId`/`themeVersionId`/`themeNameSnapshot` on document create (TVER-07); theme is frozen on send (TVER-04); quote→invoice convert preserves the quote theme (TVER-08); `GET /themes/:id/versions/:versionId` historical lookup (TVER-05); `version-state` (newer version available) + `adopt-latest-theme` endpoints with Review-page "Adopt latest" banner on invoices and quotes (TVER-02/03); old versions retained (TVER-06).
 - THEME-08..22 — Theme Builder (Web): `/settings/themes/:themeId/edit` three-panel builder — Structure (section toggles + safe reorder, Items<Totals<Deposit + footer last enforced), live `DocumentPaper` preview, and Properties (page size/margin/border/background, brand colors + logo size, typography, header/bill-to/items/totals/deposit/footer controls); undo/redo history; live `diagnoseRender` diagnostics banner (warnings don't block save); Save creates a new immutable version. Themes list links to the builder.
 - AUTH-03 — Forgot/Reset Password (Web): `/auth/forgot-password` sends a Supabase reset email with a redirect to `/auth/reset-password`, which verifies the recovery session and updates the password; "Forgot password?" link on sign-in.
+- QA-01..09 — Acceptance matrices (docs/QA_ACCEPTANCE_STATUS.md): QA-05 calculation tests, QA-06 renderer 18-case baseline, and QA-07/08/09 service-level E2E are automated; QA-01..04 device/keyboard matrices documented for manual pass.
 
 ## Current ticket
 
-- None — design-first Stages 1–4 and deferred breadth are complete.
+- None — all planned tickets complete. See `docs/QA_ACCEPTANCE_STATUS.md` for acceptance matrix status and remaining manual/device passes.
 
 ## Next recommended tickets
 
-Design-first Stages 1–4 are complete (renderer core, theme selector in Review, dashboard, app shell/nav, business context, activity timeline, list polish, settings finish). Proceeding into the deferred breadth:
-
-1. QUOTE-01 — Quote list
-2. QUOTE-02 — Quote editor via shared DocumentEditor
-3. QUOTE-03 — Quote Review
-4. QUOTE-04 — Send Quote
+All planned tickets (Platform, Foundation, Domain, API, DB, Renderer, Themes, Lifecycle, Quotes, Clients, Products, Settings, Auth, QA) are complete. Remaining work is the manual device/keyboard QA pass documented in `docs/QA_ACCEPTANCE_STATUS.md`, plus optional deferred surfaces (autosave parity, currency-change warning, client-facing view).
 
 ## Deferred to the end (design plan)
 
-- QUOTE-05..08 — acceptance, detail, convert, quote↔invoice
-- QA-01..09 — matrices (acceptance at end)
+- Manual QA pass (device/keyboard matrices) — see `docs/QA_ACCEPTANCE_STATUS.md`.
+- Autosave UI parity (INV-08), currency-change warning, client-facing view / email attachment renderer surface.
 - CLIENT-04 — Detail, CLIENT-05 — Archive
 - AUTH-03 — Forgot/Reset Password
 - QA-01..09 — matrices (acceptance at end)
@@ -321,6 +317,7 @@ Watchman: VERIFIED
 - TVER-02..08 — api lint/typecheck/test (133 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/build; root typecheck
 - THEME-08..22 — web lint/typecheck/test/build; root typecheck
 - AUTH-03 — web lint/typecheck/test/build (routes /auth/forgot-password, /auth/reset-password)
+- QA-01..09 — matrices documented in docs/QA_ACCEPTANCE_STATUS.md; automated coverage via calculations/validation/renderer/api suites
 
 ## Status update format
 
