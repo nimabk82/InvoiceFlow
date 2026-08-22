@@ -107,7 +107,20 @@ export default function NewInvoicePage() {
       dueDate: dueDate || undefined,
       currencyCode,
       poNumber: poNumber || undefined,
-      items,
+      items: items
+        .map((item) => ({
+          ...item,
+          description: item.description.trim(),
+          secondaryDescription: item.secondaryDescription?.trim() || undefined,
+          quantity: item.quantity.trim() || "1",
+          rate: item.rate.trim() || "0",
+        }))
+        .filter(
+          (item) =>
+            item.description !== "" ||
+            item.rate !== "0" ||
+            (item.appliedTaxes ?? []).length > 0,
+        ),
       discount: discountType
         ? { type: discountType, value: discountValue }
         : undefined,
@@ -125,6 +138,22 @@ export default function NewInvoicePage() {
     };
   }
 
+  const hasContent = useMemo(
+    () =>
+      clientId !== "" ||
+      number.trim() !== "" ||
+      issueDate !== "" ||
+      dueDate !== "" ||
+      poNumber !== "" ||
+      items.some(
+        (item) =>
+          item.description.trim() !== "" ||
+          item.rate.trim() !== "" ||
+          (item.appliedTaxes ?? []).length > 0,
+      ),
+    [clientId, number, issueDate, dueDate, poNumber, items],
+  );
+
   const autosave = useAutosave({
     create: async (token) => apiClient.createInvoice(businessId, buildInvoiceInput(), token),
     update: async (draftId, token) =>
@@ -139,10 +168,12 @@ export default function NewInvoicePage() {
     }
     if (lastSnapshotRef.current !== formSnapshot) {
       lastSnapshotRef.current = formSnapshot;
-      autosave.bump();
+      if (hasContent) {
+        autosave.bump();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formSnapshot]);
+  }, [formSnapshot, hasContent]);
 
   async function getToken(): Promise<string | null> {
     const {

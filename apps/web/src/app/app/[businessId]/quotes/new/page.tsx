@@ -93,7 +93,20 @@ export default function NewQuotePage() {
       issueDate,
       validUntil: validUntil || undefined,
       currencyCode,
-      items,
+      items: items
+        .map((item) => ({
+          ...item,
+          description: item.description.trim(),
+          secondaryDescription: item.secondaryDescription?.trim() || undefined,
+          quantity: item.quantity.trim() || "1",
+          rate: item.rate.trim() || "0",
+        }))
+        .filter(
+          (item) =>
+            item.description !== "" ||
+            item.rate !== "0" ||
+            (item.appliedTaxes ?? []).length > 0,
+        ),
       proposedDepositTerms: depositType
         ? {
             type: depositType,
@@ -107,6 +120,21 @@ export default function NewQuotePage() {
         : undefined,
     };
   }
+
+  const hasContent = useMemo(
+    () =>
+      clientId !== "" ||
+      number.trim() !== "" ||
+      issueDate !== "" ||
+      validUntil !== "" ||
+      items.some(
+        (item) =>
+          item.description.trim() !== "" ||
+          item.rate.trim() !== "" ||
+          (item.appliedTaxes ?? []).length > 0,
+      ),
+    [clientId, number, issueDate, validUntil, items],
+  );
 
   const autosave = useAutosave({
     create: async (token) => apiClient.createQuote(businessId, buildQuoteInput(), token),
@@ -122,7 +150,9 @@ export default function NewQuotePage() {
     }
     if (lastSnapshotRef.current !== formSnapshot) {
       lastSnapshotRef.current = formSnapshot;
-      autosave.bump();
+      if (hasContent) {
+        autosave.bump();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formSnapshot]);
