@@ -101,6 +101,12 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 
 - None — all planned tickets complete. See `docs/QA_ACCEPTANCE_STATUS.md` for acceptance matrix status and remaining manual/device passes.
 
+## In-progress (session handoff, 2026-08-22)
+
+- **Bug: detail pages fetch each resource twice (dev only).** Web runs `reactStrictMode: true`, so `useEffect` loaders in the client detail pages double-invoke in dev, firing every `GET` twice. Fixed: added a `startedRef` guard keyed by route params to the mount effects in `apps/web/src/app/app/[businessId]/invoices/[invoiceId]/page.tsx`, `quotes/[quoteId]/page.tsx`, and `clients/[clientId]/page.tsx` so StrictMode's dev remount only triggers one real fetch; the existing `cancelled` cleanup is kept, and navigating to a different detail id still refetches (key includes the id). Web lint/typecheck/test all green.
+- **Earlier fix this session: invoice/quote detail routes returned 404** because the `next dev` server (PID 8804) had a stale route manifest after many file additions. Restarted web dev server (`nohup pnpm dev > /tmp/web-dev.log 2>&1 &` in `apps/web`); all routes now 200. If 404s reappear after route additions, restart the dev server.
+- **Committed this session:** `1dbbd1c` — reverted INV-08 autosave in web editors (static "Saved ✓", create on Review/Submit; `useAutosave` + `SaveStateBadge` deleted, `@invoiceflow/domain` removed from web deps; API PATCH draft endpoints retained). All web + api + root checks green before commit.
+
 ## Next recommended tickets
 
 All planned tickets (Platform, Foundation, Domain, API, DB, Renderer, Themes, Lifecycle, Quotes, Clients, Products, Settings, Auth, QA) are complete. Remaining work is the manual device/keyboard QA pass documented in `docs/QA_ACCEPTANCE_STATUS.md`, plus optional deferred surfaces (currency-change warning, client-facing view, re-enabling autosave).
