@@ -4,6 +4,7 @@ import { themePresets } from '@invoiceflow/theme-schema';
 
 import {
   buildContinuationHeader,
+  buildPageFooter,
   buildPageMetrics,
   decomposeBlocks,
   paginateSections,
@@ -337,5 +338,73 @@ describe('buildContinuationHeader', () => {
   it('returns undefined when there is no identity to show', () => {
     const header = buildContinuationHeader([]);
     expect(header).toBeUndefined();
+  });
+});
+
+describe('buildPageFooter', () => {
+  it('resolves footer parts from the business and footer sections', () => {
+    const sections = makeSections({});
+    const footerSection = sections.find(
+      (section) => section.key === 'footer',
+    );
+    expect(footerSection?.key).toBe('footer');
+    if (footerSection?.key !== 'footer') return;
+
+    const footer = buildPageFooter(sections, 2, footerSection);
+    expect(footer.parts).toContain('Acme Inc');
+    expect(footer.pageNumber).toBe(2);
+    expect(footer.showPageNumber).toBe(true);
+  });
+
+  it('honors theme footer flags', () => {
+    const sections = makeSections({});
+    const footerSection = sections.find(
+      (section) => section.key === 'footer',
+    );
+    expect(footerSection?.key).toBe('footer');
+    if (footerSection?.key !== 'footer') return;
+
+    const footer = buildPageFooter(sections, 1, {
+      ...footerSection,
+      showBusinessName: false,
+      showWebsite: false,
+      showPageNumber: false,
+    });
+    expect(footer.parts).toEqual([]);
+    expect(footer.showPageNumber).toBe(false);
+  });
+});
+
+describe('page footers', () => {
+  it('attaches a numbered footer to every page', () => {
+    const items = Array.from({ length: 30 }, (_, i) => ({
+      description: `Item ${i}`,
+      quantity: '1',
+      rate: '10',
+      appliedTaxes: [],
+    }));
+    const sections = makeSections({ items });
+    const { pages } = paginateSections({
+      sections,
+      theme: themePresets.clean,
+      ...compactHeight,
+    });
+
+    expect(pages.length).toBeGreaterThan(1);
+    pages.forEach((page, index) => {
+      expect(page.footer).toBeDefined();
+      expect(page.footer?.pageNumber).toBe(index + 1);
+      expect(page.footer?.showPageNumber).toBe(true);
+      expect(page.footer?.parts).toContain('Acme Inc');
+    });
+  });
+
+  it('does not emit a footer block in the flow when footer is reserved per page', () => {
+    const sections = makeSections({});
+    const blocks = decomposeBlocks(sections);
+    const footerBlocks = blocks.filter(
+      (block) => block.kind === 'section' && block.type === 'footer',
+    );
+    expect(footerBlocks).toHaveLength(0);
   });
 });

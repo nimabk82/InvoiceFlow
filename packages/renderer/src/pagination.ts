@@ -96,6 +96,15 @@ export type RenderedPage = Readonly<{
   pageNumber: number;
   blocks: readonly RenderedBlock[];
   continuationHeader?: ContinuationHeader;
+  footer?: RenderedPageFooter;
+}>;
+
+export type RenderedPageFooter = Readonly<{
+  parts: readonly string[];
+  alignment: ThemeConfig['footer']['alignment'];
+  showDivider: boolean;
+  pageNumber: number;
+  showPageNumber: boolean;
 }>;
 
 export type ContinuationHeader = Readonly<{
@@ -133,7 +142,6 @@ export function decomposeBlocks(
       case 'totals':
       case 'deposit':
       case 'payment':
-      case 'footer':
         blocks.push({
           kind: 'section',
           key: `section:${section.key}`,
@@ -281,6 +289,10 @@ export function paginateSections(
   const metrics = buildPageMetrics(input.theme.page, input.pageMetrics);
   const blocks = decomposeBlocks(input.sections);
   const continuationHeader = buildContinuationHeader(input.sections);
+  const footerSection = input.sections.find(
+    (section): section is Extract<RenderedSection, { key: 'footer' }> =>
+      section.key === 'footer',
+  );
   const pageContentHeight =
     metrics.height - metrics.marginTop - metrics.marginBottom - metrics.footerReserve;
 
@@ -370,8 +382,47 @@ export function paginateSections(
         ...(pageNumber > 1 && continuationHeader
           ? { continuationHeader }
           : {}),
+        ...(footerSection
+          ? { footer: buildPageFooter(input.sections, pageNumber, footerSection) }
+          : {}),
       };
     }),
+  };
+}
+
+export function buildPageFooter(
+  sections: readonly RenderedSection[],
+  pageNumber: number,
+  footerSection: Extract<RenderedSection, { key: 'footer' }>,
+): RenderedPageFooter {
+  const business = sections.find((section) => section.key === 'business');
+  const parts: string[] = [];
+
+  if (
+    footerSection.showBusinessName &&
+    (business?.key === 'business' ? business.displayName : undefined)
+  ) {
+    parts.push(business?.key === 'business' ? business.displayName : '');
+  }
+
+  if (
+    footerSection.showWebsite &&
+    business?.key === 'business' &&
+    business.website
+  ) {
+    parts.push(business.website);
+  }
+
+  if (footerSection.customText) {
+    parts.push(footerSection.customText);
+  }
+
+  return {
+    parts,
+    alignment: footerSection.alignment,
+    showDivider: footerSection.showDivider,
+    pageNumber,
+    showPageNumber: footerSection.showPageNumber,
   };
 }
 
