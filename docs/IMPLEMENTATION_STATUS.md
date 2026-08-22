@@ -88,6 +88,8 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - RENDER-08 — Footer/page numbering (`@invoiceflow/renderer`): footer no longer a flow block; every page carries a resolved `footer` (`buildPageFooter`: business name/website/custom text per theme flags + divider + correct page number), footer height already reserved per page.
 - RENDER-09 — Render diagnostics (`@invoiceflow/renderer`): `diagnoseRender` emits `LOW_CONTRAST` (WCAG), `UNSUPPORTED_FONT` (curated set), `INVALID_SECTION_ORDER` (Items<Totals<Deposit + footer last, deposit-aware), `FINANCIAL_BLOCK_SPLIT`, `OVERFLOW` (block taller than page); `contrastRatio` helper.
 - RENDER-10 — Print adapter (`@invoiceflow/renderer`): `renderForPrint` returns `{ pages, diagnostics, html }` — a self-contained printable HTML document with `@page` size/margins from the theme, one print page per paginated page, continuation strip + numbered footer per page, HTML escaping, and embedded diagnostics when present.
+- RENDER-11 — PDF adapter (`@invoiceflow/renderer`): `renderForPdf` reuses the print HTML (one renderer contract for Print + PDF) and adds a platform-neutral `pdf` render spec (page size/margins in points, page count, footer/continuation reserves) a host can pass to a PDF engine.
+- RENDER-12 — Renderer fixture suite (`@invoiceflow/renderer`): 6 fixtures (standard, deposit, long client, long items, 45-item multi-page, quote) × 3 preset themes = 18 render cases asserting the full pipeline (sections → pagination → print → pdf).
 
 ## Current ticket
 
@@ -105,7 +107,7 @@ Design-first Stages 1–4 are complete (renderer core, theme selector in Review,
 ## Deferred to the end (design plan)
 
 - QUOTE-05..08 — acceptance, detail, convert, quote↔invoice
-- RENDER-11 — PDF adapter
+- THEME-01..22 — theme management + Theme Builder
 - THEME-08..21 — full visual Theme Builder
 - TVER-02..08 — theme lifecycle complexity
 - CLIENT-04 — Detail, CLIENT-05 — Archive
@@ -312,6 +314,7 @@ Watchman: VERIFIED
 - RENDER-08 — renderer package lint/typecheck/build + test (31 passed); root typecheck
 - RENDER-09 — renderer package lint/typecheck/build + test (39 passed); root typecheck
 - RENDER-10 — renderer package lint/typecheck/build + test (46 passed); root typecheck
+- RENDER-11 + RENDER-12 — renderer package lint/typecheck/build + test (69 passed); root typecheck
 
 ## Status update format
 
