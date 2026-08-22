@@ -20,6 +20,7 @@ export default function SettingsLayout({
     { label: "Business Profile", href: `/app/${businessId}/settings/profile` as Route },
     { label: "Document Defaults", href: `/app/${businessId}/settings/documents` as Route },
     { label: "Taxes", href: `/app/${businessId}/settings/taxes` as Route },
+    { label: "Document Themes", href: `/app/${businessId}/settings/themes` as Route },
     { label: "Payments", href: `/app/${businessId}/settings/payments` as Route },
     { label: "Branding", href: `/app/${businessId}/settings/branding` as Route },
     { label: "Numbering", href: `/app/${businessId}/settings/numbering` as Route },

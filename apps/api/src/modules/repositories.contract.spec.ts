@@ -133,6 +133,8 @@ const repositoryCases: readonly RepositoryCase[] = [
       getTheme: jest.fn().mockResolvedValue(null),
       getVersion: jest.fn().mockResolvedValue(null),
       listByBusiness: jest.fn().mockResolvedValue([]),
+      listVersions: jest.fn().mockResolvedValue([]),
+      nextVersionNumber: jest.fn().mockResolvedValue(1),
       saveTheme: jest.fn().mockResolvedValue(undefined),
       createVersion: jest.fn().mockResolvedValue(undefined),
     },

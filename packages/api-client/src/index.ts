@@ -334,6 +334,46 @@ export type ActivityEvent = Readonly<{
   metadata?: Readonly<Record<string, unknown>>;
 }>;
 
+export type DocumentTheme = Readonly<{
+  id: string;
+  businessId: string;
+  name: string;
+  appliesToInvoice: boolean;
+  appliesToQuote: boolean;
+  currentVersionId: string;
+  archivedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}>;
+
+export type DocumentThemeVersion = Readonly<{
+  id: string;
+  themeId: string;
+  version: number;
+  schemaVersion: number;
+  config: Readonly<Record<string, unknown>>;
+  createdAt: string;
+  createdBy?: string;
+}>;
+
+export type ThemeDetail = Readonly<{
+  theme: DocumentTheme;
+  versions: readonly DocumentThemeVersion[];
+}>;
+
+export type CreateThemeInput = Readonly<{
+  preset: string;
+  name?: string;
+  appliesToInvoice?: boolean;
+  appliesToQuote?: boolean;
+}>;
+
+export type UpdateThemeInput = Readonly<{
+  name?: string;
+  appliesToInvoice?: boolean;
+  appliesToQuote?: boolean;
+}>;
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -823,6 +863,106 @@ export class ApiClient {
     await this.request<unknown>(
       `/businesses/${businessId}/invoices/${invoiceId}`,
       { method: 'DELETE', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async listThemes(
+    businessId: string,
+    token: string,
+    includeArchived = false,
+  ): Promise<DocumentTheme[]> {
+    const query = includeArchived ? '?includeArchived=true' : '';
+    return this.request<DocumentTheme[]>(
+      `/businesses/${businessId}/themes${query}`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async createTheme(
+    businessId: string,
+    input: CreateThemeInput,
+    token: string,
+  ): Promise<DocumentTheme> {
+    return this.request<DocumentTheme>(`/businesses/${businessId}/themes`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getTheme(
+    businessId: string,
+    themeId: string,
+    token: string,
+  ): Promise<ThemeDetail> {
+    return this.request<ThemeDetail>(
+      `/businesses/${businessId}/themes/${themeId}`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async updateTheme(
+    businessId: string,
+    themeId: string,
+    input: UpdateThemeInput,
+    token: string,
+  ): Promise<DocumentTheme> {
+    return this.request<DocumentTheme>(
+      `/businesses/${businessId}/themes/${themeId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
+  async duplicateTheme(
+    businessId: string,
+    themeId: string,
+    token: string,
+  ): Promise<DocumentTheme> {
+    return this.request<DocumentTheme>(
+      `/businesses/${businessId}/themes/${themeId}/duplicate`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async archiveTheme(
+    businessId: string,
+    themeId: string,
+    token: string,
+  ): Promise<DocumentTheme> {
+    return this.request<DocumentTheme>(
+      `/businesses/${businessId}/themes/${themeId}/archive`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async restoreTheme(
+    businessId: string,
+    themeId: string,
+    token: string,
+  ): Promise<DocumentTheme> {
+    return this.request<DocumentTheme>(
+      `/businesses/${businessId}/themes/${themeId}/restore`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async saveThemeConfig(
+    businessId: string,
+    themeId: string,
+    config: Readonly<Record<string, unknown>>,
+    token: string,
+  ): Promise<ThemeDetail> {
+    return this.request<ThemeDetail>(
+      `/businesses/${businessId}/themes/${themeId}/versions`,
+      {
+        method: 'POST',
+        body: JSON.stringify(config),
+        headers: { authorization: `Bearer ${token}` },
+      },
     );
   }
 

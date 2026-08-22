@@ -1,0 +1,256 @@
+import type { ThemeConfig } from '@invoiceflow/theme-schema';
+import type { BusinessRepository } from '../businesses/repositories/business.repository';
+import { ThemesService } from './themes.service';
+import type { ThemeRepository } from './repositories/theme.repository';
+
+jest.mock('@invoiceflow/theme-schema', () => {
+  const cleanConfig: ThemeConfig = {
+    page: {
+      size: 'letter',
+      margin: 'standard',
+      backgroundColor: '#ffffff',
+      border: 'none',
+    },
+    brand: {
+      logoSize: 'medium',
+      primaryColor: '#2563eb',
+      secondaryColor: '#dbeafe',
+    },
+    typography: { font: 'Inter', headingScale: 'comfortable' },
+    header: { layout: 'classic' },
+    billTo: { style: 'soft' },
+    items: {
+      headerStyle: 'line',
+      rowStyle: 'plain',
+      showQuantity: true,
+      showRate: true,
+      showTax: true,
+    },
+    totals: { layout: 'right', emphasis: 'bold' },
+    deposit: { style: 'highlight' },
+    footer: {
+      alignment: 'center',
+      showBusinessName: true,
+      showWebsite: true,
+      showPageNumber: true,
+      customText: undefined,
+      showDivider: true,
+    },
+    sections: [
+      { id: 'header', enabled: true },
+      { id: 'business', enabled: true },
+      { id: 'document-info', enabled: true },
+      { id: 'bill-to', enabled: true },
+      { id: 'items', enabled: true },
+      { id: 'totals', enabled: true },
+      { id: 'deposit', enabled: true },
+      { id: 'payment', enabled: true },
+      { id: 'notes', enabled: true },
+      { id: 'terms', enabled: true },
+      { id: 'footer', enabled: true },
+    ],
+  };
+
+  return {
+    themePresets: { clean: cleanConfig },
+    validateThemeConfig: (config: unknown) => {
+      const record = (
+        typeof config === 'object' && config !== null ? config : {}
+      ) as Record<string, unknown>;
+      const page = (
+        typeof record.page === 'object' && record.page !== null
+          ? record.page
+          : {}
+      ) as Record<string, unknown>;
+      const sizes = ['letter', 'a4'];
+      const margins = ['compact', 'standard', 'spacious'];
+      const borders = ['none', 'thin', 'accent'];
+      const issues: { code: string; message: string; path: string }[] = [];
+      const stringValue = (value: unknown): string =>
+        typeof value === 'string' ? value : '';
+      if (!sizes.includes(stringValue(page.size))) {
+        issues.push({
+          code: 'invalid_value',
+          message: 'Invalid value for page.size.',
+          path: 'page.size',
+        });
+      }
+      if (!margins.includes(stringValue(page.margin))) {
+        issues.push({
+          code: 'invalid_value',
+          message: 'Invalid value for page.margin.',
+          path: 'page.margin',
+        });
+      }
+      if (!borders.includes(stringValue(page.border))) {
+        issues.push({
+          code: 'invalid_value',
+          message: 'Invalid value for page.border.',
+          path: 'page.border',
+        });
+      }
+      return { valid: issues.length === 0, issues };
+    },
+  };
+});
+
+function createDeps() {
+  const saveTheme = jest.fn().mockResolvedValue(undefined);
+  const createVersion = jest.fn().mockResolvedValue(undefined);
+  const themeRepository = {
+    getTheme: jest.fn(),
+    getVersion: jest.fn(),
+    listByBusiness: jest.fn().mockResolvedValue([]),
+    listVersions: jest.fn().mockResolvedValue([]),
+    nextVersionNumber: jest.fn().mockResolvedValue(1),
+    saveTheme,
+    createVersion,
+  } as unknown as ThemeRepository;
+  const businessRepository = {
+    findById: jest.fn().mockResolvedValue({ id: 'business-1', name: 'Acme' }),
+  } as unknown as BusinessRepository;
+  return { themeRepository, businessRepository, saveTheme, createVersion };
+}
+
+function buildService(deps: ReturnType<typeof createDeps>) {
+  return new ThemesService(deps.themeRepository, deps.businessRepository);
+}
+
+const baseTheme = {
+  id: 'theme-1',
+  businessId: 'business-1',
+  name: 'Clean',
+  appliesToInvoice: true,
+  appliesToQuote: false,
+  currentVersionId: 'v1',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+describe('ThemesService', () => {
+  it('creates a theme from a preset and saves it with a version', async () => {
+    const deps = createDeps();
+    const service = buildService(deps);
+    const { saveTheme, createVersion } = deps;
+
+    const theme = await service.createFromPreset('business-1', {
+      preset: 'clean',
+    });
+
+    expect(theme.businessId).toBe('business-1');
+    expect(theme.name).toBe('Clean');
+    expect(theme.appliesToInvoice).toBe(true);
+    expect(theme.currentVersionId).not.toBe('');
+    expect(saveTheme).toHaveBeenCalledWith(
+      expect.objectContaining({ id: theme.id }),
+    );
+    expect(createVersion).toHaveBeenCalledWith(
+      expect.objectContaining({ themeId: theme.id, version: 1 }),
+    );
+  });
+
+  it('rejects an unknown preset', async () => {
+    const deps = createDeps();
+    const service = buildService(deps);
+
+    await expect(
+      service.createFromPreset('business-1', { preset: 'not-a-preset' }),
+    ).rejects.toThrow();
+  });
+
+  it('duplicates a theme copying the latest version config', async () => {
+    const deps = createDeps();
+    const { createVersion } = deps;
+    (deps.themeRepository.getTheme as jest.Mock).mockResolvedValue(baseTheme);
+    (deps.themeRepository.listVersions as jest.Mock).mockResolvedValue([
+      {
+        id: 'v1',
+        themeId: 'theme-1',
+        version: 1,
+        schemaVersion: 1,
+        config: { page: { size: 'letter' } },
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+    const service = buildService(deps);
+
+    const copy = await service.duplicate('business-1', 'theme-1');
+
+    expect(copy.name).toBe('Clean (copy)');
+    expect(createVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: { page: { size: 'letter' } },
+        version: 1,
+      }),
+    );
+  });
+
+  it('archives and restores a theme', async () => {
+    const deps = createDeps();
+    (deps.themeRepository.getTheme as jest.Mock).mockResolvedValue(baseTheme);
+    const service = buildService(deps);
+
+    const archived = await service.archive('business-1', 'theme-1');
+    expect(archived.archivedAt).toBeDefined();
+
+    const restored = await service.restore('business-1', 'theme-1');
+    expect(restored.archivedAt).toBeUndefined();
+  });
+
+  it('saves a new immutable version when the config changes', async () => {
+    const deps = createDeps();
+    const { createVersion } = deps;
+    (deps.themeRepository.getTheme as jest.Mock).mockResolvedValue(baseTheme);
+    (deps.themeRepository.nextVersionNumber as jest.Mock).mockResolvedValue(2);
+    (deps.themeRepository.listVersions as jest.Mock).mockResolvedValue([]);
+    const service = buildService(deps);
+
+    const config: ThemeConfig = {
+      page: {
+        size: 'letter',
+        margin: 'standard',
+        backgroundColor: '#ffffff',
+        border: 'none',
+      },
+      brand: { primaryColor: '#ff0000' },
+      typography: { font: 'Inter', headingScale: 'comfortable' },
+      header: { layout: 'classic' },
+      billTo: { style: 'soft' },
+      items: {
+        headerStyle: 'line',
+        rowStyle: 'plain',
+        showQuantity: true,
+        showRate: true,
+        showTax: true,
+      },
+      totals: { layout: 'right', emphasis: 'bold' },
+      deposit: { style: 'highlight' },
+      footer: {
+        alignment: 'center',
+        showBusinessName: true,
+        showWebsite: true,
+        showPageNumber: true,
+        showDivider: true,
+      },
+      sections: [{ id: 'items', enabled: true }],
+    };
+
+    await service.saveConfig('business-1', 'theme-1', config);
+
+    expect(createVersion).toHaveBeenCalledWith(
+      expect.objectContaining({ themeId: 'theme-1', version: 2 }),
+    );
+  });
+
+  it('rejects an invalid theme config', async () => {
+    const deps = createDeps();
+    (deps.themeRepository.getTheme as jest.Mock).mockResolvedValue(baseTheme);
+    const service = buildService(deps);
+
+    await expect(
+      service.saveConfig('business-1', 'theme-1', {
+        page: { size: 'not-a-size' },
+      }),
+    ).rejects.toThrow();
+  });
+});

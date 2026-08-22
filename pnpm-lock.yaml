@@ -29,6 +29,9 @@ importers:
       '@invoiceflow/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@invoiceflow/theme-schema':
+        specifier: workspace:*
+        version: link:../../packages/theme-schema
       '@nestjs/common':
         specifier: 11.2.1
         version: 11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2)
