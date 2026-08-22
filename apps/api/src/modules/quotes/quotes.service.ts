@@ -44,6 +44,7 @@ export type CreateQuoteItemInput = {
   quantity: string;
   rate: string;
   appliedTaxes?: { name: string; rate: string }[];
+  sourceProductServiceId?: string;
 };
 
 export type QuoteDepositDueRule =
@@ -150,6 +151,7 @@ export class QuotesService {
       validUntil: input.validUntil,
       items: input.items.map((item) => ({
         id: randomUUID(),
+        sourceProductServiceId: item.sourceProductServiceId,
         description: item.description,
         secondaryDescription: item.secondaryDescription,
         quantity: item.quantity,

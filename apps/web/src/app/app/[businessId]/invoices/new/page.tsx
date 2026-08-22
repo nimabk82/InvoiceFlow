@@ -7,6 +7,7 @@ import {
   type Client,
   type CreateInvoiceItemInput,
   type DepositDueRule,
+  type ProductService,
 } from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import { validateDocumentForReview } from "@invoiceflow/validation";
@@ -14,6 +15,7 @@ import { Alert, Box, Card, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import { Button, Input, Select } from "@/components/ui";
+import { ProductLibraryDialog } from "@/components/products/ProductLibraryDialog";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -37,6 +39,8 @@ export default function NewInvoicePage() {
   const businessId = params.businessId;
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
+  const [products, setProducts] = useState<ProductService[]>([]);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [number, setNumber] = useState("");
   const [issueDate, setIssueDate] = useState("");
@@ -78,6 +82,8 @@ export default function NewInvoicePage() {
       try {
         const page = await apiClient.listClients(businessId, token);
         if (!cancelled) setClients([...page.items]);
+        const productPage = await apiClient.listProducts(businessId, token);
+        if (!cancelled) setProducts([...productPage.items]);
       } catch (caught) {
         if (!cancelled)
           setError(
@@ -103,6 +109,20 @@ export default function NewInvoicePage() {
 
   function addItem() {
     setItems((current) => [...current, emptyItem()]);
+  }
+
+  function addFromLibrary(product: ProductService) {
+    setItems((current) => [
+      ...current,
+      {
+        description: product.name,
+        secondaryDescription: product.description ?? "",
+        quantity: "1",
+        rate: product.defaultRate ?? "",
+        appliedTaxes: [],
+        sourceProductServiceId: product.id,
+      },
+    ]);
   }
 
   function removeItem(index: number) {
@@ -400,8 +420,18 @@ export default function NewInvoicePage() {
             ))}
             <div style={{ borderTop: "1px solid #E4E7EC", padding: "11px 16px", background: "#FCFCFD" }}>
               <button type="button" onClick={addItem} className="if-text-action">+ Add line item</button>
+              <button type="button" onClick={() => setLibraryOpen(true)} className="if-text-action" style={{ marginLeft: 18 }}>
+                + From library
+              </button>
             </div>
           </Card>
+
+          <ProductLibraryDialog
+            open={libraryOpen}
+            products={products}
+            onClose={() => setLibraryOpen(false)}
+            onSelect={addFromLibrary}
+          />
 
           {/* Deposit + More options */}
           <Card sx={{ p: 3, mt: 3 }}>

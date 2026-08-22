@@ -44,6 +44,7 @@ export type CreateInvoiceItemInput = {
   quantity: string;
   rate: string;
   appliedTaxes?: { name: string; rate: string }[];
+  sourceProductServiceId?: string;
 };
 
 export type DepositDueRule = 'on_receipt' | 'days_7' | 'days_15' | 'custom';
@@ -343,6 +344,7 @@ export class InvoicesService {
       dueDate: input.dueDate,
       items: input.items.map((item) => ({
         id: randomUUID(),
+        sourceProductServiceId: item.sourceProductServiceId,
         description: item.description,
         secondaryDescription: item.secondaryDescription,
         quantity: item.quantity,

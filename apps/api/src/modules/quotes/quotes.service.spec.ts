@@ -81,7 +81,14 @@ describe('QuotesService', () => {
       clientId: 'client-1',
       issueDate: '2026-08-22',
       currencyCode: 'CAD',
-      items: [{ description: 'Consulting', quantity: '2', rate: '500' }],
+      items: [
+        {
+          description: 'Consulting',
+          quantity: '2',
+          rate: '500',
+          sourceProductServiceId: 'product-1',
+        },
+      ],
       proposedDepositTerms: {
         type: 'percentage',
         value: '30',
@@ -93,6 +100,7 @@ describe('QuotesService', () => {
     expect(quote.businessSnapshot.displayName).toBe('Acme');
     expect(quote.clientSnapshot.displayName).toBe('Client Co');
     expect(quote.items).toHaveLength(1);
+    expect(quote.items[0].sourceProductServiceId).toBe('product-1');
     expect(quote.proposedDepositTerms).toEqual({
       type: 'percentage',
       value: '30',

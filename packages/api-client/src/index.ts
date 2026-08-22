@@ -234,6 +234,7 @@ export type CreateInvoiceItemInput = Readonly<{
   quantity: string;
   rate: string;
   appliedTaxes?: Readonly<{ name: string; rate: string }>[];
+  sourceProductServiceId?: string;
 }>;
 
 export type DepositDueRule = 'on_receipt' | 'days_7' | 'days_15' | 'custom';

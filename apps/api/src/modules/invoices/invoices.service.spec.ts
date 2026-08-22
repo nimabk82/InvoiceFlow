@@ -105,12 +105,20 @@ describe('InvoicesService', () => {
       clientId: 'client-1',
       issueDate: '2026-08-01',
       currencyCode: 'CAD',
-      items: [{ description: 'Consulting', quantity: '1', rate: '5000' }],
+      items: [
+        {
+          description: 'Consulting',
+          quantity: '1',
+          rate: '5000',
+          sourceProductServiceId: 'product-1',
+        },
+      ],
     });
 
     expect(invoice.status).toBe('draft');
     expect(invoice.businessSnapshot.displayName).toBe('Acme');
     expect(invoice.clientSnapshot.displayName).toBe('Client Co');
+    expect(invoice.items[0].sourceProductServiceId).toBe('product-1');
     expect(save).toHaveBeenCalledWith(
       expect.objectContaining({ id: invoice.id }),
     );
