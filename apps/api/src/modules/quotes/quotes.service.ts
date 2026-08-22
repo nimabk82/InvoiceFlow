@@ -11,6 +11,7 @@ import type {
   BusinessSnapshot,
   Client,
   ClientSnapshot,
+  Invoice,
   Quote,
 } from '@invoiceflow/domain';
 
@@ -27,6 +28,10 @@ import {
   type ClientRepository,
 } from '../clients/repositories/client.repository';
 import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
+import {
+  INVOICE_REPOSITORY,
+  type InvoiceRepository,
+} from '../invoices/repositories/invoice.repository';
 import {
   QUOTE_REPOSITORY,
   type QuotePage,
@@ -90,6 +95,8 @@ export class QuotesService {
     private readonly emailProvider: EmailProvider,
     @Inject(ACTIVITY_EVENT_REPOSITORY)
     private readonly activityEventRepository: ActivityEventRepository,
+    @Inject(INVOICE_REPOSITORY)
+    private readonly invoiceRepository: InvoiceRepository,
   ) {}
 
   async list(
@@ -210,10 +217,112 @@ export class QuotesService {
     return sent;
   }
 
+  async acceptQuote(businessId: string, quoteId: string): Promise<Quote> {
+    const quote = await this.findById(businessId, quoteId);
+
+    if (quote.status !== 'sent' && quote.status !== 'viewed') {
+      throw new BadRequestException('Only sent quotes can be accepted');
+    }
+
+    const accepted: Quote = {
+      ...quote,
+      status: 'accepted',
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.quoteRepository.save(accepted);
+    await this.recordActivity(businessId, quoteId, 'accepted');
+
+    return accepted;
+  }
+
+  async declineQuote(businessId: string, quoteId: string): Promise<Quote> {
+    const quote = await this.findById(businessId, quoteId);
+
+    if (quote.status !== 'sent' && quote.status !== 'viewed') {
+      throw new BadRequestException('Only sent quotes can be declined');
+    }
+
+    const declined: Quote = {
+      ...quote,
+      status: 'declined',
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.quoteRepository.save(declined);
+    await this.recordActivity(businessId, quoteId, 'declined');
+
+    return declined;
+  }
+
+  async convertQuote(
+    businessId: string,
+    quoteId: string,
+  ): Promise<{ quote: Quote; invoice: Invoice }> {
+    const quote = await this.findById(businessId, quoteId);
+
+    if (quote.status !== 'accepted') {
+      throw new BadRequestException(
+        'Only accepted quotes can be converted to an invoice',
+      );
+    }
+
+    const invoice: Invoice = {
+      id: randomUUID(),
+      businessId,
+      number: `INV-${Date.now()}`,
+      clientId: quote.clientId,
+      clientSnapshot: quote.clientSnapshot,
+      businessSnapshot: quote.businessSnapshot,
+      currencyCode: quote.currencyCode,
+      issueDate: new Date().toISOString().slice(0, 10),
+      items: quote.items.map((item) => ({
+        ...item,
+        id: randomUUID(),
+      })),
+      depositTerms: quote.proposedDepositTerms,
+      notes: quote.notes,
+      terms: quote.terms,
+      status: 'draft',
+      sourceQuoteId: quote.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.invoiceRepository.save(invoice);
+
+    const updated: Quote = {
+      ...quote,
+      convertedInvoiceIds: [...quote.convertedInvoiceIds, invoice.id],
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.quoteRepository.save(updated);
+    await this.recordActivity(businessId, quoteId, 'converted', {
+      invoiceId: invoice.id,
+    });
+
+    return { quote: updated, invoice };
+  }
+
+  async listActivity(
+    businessId: string,
+    quoteId: string,
+  ): Promise<ActivityEvent[]> {
+    await this.findById(businessId, quoteId);
+    const page = await this.activityEventRepository.list({
+      businessId,
+      entityType: 'quote',
+      entityId: quoteId,
+    });
+    return [...page.items];
+  }
+
   private async recordActivity(
     businessId: string,
     quoteId: string,
     type: ActivityEvent['type'],
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     await this.activityEventRepository.record({
       id: randomUUID(),
@@ -222,6 +331,7 @@ export class QuotesService {
       entityId: quoteId,
       type,
       occurredAt: new Date().toISOString(),
+      metadata,
     });
   }
 }

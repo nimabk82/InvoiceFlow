@@ -80,10 +80,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - QUOTE-02 — Quote editor (Web): quote editor with client selector, items, proposed deposit ("Deposit upon acceptance"), sticky summary + Review bar.
 - QUOTE-03 — Quote Review (Web): paper preview via shared renderer + theme selector + summary side panel.
 - QUOTE-04 — Send Quote (Web + API): `POST /quotes/:id/send` (draft→sent, email validation, email provider, activity event); send screen with To/CC/BCC/subject/message.
+- QUOTE-05..08 — Acceptance, Detail, Convert, Quote↔Invoice (Web + API): `POST /quotes/:id/accept|decline|convert`, `GET /quotes/:id/activity`; quote detail screen with Accept/Decline/Convert actions + activity; convert creates a draft invoice copying snapshots/items/deposit/notes with `sourceQuoteId`, appends `convertedInvoiceIds`, records `converted` event; "View Invoice" link.
 
 ## Current ticket
 
-- QUOTE-05 — Client acceptance (next).
+- Deferred breadth complete (Quotes). Next: RENDER-06..11 (print/PDF), Theme Builder, or mobile parity.
 
 ## Next recommended tickets
 

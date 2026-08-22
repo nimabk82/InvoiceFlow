@@ -70,4 +70,36 @@ export class QuotesController {
   ) {
     return this.quotesService.sendQuote(businessId, quoteId, input);
   }
+
+  @Post(':quoteId/accept')
+  accept(
+    @Param('businessId') businessId: string,
+    @Param('quoteId') quoteId: string,
+  ) {
+    return this.quotesService.acceptQuote(businessId, quoteId);
+  }
+
+  @Post(':quoteId/decline')
+  decline(
+    @Param('businessId') businessId: string,
+    @Param('quoteId') quoteId: string,
+  ) {
+    return this.quotesService.declineQuote(businessId, quoteId);
+  }
+
+  @Post(':quoteId/convert')
+  convert(
+    @Param('businessId') businessId: string,
+    @Param('quoteId') quoteId: string,
+  ) {
+    return this.quotesService.convertQuote(businessId, quoteId);
+  }
+
+  @Get(':quoteId/activity')
+  listActivity(
+    @Param('businessId') businessId: string,
+    @Param('quoteId') quoteId: string,
+  ) {
+    return this.quotesService.listActivity(businessId, quoteId);
+  }
 }

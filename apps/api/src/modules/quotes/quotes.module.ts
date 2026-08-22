@@ -7,6 +7,7 @@ import { BusinessAccessModule } from '../businesses/access/business-access.modul
 import { BusinessesModule } from '../businesses/businesses.module';
 import { ClientsModule } from '../clients/clients.module';
 import { EmailModule } from '../email/email.module';
+import { InvoicesModule } from '../invoices/invoices.module';
 import { QUOTE_REPOSITORY } from './repositories/quote.repository';
 import { SupabaseQuoteRepository } from './repositories/supabase-quote.repository';
 import { QuotesController } from './quotes.controller';
@@ -20,6 +21,7 @@ import { QuotesService } from './quotes.service';
     BusinessesModule,
     ClientsModule,
     EmailModule,
+    InvoicesModule,
     SupabaseModule,
   ],
   controllers: [QuotesController],

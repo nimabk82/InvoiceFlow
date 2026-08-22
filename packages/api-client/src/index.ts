@@ -272,6 +272,7 @@ export type Quote = Readonly<{
   businessSnapshot: InvoiceBusinessSnapshot;
   items: readonly InvoiceItem[];
   proposedDepositTerms?: InvoiceDepositTerms;
+  convertedInvoiceIds: readonly string[];
 }>;
 
 export type QuotePage = Readonly<{
@@ -631,6 +632,50 @@ export class ApiClient {
         body: JSON.stringify(input),
         headers: { authorization: `Bearer ${token}` },
       },
+    );
+  }
+
+  async acceptQuote(
+    businessId: string,
+    quoteId: string,
+    token: string,
+  ): Promise<Quote> {
+    return this.request<Quote>(
+      `/businesses/${businessId}/quotes/${quoteId}/accept`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async declineQuote(
+    businessId: string,
+    quoteId: string,
+    token: string,
+  ): Promise<Quote> {
+    return this.request<Quote>(
+      `/businesses/${businessId}/quotes/${quoteId}/decline`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async convertQuote(
+    businessId: string,
+    quoteId: string,
+    token: string,
+  ): Promise<{ quote: Quote; invoice: Invoice }> {
+    return this.request<{ quote: Quote; invoice: Invoice }>(
+      `/businesses/${businessId}/quotes/${quoteId}/convert`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async listQuoteActivity(
+    businessId: string,
+    quoteId: string,
+    token: string,
+  ): Promise<ActivityEvent[]> {
+    return this.request<ActivityEvent[]>(
+      `/businesses/${businessId}/quotes/${quoteId}/activity`,
+      { headers: { authorization: `Bearer ${token}` } },
     );
   }
 
