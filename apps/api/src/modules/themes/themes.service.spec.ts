@@ -97,6 +97,7 @@ jest.mock('@invoiceflow/theme-schema', () => {
 function createDeps() {
   const saveTheme = jest.fn().mockResolvedValue(undefined);
   const createVersion = jest.fn().mockResolvedValue(undefined);
+  const businessSave = jest.fn().mockResolvedValue(undefined);
   const themeRepository = {
     getTheme: jest.fn(),
     getVersion: jest.fn(),
@@ -108,8 +109,15 @@ function createDeps() {
   } as unknown as ThemeRepository;
   const businessRepository = {
     findById: jest.fn().mockResolvedValue({ id: 'business-1', name: 'Acme' }),
+    save: businessSave,
   } as unknown as BusinessRepository;
-  return { themeRepository, businessRepository, saveTheme, createVersion };
+  return {
+    themeRepository,
+    businessRepository,
+    saveTheme,
+    createVersion,
+    businessSave,
+  };
 }
 
 function buildService(deps: ReturnType<typeof createDeps>) {
@@ -252,5 +260,31 @@ describe('ThemesService', () => {
         page: { size: 'not-a-size' },
       }),
     ).rejects.toThrow();
+  });
+
+  it('sets a theme as the business default for a document kind', async () => {
+    const deps = createDeps();
+    const { saveTheme, businessSave } = deps;
+    (deps.themeRepository.getTheme as jest.Mock).mockResolvedValue(baseTheme);
+    (deps.themeRepository.listByBusiness as jest.Mock).mockResolvedValue([
+      baseTheme,
+      { ...baseTheme, id: 'theme-2', appliesToQuote: true },
+    ]);
+    (deps.businessRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'business-1',
+      name: 'Acme',
+      countryCode: 'CA',
+      currencyCode: 'CAD',
+    });
+    const service = buildService(deps);
+
+    await service.setDefault('business-1', 'theme-1', 'quote');
+
+    expect(businessSave).toHaveBeenCalledWith(
+      expect.objectContaining({ defaultQuoteThemeId: 'theme-1' }),
+    );
+    expect(saveTheme).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'theme-2', appliesToQuote: false }),
+    );
   });
 });

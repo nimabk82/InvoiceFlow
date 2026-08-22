@@ -81,6 +81,15 @@ export class ThemesController {
     return this.themesService.update(businessId, themeId, input);
   }
 
+  @Post(':themeId/set-default')
+  setDefault(
+    @Param('businessId') businessId: string,
+    @Param('themeId') themeId: string,
+    @Body() input: { kind: 'invoice' | 'quote' },
+  ) {
+    return this.themesService.setDefault(businessId, themeId, input.kind);
+  }
+
   @Post(':themeId/duplicate')
   duplicate(
     @Param('businessId') businessId: string,

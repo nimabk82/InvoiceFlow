@@ -178,20 +178,10 @@ export default function DocumentThemesPage() {
           await apiClient.restoreTheme(businessId, theme.id, token);
           break;
         case "set-invoice":
-          await apiClient.updateTheme(
-            businessId,
-            theme.id,
-            { appliesToInvoice: true, appliesToQuote: false },
-            token,
-          );
+          await apiClient.setDefaultTheme(businessId, theme.id, "invoice", token);
           break;
         case "set-quote":
-          await apiClient.updateTheme(
-            businessId,
-            theme.id,
-            { appliesToInvoice: false, appliesToQuote: true },
-            token,
-          );
+          await apiClient.setDefaultTheme(businessId, theme.id, "quote", token);
           break;
       }
       setReloadKey((key) => key + 1);

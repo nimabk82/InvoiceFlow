@@ -967,6 +967,22 @@ export class ApiClient {
     );
   }
 
+  async setDefaultTheme(
+    businessId: string,
+    themeId: string,
+    kind: 'invoice' | 'quote',
+    token: string,
+  ): Promise<DocumentTheme> {
+    return this.request<DocumentTheme>(
+      `/businesses/${businessId}/themes/${themeId}/set-default`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ kind }),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
   async restoreTheme(
     businessId: string,
     themeId: string,

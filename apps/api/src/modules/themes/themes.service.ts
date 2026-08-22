@@ -201,6 +201,56 @@ export class ThemesService {
     return updated;
   }
 
+  async setDefault(
+    businessId: string,
+    themeId: string,
+    kind: 'invoice' | 'quote',
+  ): Promise<DocumentTheme> {
+    const business = await this.businessRepository.findById(businessId);
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
+
+    const theme = await this.themeRepository.getTheme(themeId, businessId);
+    if (!theme) {
+      throw new NotFoundException('Theme not found');
+    }
+    if (theme.archivedAt) {
+      throw new BadRequestException('Archived themes cannot be set as default');
+    }
+
+    const businessIdField =
+      kind === 'invoice' ? 'defaultInvoiceThemeId' : 'defaultQuoteThemeId';
+
+    const updatedBusiness = {
+      ...business,
+      [businessIdField]: themeId,
+    };
+    await this.businessRepository.save(updatedBusiness);
+
+    const all = await this.themeRepository.listByBusiness(businessId);
+    for (const other of all) {
+      const isTarget = other.id === themeId;
+      const changed =
+        kind === 'invoice'
+          ? other.appliesToInvoice !== isTarget
+          : other.appliesToQuote !== isTarget;
+      if (!changed) continue;
+
+      const patch: DocumentTheme = {
+        ...other,
+        appliesToInvoice:
+          kind === 'invoice' ? isTarget : other.appliesToInvoice,
+        appliesToQuote: kind === 'quote' ? isTarget : other.appliesToQuote,
+        updatedAt: new Date().toISOString(),
+      };
+      await this.themeRepository.saveTheme(patch);
+    }
+
+    const reloaded = await this.themeRepository.getTheme(themeId, businessId);
+    return reloaded ?? theme;
+  }
+
   async archive(businessId: string, themeId: string): Promise<DocumentTheme> {
     const theme = await this.themeRepository.getTheme(themeId, businessId);
     if (!theme) {
