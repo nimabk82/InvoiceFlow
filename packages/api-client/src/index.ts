@@ -101,6 +101,7 @@ export type Client = Readonly<{
   emails: readonly ClientEmail[];
   phone?: string;
   taxNumber?: string;
+  archivedAt?: string;
 }>;
 
 export type ClientPage = Readonly<{
@@ -215,6 +216,7 @@ export type Invoice = Readonly<{
   issueDate: string;
   dueDate?: string;
   poNumber?: string;
+  clientId?: string;
   clientSnapshot: InvoiceClientSnapshot;
   businessSnapshot: InvoiceBusinessSnapshot;
   items: readonly InvoiceItem[];
@@ -503,6 +505,28 @@ export class ApiClient {
         body: JSON.stringify(input),
         headers: { authorization: `Bearer ${token}` },
       },
+    );
+  }
+
+  async archiveClient(
+    businessId: string,
+    clientId: string,
+    token: string,
+  ): Promise<Client> {
+    return this.request<Client>(
+      `/businesses/${businessId}/clients/${clientId}/archive`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async restoreClient(
+    businessId: string,
+    clientId: string,
+    token: string,
+  ): Promise<Client> {
+    return this.request<Client>(
+      `/businesses/${businessId}/clients/${clientId}/restore`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
     );
   }
 

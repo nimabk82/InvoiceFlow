@@ -125,4 +125,38 @@ export class ClientsService {
 
     return updated;
   }
+
+  async archiveClient(businessId: string, clientId: string): Promise<Client> {
+    const existing = await this.clientRepository.findById(clientId, businessId);
+
+    if (!existing) {
+      throw new NotFoundException('Client not found');
+    }
+
+    const archived: Client = {
+      ...existing,
+      archivedAt: new Date().toISOString(),
+    };
+
+    await this.clientRepository.save(archived);
+
+    return archived;
+  }
+
+  async restoreClient(businessId: string, clientId: string): Promise<Client> {
+    const existing = await this.clientRepository.findById(clientId, businessId);
+
+    if (!existing) {
+      throw new NotFoundException('Client not found');
+    }
+
+    const restored: Client = {
+      ...existing,
+      archivedAt: undefined,
+    };
+
+    await this.clientRepository.save(restored);
+
+    return restored;
+  }
 }

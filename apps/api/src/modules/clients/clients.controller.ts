@@ -62,4 +62,20 @@ export class ClientsController {
   ) {
     return this.clientsService.updateClient(businessId, clientId, input);
   }
+
+  @Post(':clientId/archive')
+  archive(
+    @Param('businessId') businessId: string,
+    @Param('clientId') clientId: string,
+  ) {
+    return this.clientsService.archiveClient(businessId, clientId);
+  }
+
+  @Post(':clientId/restore')
+  restore(
+    @Param('businessId') businessId: string,
+    @Param('clientId') clientId: string,
+  ) {
+    return this.clientsService.restoreClient(businessId, clientId);
+  }
 }

@@ -99,7 +99,7 @@ export default function ClientsPage() {
           {clients.map((client) => (
             <Link
               key={client.id}
-              href={`/app/${businessId}/clients/${client.id}/edit`}
+              href={`/app/${businessId}/clients/${client.id}`}
               style={{ textDecoration: "none" }}
             >
               <div className="if-entity">
