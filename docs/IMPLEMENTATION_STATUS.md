@@ -91,6 +91,7 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - RENDER-11 — PDF adapter (`@invoiceflow/renderer`): `renderForPdf` reuses the print HTML (one renderer contract for Print + PDF) and adds a platform-neutral `pdf` render spec (page size/margins in points, page count, footer/continuation reserves) a host can pass to a PDF engine.
 - RENDER-12 — Renderer fixture suite (`@invoiceflow/renderer`): 6 fixtures (standard, deposit, long client, long items, 45-item multi-page, quote) × 3 preset themes = 18 render cases asserting the full pipeline (sections → pagination → print → pdf).
 - THEME-01..07 — Theme management (Web + API): `ThemesModule` (`GET/POST /businesses/:id/themes`, `GET/PATCH /:themeId`, `/:id/duplicate|archive|restore`, `POST /:id/versions`); create-from-preset (validated), duplicate, rename, archive/restore, set invoice/quote default, immutable version creation on saveConfig; Settings → Document Themes screen with preset picker, rename/duplicate/archive/restore/defaults actions.
+- TVER-02..08 — Theme lifecycle (Web + API): `ThemeAssignmentModule` resolves the default invoice/quote theme and assigns `themeId`/`themeVersionId`/`themeNameSnapshot` on document create (TVER-07); theme is frozen on send (TVER-04); quote→invoice convert preserves the quote theme (TVER-08); `GET /themes/:id/versions/:versionId` historical lookup (TVER-05); `version-state` (newer version available) + `adopt-latest-theme` endpoints with Review-page "Adopt latest" banner on invoices and quotes (TVER-02/03); old versions retained (TVER-06).
 
 ## Current ticket
 
@@ -109,8 +110,6 @@ Design-first Stages 1–4 are complete (renderer core, theme selector in Review,
 
 - QUOTE-05..08 — acceptance, detail, convert, quote↔invoice
 - THEME-08..22 — Theme Builder
-- THEME-08..21 — full visual Theme Builder
-- TVER-02..08 — theme lifecycle complexity
 - CLIENT-04 — Detail, CLIENT-05 — Archive
 - AUTH-03 — Forgot/Reset Password
 - QA-01..09 — matrices (acceptance at end)
@@ -317,6 +316,7 @@ Watchman: VERIFIED
 - RENDER-10 — renderer package lint/typecheck/build + test (46 passed); root typecheck
 - RENDER-11 + RENDER-12 — renderer package lint/typecheck/build + test (69 passed); root typecheck
 - THEME-01..07 — api lint/typecheck/test (132 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/test/build; root typecheck
+- TVER-02..08 — api lint/typecheck/test (133 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/build; root typecheck
 
 ## Status update format
 

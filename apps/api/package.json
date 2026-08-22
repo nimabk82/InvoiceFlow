@@ -64,6 +64,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "moduleNameMapper": {
+      "^@invoiceflow/theme-schema$": "<rootDir>/modules/themes/theme-schema.shim"
+    },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

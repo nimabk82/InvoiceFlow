@@ -102,4 +102,12 @@ export class QuotesController {
   ) {
     return this.quotesService.listActivity(businessId, quoteId);
   }
+
+  @Post(':quoteId/adopt-latest-theme')
+  adoptLatestTheme(
+    @Param('businessId') businessId: string,
+    @Param('quoteId') quoteId: string,
+  ) {
+    return this.quotesService.adoptLatestTheme(businessId, quoteId);
+  }
 }

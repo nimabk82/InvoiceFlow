@@ -15,6 +15,7 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
 import { ProductsModule } from './modules/products/products.module';
 import { QuotesModule } from './modules/quotes/quotes.module';
 import { TaxesModule } from './modules/taxes/taxes.module';
+import { ThemeAssignmentModule } from './modules/theme-assignment/theme-assignment.module';
 import { ThemesModule } from './modules/themes/themes.module';
 
 @Module({
@@ -34,6 +35,7 @@ import { ThemesModule } from './modules/themes/themes.module';
     TaxesModule,
     QuotesModule,
     ThemesModule,
+    ThemeAssignmentModule,
   ],
   controllers: [AppController],
   providers: [

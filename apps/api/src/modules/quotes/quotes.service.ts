@@ -29,6 +29,10 @@ import {
 } from '../clients/repositories/client.repository';
 import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
 import {
+  ThemeAssignmentService,
+  type ThemeAssignment,
+} from '../theme-assignment/theme-assignment.service';
+import {
   INVOICE_REPOSITORY,
   type InvoiceRepository,
 } from '../invoices/repositories/invoice.repository';
@@ -66,6 +70,7 @@ export type CreateQuoteInput = {
   issueDate: string;
   validUntil?: string;
   currencyCode: string;
+  themeId?: string;
   items: CreateQuoteItemInput[];
   proposedDepositTerms?: CreateQuoteDepositInput;
 };
@@ -98,6 +103,7 @@ export class QuotesService {
     private readonly activityEventRepository: ActivityEventRepository,
     @Inject(INVOICE_REPOSITORY)
     private readonly invoiceRepository: InvoiceRepository,
+    private readonly themeAssignment: ThemeAssignmentService,
   ) {}
 
   async list(
@@ -137,6 +143,10 @@ export class QuotesService {
       ? await this.clientRepository.findById(input.clientId, businessId)
       : undefined;
 
+    const assignment: ThemeAssignment | undefined =
+      (await this.themeAssignment.resolveById(input.themeId, businessId)) ??
+      (await this.themeAssignment.resolveDefault(businessId, 'quote'));
+
     const quote: Quote = {
       id: randomUUID(),
       businessId,
@@ -149,6 +159,9 @@ export class QuotesService {
       currencyCode,
       issueDate: input.issueDate,
       validUntil: input.validUntil,
+      themeId: assignment?.themeId,
+      themeVersionId: assignment?.themeVersionId,
+      themeNameSnapshot: assignment?.themeName,
       items: input.items.map((item) => ({
         id: randomUUID(),
         sourceProductServiceId: item.sourceProductServiceId,
@@ -282,6 +295,9 @@ export class QuotesService {
         ...item,
         id: randomUUID(),
       })),
+      themeId: quote.themeId,
+      themeVersionId: quote.themeVersionId,
+      themeNameSnapshot: quote.themeNameSnapshot,
       depositTerms: quote.proposedDepositTerms,
       notes: quote.notes,
       terms: quote.terms,
@@ -305,6 +321,40 @@ export class QuotesService {
     });
 
     return { quote: updated, invoice };
+  }
+
+  async adoptLatestTheme(
+    businessId: string,
+    quoteId: string,
+  ): Promise<Quote> {
+    const quote = await this.findById(businessId, quoteId);
+
+    if (quote.status !== 'draft') {
+      throw new BadRequestException(
+        'Only draft quotes can adopt a newer theme version',
+      );
+    }
+
+    const assignment = await this.themeAssignment.resolveById(
+      quote.themeId,
+      businessId,
+    );
+
+    if (!assignment) {
+      throw new BadRequestException('Quote has no theme to update');
+    }
+
+    const updated: Quote = {
+      ...quote,
+      themeId: assignment.themeId,
+      themeVersionId: assignment.themeVersionId,
+      themeNameSnapshot: assignment.themeName,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.quoteRepository.save(updated);
+
+    return updated;
   }
 
   async listActivity(

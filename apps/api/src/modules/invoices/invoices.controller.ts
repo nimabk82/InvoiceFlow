@@ -115,6 +115,14 @@ export class InvoicesController {
     return this.invoicesService.voidInvoice(businessId, invoiceId);
   }
 
+  @Post(':invoiceId/adopt-latest-theme')
+  adoptLatestTheme(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+  ) {
+    return this.invoicesService.adoptLatestTheme(businessId, invoiceId);
+  }
+
   @Delete(':invoiceId')
   remove(
     @Param('businessId') businessId: string,

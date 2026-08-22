@@ -212,7 +212,9 @@ export type Invoice = Readonly<{
   number: string;
   status: string;
   currencyCode: string;
+  themeId?: string;
   themeVersionId?: string;
+  themeNameSnapshot?: string;
   issueDate: string;
   dueDate?: string;
   poNumber?: string;
@@ -258,6 +260,7 @@ export type CreateInvoiceInput = Readonly<{
   dueDate?: string;
   currencyCode: string;
   poNumber?: string;
+  themeId?: string;
   items: readonly CreateInvoiceItemInput[];
   depositTerms?: CreateInvoiceDepositInput;
   discount?: CreateInvoiceDiscountInput;
@@ -268,7 +271,9 @@ export type Quote = Readonly<{
   number: string;
   status: string;
   currencyCode: string;
+  themeId?: string;
   themeVersionId?: string;
+  themeNameSnapshot?: string;
   issueDate: string;
   validUntil?: string;
   clientSnapshot: InvoiceClientSnapshot;
@@ -288,6 +293,7 @@ export type CreateQuoteInput = Readonly<{
   issueDate: string;
   validUntil?: string;
   currencyCode: string;
+  themeId?: string;
   items: readonly CreateInvoiceItemInput[];
   proposedDepositTerms?: CreateInvoiceDepositInput;
 }>;
@@ -744,6 +750,17 @@ export class ApiClient {
     );
   }
 
+  async adoptLatestQuoteTheme(
+    businessId: string,
+    quoteId: string,
+    token: string,
+  ): Promise<Quote> {
+    return this.request<Quote>(
+      `/businesses/${businessId}/quotes/${quoteId}/adopt-latest-theme`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
   async listInvoices(
     businessId: string,
     token: string,
@@ -866,6 +883,17 @@ export class ApiClient {
     );
   }
 
+  async adoptLatestInvoiceTheme(
+    businessId: string,
+    invoiceId: string,
+    token: string,
+  ): Promise<Invoice> {
+    return this.request<Invoice>(
+      `/businesses/${businessId}/invoices/${invoiceId}/adopt-latest-theme`,
+      { method: 'POST', headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
   async listThemes(
     businessId: string,
     token: string,
@@ -963,6 +991,38 @@ export class ApiClient {
         body: JSON.stringify(config),
         headers: { authorization: `Bearer ${token}` },
       },
+    );
+  }
+
+  async getThemeHistoricalVersion(
+    businessId: string,
+    themeId: string,
+    versionId: string,
+    token: string,
+  ): Promise<DocumentThemeVersion> {
+    return this.request<DocumentThemeVersion>(
+      `/businesses/${businessId}/themes/${themeId}/versions/${versionId}`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async getThemeVersionState(
+    businessId: string,
+    themeId: string,
+    frozenVersionId: string,
+    token: string,
+  ): Promise<{
+    themeId: string;
+    themeVersionId?: string;
+    newerVersionAvailable: boolean;
+  }> {
+    return this.request<{
+      themeId: string;
+      themeVersionId?: string;
+      newerVersionAvailable: boolean;
+    }>(
+      `/businesses/${businessId}/themes/${themeId}/version-state/${frozenVersionId}`,
+      { headers: { authorization: `Bearer ${token}` } },
     );
   }
 

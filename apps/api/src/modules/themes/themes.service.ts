@@ -73,6 +73,45 @@ export class ThemesService {
     return { theme, versions };
   }
 
+  async getHistoricalVersion(
+    businessId: string,
+    themeId: string,
+    versionId: string,
+  ): Promise<DocumentThemeVersion> {
+    const theme = await this.themeRepository.getTheme(themeId, businessId);
+    if (!theme) {
+      throw new NotFoundException('Theme not found');
+    }
+    const version = await this.themeRepository.getVersion(versionId);
+    if (!version || version.themeId !== themeId) {
+      throw new NotFoundException('Theme version not found');
+    }
+    return version;
+  }
+
+  async getVersionState(
+    businessId: string,
+    themeId: string,
+    frozenVersionId: string | undefined,
+  ): Promise<{
+    themeId: string;
+    themeVersionId: string | undefined;
+    newerVersionAvailable: boolean;
+  }> {
+    const theme = await this.themeRepository.getTheme(themeId, businessId);
+    if (!theme) {
+      throw new NotFoundException('Theme not found');
+    }
+    return {
+      themeId,
+      themeVersionId: frozenVersionId,
+      newerVersionAvailable:
+        Boolean(frozenVersionId) &&
+        theme.currentVersionId !== '' &&
+        theme.currentVersionId !== frozenVersionId,
+    };
+  }
+
   async createFromPreset(
     businessId: string,
     input: CreateThemeFromPresetInput,

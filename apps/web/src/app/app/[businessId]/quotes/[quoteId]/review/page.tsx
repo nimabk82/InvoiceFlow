@@ -25,6 +25,8 @@ export default function QuoteReviewPage() {
   const router = useRouter();
   const [quote, setQuote] = useState<Quote | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newerVersion, setNewerVersion] = useState(false);
+  const [adopting, setAdopting] = useState(false);
   const [preset, setPreset] = useState<PresetName>("clean");
 
   useEffect(() => {
@@ -42,6 +44,16 @@ export default function QuoteReviewPage() {
       try {
         const found = await apiClient.getQuote(businessId, quoteId, token);
         if (!cancelled) setQuote(found);
+
+        if (found.themeId && found.themeVersionId) {
+          const state = await apiClient.getThemeVersionState(
+            businessId,
+            found.themeId,
+            found.themeVersionId,
+            token,
+          );
+          if (!cancelled) setNewerVersion(state.newerVersionAvailable);
+        }
       } catch (caught) {
         if (!cancelled)
           setError(
@@ -55,6 +67,35 @@ export default function QuoteReviewPage() {
       cancelled = true;
     };
   }, [businessId, quoteId]);
+
+  async function adoptLatest() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token ?? null;
+    if (!token) {
+      setError("You must be signed in.");
+      return;
+    }
+
+    setAdopting(true);
+    setError(null);
+    try {
+      const updated = await apiClient.adoptLatestQuoteTheme(
+        businessId,
+        quoteId,
+        token,
+      );
+      setQuote(updated);
+      setNewerVersion(false);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to adopt latest theme.",
+      );
+    } finally {
+      setAdopting(false);
+    }
+  }
 
   const renderable = useMemo(() => {
     if (!quote) return null;
@@ -137,6 +178,20 @@ export default function QuoteReviewPage() {
         </div>
         <Button variant="outlined" onClick={() => router.back()}>Back to Edit</Button>
       </div>
+
+      {newerVersion && (
+        <Alert
+          severity="info"
+          sx={{ mb: 2 }}
+          action={
+            <Button size="small" onClick={() => void adoptLatest()} disabled={adopting}>
+              {adopting ? "Adopting…" : "Adopt latest"}
+            </Button>
+          }
+        >
+          A newer version of this quote&apos;s theme is available.
+        </Alert>
+      )}
 
       <div
         style={{

@@ -25,6 +25,8 @@ export default function InvoiceReviewPage() {
   const router = useRouter();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newerVersion, setNewerVersion] = useState(false);
+  const [adopting, setAdopting] = useState(false);
   const [preset, setPreset] = useState<PresetName>("clean");
 
   useEffect(() => {
@@ -44,6 +46,16 @@ export default function InvoiceReviewPage() {
       try {
         const found = await apiClient.getInvoice(businessId, invoiceId, token);
         if (!cancelled) setInvoice(found);
+
+        if (found.themeId && found.themeVersionId) {
+          const state = await apiClient.getThemeVersionState(
+            businessId,
+            found.themeId,
+            found.themeVersionId,
+            token,
+          );
+          if (!cancelled) setNewerVersion(state.newerVersionAvailable);
+        }
       } catch (caught) {
         if (!cancelled)
           setError(
@@ -58,6 +70,35 @@ export default function InvoiceReviewPage() {
       cancelled = true;
     };
   }, [businessId, invoiceId]);
+
+  async function adoptLatest() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token ?? null;
+    if (!token) {
+      setError("You must be signed in.");
+      return;
+    }
+
+    setAdopting(true);
+    setError(null);
+    try {
+      const updated = await apiClient.adoptLatestInvoiceTheme(
+        businessId,
+        invoiceId,
+        token,
+      );
+      setInvoice(updated);
+      setNewerVersion(false);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to adopt latest theme.",
+      );
+    } finally {
+      setAdopting(false);
+    }
+  }
 
   const renderable = useMemo(() => {
     if (!invoice) return null;
@@ -150,6 +191,20 @@ export default function InvoiceReviewPage() {
           Back to Edit
         </Button>
       </div>
+
+      {newerVersion && (
+        <Alert
+          severity="info"
+          sx={{ mb: 2 }}
+          action={
+            <Button size="small" onClick={() => void adoptLatest()} disabled={adopting}>
+              {adopting ? "Adopting…" : "Adopt latest"}
+            </Button>
+          }
+        >
+          A newer version of this invoice&apos;s theme is available.
+        </Alert>
+      )}
 
       <div
         style={{

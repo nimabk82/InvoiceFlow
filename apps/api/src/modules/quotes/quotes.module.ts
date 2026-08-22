@@ -8,6 +8,7 @@ import { BusinessesModule } from '../businesses/businesses.module';
 import { ClientsModule } from '../clients/clients.module';
 import { EmailModule } from '../email/email.module';
 import { InvoicesModule } from '../invoices/invoices.module';
+import { ThemeAssignmentModule } from '../theme-assignment/theme-assignment.module';
 import { QUOTE_REPOSITORY } from './repositories/quote.repository';
 import { SupabaseQuoteRepository } from './repositories/supabase-quote.repository';
 import { QuotesController } from './quotes.controller';
@@ -22,6 +23,7 @@ import { QuotesService } from './quotes.service';
     ClientsModule,
     EmailModule,
     InvoicesModule,
+    ThemeAssignmentModule,
     SupabaseModule,
   ],
   controllers: [QuotesController],

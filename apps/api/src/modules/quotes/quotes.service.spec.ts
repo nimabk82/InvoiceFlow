@@ -3,6 +3,7 @@ import type { ClientRepository } from '../clients/repositories/client.repository
 import type { EmailProvider } from '../email/email-provider';
 import type { ActivityEventRepository } from '../audit/repositories/activity-event.repository';
 import type { InvoiceRepository } from '../invoices/repositories/invoice.repository';
+import type { ThemeAssignmentService } from '../theme-assignment/theme-assignment.service';
 import { QuotesService } from './quotes.service';
 import type { QuoteRepository } from './repositories/quote.repository';
 
@@ -33,6 +34,13 @@ function createDeps() {
     save: invoiceSave,
     delete: jest.fn(),
   } as unknown as InvoiceRepository;
+  const themeAssignment = {
+    resolveDefault: jest.fn().mockResolvedValue(undefined),
+    resolveById: jest.fn().mockResolvedValue(undefined),
+    resolveNewerVersion: jest.fn().mockResolvedValue({
+      newerVersionAvailable: false,
+    }),
+  } as unknown as ThemeAssignmentService;
 
   return {
     quoteRepository,
@@ -41,6 +49,7 @@ function createDeps() {
     emailProvider,
     activityEventRepository,
     invoiceRepository,
+    themeAssignment,
     save,
     emailSend,
     activityRecord,
@@ -56,6 +65,7 @@ function buildService(deps: ReturnType<typeof createDeps>) {
     deps.emailProvider,
     deps.activityEventRepository,
     deps.invoiceRepository,
+    deps.themeAssignment,
   );
 }
 
@@ -219,6 +229,9 @@ describe('QuotesService', () => {
       currencyCode: 'CAD',
       issueDate: '2026-08-22',
       status: 'accepted',
+      themeId: 'theme-1',
+      themeVersionId: 'tv-1',
+      themeNameSnapshot: 'Clean',
       items: [
         {
           id: 'item-1',
@@ -243,6 +256,9 @@ describe('QuotesService', () => {
 
     expect(invoice.status).toBe('draft');
     expect(invoice.sourceQuoteId).toBe('quote-1');
+    expect(invoice.themeId).toBe('theme-1');
+    expect(invoice.themeVersionId).toBe('tv-1');
+    expect(invoice.themeNameSnapshot).toBe('Clean');
     expect(invoice.clientSnapshot).toEqual({
       displayName: 'Client Co',
       emails: [],

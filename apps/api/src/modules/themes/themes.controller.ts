@@ -46,6 +46,32 @@ export class ThemesController {
     return this.themesService.get(businessId, themeId);
   }
 
+  @Get(':themeId/versions/:versionId')
+  getHistoricalVersion(
+    @Param('businessId') businessId: string,
+    @Param('themeId') themeId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    return this.themesService.getHistoricalVersion(
+      businessId,
+      themeId,
+      versionId,
+    );
+  }
+
+  @Get(':themeId/version-state/:frozenVersionId')
+  getVersionState(
+    @Param('businessId') businessId: string,
+    @Param('themeId') themeId: string,
+    @Param('frozenVersionId') frozenVersionId: string,
+  ) {
+    return this.themesService.getVersionState(
+      businessId,
+      themeId,
+      frozenVersionId || undefined,
+    );
+  }
+
   @Patch(':themeId')
   update(
     @Param('businessId') businessId: string,

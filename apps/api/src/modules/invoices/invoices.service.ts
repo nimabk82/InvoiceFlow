@@ -29,6 +29,10 @@ import {
   type ActivityEventRepository,
 } from '../audit/repositories/activity-event.repository';
 import {
+  ThemeAssignmentService,
+  type ThemeAssignment,
+} from '../theme-assignment/theme-assignment.service';
+import {
   PAYMENT_REPOSITORY,
   type PaymentRepository,
 } from '../payments/repositories/payment.repository';
@@ -68,6 +72,7 @@ export type CreateInvoiceInput = {
   dueDate?: string;
   currencyCode: string;
   poNumber?: string;
+  themeId?: string;
   items: CreateInvoiceItemInput[];
   depositTerms?: CreateInvoiceDepositInput;
   discount?: CreateInvoiceDiscountInput;
@@ -108,6 +113,7 @@ export class InvoicesService {
     private readonly paymentRepository: PaymentRepository,
     @Inject(ACTIVITY_EVENT_REPOSITORY)
     private readonly activityEventRepository: ActivityEventRepository,
+    private readonly themeAssignment: ThemeAssignmentService,
   ) {}
 
   async list(
@@ -298,6 +304,40 @@ export class InvoicesService {
     return updated;
   }
 
+  async adoptLatestTheme(
+    businessId: string,
+    invoiceId: string,
+  ): Promise<Invoice> {
+    const invoice = await this.findById(businessId, invoiceId);
+
+    if (invoice.status !== 'draft') {
+      throw new BadRequestException(
+        'Only draft invoices can adopt a newer theme version',
+      );
+    }
+
+    const assignment = await this.themeAssignment.resolveById(
+      invoice.themeId,
+      businessId,
+    );
+
+    if (!assignment) {
+      throw new BadRequestException('Invoice has no theme to update');
+    }
+
+    const updated: Invoice = {
+      ...invoice,
+      themeId: assignment.themeId,
+      themeVersionId: assignment.themeVersionId,
+      themeNameSnapshot: assignment.themeName,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.invoiceRepository.save(updated);
+
+    return updated;
+  }
+
   async deleteInvoice(businessId: string, invoiceId: string): Promise<void> {
     const invoice = await this.findById(businessId, invoiceId);
 
@@ -330,6 +370,10 @@ export class InvoicesService {
       ? await this.clientRepository.findById(input.clientId, businessId)
       : undefined;
 
+    const assignment: ThemeAssignment | undefined =
+      (await this.themeAssignment.resolveById(input.themeId, businessId)) ??
+      (await this.themeAssignment.resolveDefault(businessId, 'invoice'));
+
     const invoice: Invoice = {
       id: randomUUID(),
       businessId,
@@ -342,6 +386,9 @@ export class InvoicesService {
       currencyCode,
       issueDate: input.issueDate,
       dueDate: input.dueDate,
+      themeId: assignment?.themeId,
+      themeVersionId: assignment?.themeVersionId,
+      themeNameSnapshot: assignment?.themeName,
       items: input.items.map((item) => ({
         id: randomUUID(),
         sourceProductServiceId: item.sourceProductServiceId,
