@@ -3,6 +3,7 @@ import { normalizeDocumentForRendering } from '@invoiceflow/document-schema';
 import { themePresets } from '@invoiceflow/theme-schema';
 
 import {
+  buildContinuationHeader,
   buildPageMetrics,
   decomposeBlocks,
   paginateSections,
@@ -264,5 +265,77 @@ describe('paginateSections', () => {
     expect(itemsIdx).toBeGreaterThan(-1);
     expect(totalsIdx).toBeGreaterThan(itemsIdx);
     expect(depositIdx).toBeGreaterThan(totalsIdx);
+  });
+
+  it('attaches a continuation header to pages after the first', () => {
+    const items = Array.from({ length: 30 }, (_, i) => ({
+      description: `Item ${i}`,
+      quantity: '1',
+      rate: '10',
+      appliedTaxes: [],
+    }));
+    const sections = makeSections({ items });
+    const { pages } = paginateSections({
+      sections,
+      theme: themePresets.clean,
+      ...compactHeight,
+    });
+
+    expect(pages.length).toBeGreaterThan(1);
+    expect(pages[0].continuationHeader).toBeUndefined();
+
+    for (const page of pages.slice(1)) {
+      expect(page.continuationHeader).toBeDefined();
+      expect(page.continuationHeader?.businessName).toBe('Acme Inc');
+      expect(page.continuationHeader?.documentNumber).toBe('INV-001');
+    }
+  });
+
+  it('does not attach a continuation header on a single page', () => {
+    const sections = makeSections({
+      items: [{ description: 'A', quantity: '1', rate: '10', appliedTaxes: [] }],
+    });
+    const { pages } = paginateSections({ sections, theme: themePresets.clean });
+    expect(pages).toHaveLength(1);
+    expect(pages[0].continuationHeader).toBeUndefined();
+  });
+
+  it('reserves continuation header height on continuation pages', () => {
+    const items = Array.from({ length: 30 }, (_, i) => ({
+      description: `Item ${i}`,
+      quantity: '1',
+      rate: '10',
+      appliedTaxes: [],
+    }));
+    const sections = makeSections({ items });
+
+    const base = paginateSections({
+      sections,
+      theme: themePresets.clean,
+      pageMetrics: { ...compactHeight.pageMetrics, continuationHeaderHeight: 0 },
+    });
+    const withHeader = paginateSections({
+      sections,
+      theme: themePresets.clean,
+      ...compactHeight,
+    });
+
+    expect(withHeader.pages.length).toBeGreaterThanOrEqual(base.pages.length);
+  });
+});
+
+describe('buildContinuationHeader', () => {
+  it('builds business name and document number from sections', () => {
+    const sections = makeSections({});
+    const header = buildContinuationHeader(sections);
+    expect(header).toEqual({
+      businessName: 'Acme Inc',
+      documentNumber: 'INV-001',
+    });
+  });
+
+  it('returns undefined when there is no identity to show', () => {
+    const header = buildContinuationHeader([]);
+    expect(header).toBeUndefined();
   });
 });

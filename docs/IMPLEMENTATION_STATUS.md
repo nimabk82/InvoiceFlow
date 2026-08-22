@@ -84,6 +84,7 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - CLIENT-04/05 — Client detail + Archive (Web + API): `POST /clients/:clientId/archive|restore`; list excludes archived unless `includeArchived`; client detail screen (info, invoices for the client, Edit + Archive/Restore).
 - PRODUCT-03 — Document library selector (Web + API): `ProductLibraryDialog` searchable picker in the invoice/quote editors; selecting a saved product/service appends a pre-filled line item (name/description/rate) and links it via `sourceProductServiceId` (accepted + persisted on invoice/quote create; custom items still fully supported).
 - RENDER-06 — Pagination controller (`@invoiceflow/renderer`): `paginateSections`/`paginateDocument` decompose rendered sections into blocks with estimated heights; page metrics from theme (letter/A4 + compact/standard/spacious + footer reserve); keep-together/keep-with-next/splittable packing (item table splits by row with repeating header, totals+deposit stay together, notes/terms split by paragraph with heading kept with first paragraph, items-header repeats on continuation pages).
+- RENDER-07 — Continuation headers (`@invoiceflow/renderer`): pages after the first carry a compact `continuationHeader` (business name + document number via `buildContinuationHeader`); continuation pages reserve header height so content does not collide.
 
 ## Current ticket
 
@@ -101,7 +102,7 @@ Design-first Stages 1–4 are complete (renderer core, theme selector in Review,
 ## Deferred to the end (design plan)
 
 - QUOTE-05..08 — acceptance, detail, convert, quote↔invoice
-- RENDER-07..11 — continuation headers, footer/page numbering, render diagnostics, print/PDF adapters
+- RENDER-08..11 — footer/page numbering, render diagnostics, print/PDF adapters
 - THEME-08..21 — full visual Theme Builder
 - TVER-02..08 — theme lifecycle complexity
 - CLIENT-04 — Detail, CLIENT-05 — Archive
@@ -304,6 +305,7 @@ Watchman: VERIFIED
 - Stage 4 settings — web lint/typecheck/build; api lint/typecheck/test (118 passed)/build; api-client lint/typecheck/test/build; sqlfluff migration clean; migration applied; end-to-end settings GET/PATCH verified
 - PRODUCT-03 — web lint/typecheck/test/build; api lint/typecheck/test (126 passed); api-client lint/typecheck/test/build
 - RENDER-06 — renderer package lint/typecheck/build + test (22 passed); root typecheck
+- RENDER-07 — renderer package lint/typecheck/build + test (27 passed); root typecheck
 
 ## Status update format
 

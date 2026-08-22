@@ -19,6 +19,7 @@ export type PageMetrics = Readonly<{
   marginBottom: number;
   marginLeft: number;
   footerReserve: number;
+  continuationHeaderHeight: number;
 }>;
 
 const PAGE_SIZES = {
@@ -33,6 +34,7 @@ const MARGINS = {
 } as const satisfies Record<MarginOption, number>;
 
 const FOOTER_RESERVE = 48;
+const CONTINUATION_HEADER_HEIGHT = 24;
 
 export function buildPageMetrics(
   page: ThemeConfig['page'],
@@ -49,6 +51,8 @@ export function buildPageMetrics(
     marginBottom: overrides?.marginBottom ?? margin,
     marginLeft: overrides?.marginLeft ?? margin,
     footerReserve: overrides?.footerReserve ?? FOOTER_RESERVE,
+    continuationHeaderHeight:
+      overrides?.continuationHeaderHeight ?? CONTINUATION_HEADER_HEIGHT,
   };
 }
 
@@ -91,6 +95,12 @@ type SectionId = RenderedSection['key'];
 export type RenderedPage = Readonly<{
   pageNumber: number;
   blocks: readonly RenderedBlock[];
+  continuationHeader?: ContinuationHeader;
+}>;
+
+export type ContinuationHeader = Readonly<{
+  businessName?: string;
+  documentNumber?: string;
 }>;
 
 export type PaginatedDocument = Readonly<{
@@ -270,18 +280,29 @@ export function paginateSections(
 ): PaginatedDocument {
   const metrics = buildPageMetrics(input.theme.page, input.pageMetrics);
   const blocks = decomposeBlocks(input.sections);
-  const contentHeight =
+  const continuationHeader = buildContinuationHeader(input.sections);
+  const pageContentHeight =
     metrics.height - metrics.marginTop - metrics.marginBottom - metrics.footerReserve;
 
   const pages: { blocks: RenderedBlock[] }[] = [];
   let current: RenderedBlock[] = [];
   let used = 0;
 
+  const contentHeightFor = (pageNumber: number): number =>
+    pageNumber === 1
+      ? pageContentHeight
+      : pageContentHeight - metrics.continuationHeaderHeight;
+
+  let currentPageNumber = 1;
+  let contentHeight = contentHeightFor(currentPageNumber);
+
   const pushPage = (): void => {
     if (current.length > 0) {
       pages.push({ blocks: current });
       current = [];
       used = 0;
+      currentPageNumber += 1;
+      contentHeight = contentHeightFor(currentPageNumber);
     }
   };
 
@@ -341,11 +362,37 @@ export function paginateSections(
   pushPage();
 
   return {
-    pages: pages.map((page, index) => ({
-      pageNumber: index + 1,
-      blocks: page.blocks,
-    })),
+    pages: pages.map((page, index) => {
+      const pageNumber = index + 1;
+      return {
+        pageNumber,
+        blocks: page.blocks,
+        ...(pageNumber > 1 && continuationHeader
+          ? { continuationHeader }
+          : {}),
+      };
+    }),
   };
+}
+
+export function buildContinuationHeader(
+  sections: readonly RenderedSection[],
+): ContinuationHeader | undefined {
+  const header = sections.find((section) => section.key === 'header');
+  const documentInfo = sections.find(
+    (section) => section.key === 'document-info',
+  );
+
+  const businessName =
+    header?.key === 'header' ? header.businessName : undefined;
+  const documentNumber =
+    documentInfo?.key === 'document-info' ? documentInfo.number : undefined;
+
+  if (!businessName && !documentNumber) {
+    return undefined;
+  }
+
+  return { businessName, documentNumber };
 }
 
 export function paginateDocument(
