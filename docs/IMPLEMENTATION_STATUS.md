@@ -92,6 +92,7 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - RENDER-12 — Renderer fixture suite (`@invoiceflow/renderer`): 6 fixtures (standard, deposit, long client, long items, 45-item multi-page, quote) × 3 preset themes = 18 render cases asserting the full pipeline (sections → pagination → print → pdf).
 - THEME-01..07 — Theme management (Web + API): `ThemesModule` (`GET/POST /businesses/:id/themes`, `GET/PATCH /:themeId`, `/:id/duplicate|archive|restore`, `POST /:id/versions`); create-from-preset (validated), duplicate, rename, archive/restore, set invoice/quote default, immutable version creation on saveConfig; Settings → Document Themes screen with preset picker, rename/duplicate/archive/restore/defaults actions.
 - TVER-02..08 — Theme lifecycle (Web + API): `ThemeAssignmentModule` resolves the default invoice/quote theme and assigns `themeId`/`themeVersionId`/`themeNameSnapshot` on document create (TVER-07); theme is frozen on send (TVER-04); quote→invoice convert preserves the quote theme (TVER-08); `GET /themes/:id/versions/:versionId` historical lookup (TVER-05); `version-state` (newer version available) + `adopt-latest-theme` endpoints with Review-page "Adopt latest" banner on invoices and quotes (TVER-02/03); old versions retained (TVER-06).
+- THEME-08..22 — Theme Builder (Web): `/settings/themes/:themeId/edit` three-panel builder — Structure (section toggles + safe reorder, Items<Totals<Deposit + footer last enforced), live `DocumentPaper` preview, and Properties (page size/margin/border/background, brand colors + logo size, typography, header/bill-to/items/totals/deposit/footer controls); undo/redo history; live `diagnoseRender` diagnostics banner (warnings don't block save); Save creates a new immutable version. Themes list links to the builder.
 
 ## Current ticket
 
@@ -109,7 +110,7 @@ Design-first Stages 1–4 are complete (renderer core, theme selector in Review,
 ## Deferred to the end (design plan)
 
 - QUOTE-05..08 — acceptance, detail, convert, quote↔invoice
-- THEME-08..22 — Theme Builder
+- AUTH-03 — Forgot/Reset Password
 - CLIENT-04 — Detail, CLIENT-05 — Archive
 - AUTH-03 — Forgot/Reset Password
 - QA-01..09 — matrices (acceptance at end)
@@ -317,6 +318,7 @@ Watchman: VERIFIED
 - RENDER-11 + RENDER-12 — renderer package lint/typecheck/build + test (69 passed); root typecheck
 - THEME-01..07 — api lint/typecheck/test (132 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/test/build; root typecheck
 - TVER-02..08 — api lint/typecheck/test (133 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/build; root typecheck
+- THEME-08..22 — web lint/typecheck/test/build; root typecheck
 
 ## Status update format
 

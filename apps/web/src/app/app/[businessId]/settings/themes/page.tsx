@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ApiClient,
@@ -256,6 +257,14 @@ export default function DocumentThemesPage() {
                 </div>
               </Box>
               <Stack spacing={1} sx={{ mt: 2 }}>
+                <Link
+                  href={`/app/${businessId}/settings/themes/${theme.id}/edit`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Button variant="outlined" size="small" sx={{ width: "100%" }}>
+                    Edit in Theme Builder
+                  </Button>
+                </Link>
                 <Button
                   variant="outlined"
                   size="small"
