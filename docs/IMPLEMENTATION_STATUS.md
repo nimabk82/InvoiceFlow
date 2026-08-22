@@ -87,6 +87,7 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - RENDER-07 — Continuation headers (`@invoiceflow/renderer`): pages after the first carry a compact `continuationHeader` (business name + document number via `buildContinuationHeader`); continuation pages reserve header height so content does not collide.
 - RENDER-08 — Footer/page numbering (`@invoiceflow/renderer`): footer no longer a flow block; every page carries a resolved `footer` (`buildPageFooter`: business name/website/custom text per theme flags + divider + correct page number), footer height already reserved per page.
 - RENDER-09 — Render diagnostics (`@invoiceflow/renderer`): `diagnoseRender` emits `LOW_CONTRAST` (WCAG), `UNSUPPORTED_FONT` (curated set), `INVALID_SECTION_ORDER` (Items<Totals<Deposit + footer last, deposit-aware), `FINANCIAL_BLOCK_SPLIT`, `OVERFLOW` (block taller than page); `contrastRatio` helper.
+- RENDER-10 — Print adapter (`@invoiceflow/renderer`): `renderForPrint` returns `{ pages, diagnostics, html }` — a self-contained printable HTML document with `@page` size/margins from the theme, one print page per paginated page, continuation strip + numbered footer per page, HTML escaping, and embedded diagnostics when present.
 
 ## Current ticket
 
@@ -104,7 +105,7 @@ Design-first Stages 1–4 are complete (renderer core, theme selector in Review,
 ## Deferred to the end (design plan)
 
 - QUOTE-05..08 — acceptance, detail, convert, quote↔invoice
-- RENDER-10..11 — print/PDF adapters
+- RENDER-11 — PDF adapter
 - THEME-08..21 — full visual Theme Builder
 - TVER-02..08 — theme lifecycle complexity
 - CLIENT-04 — Detail, CLIENT-05 — Archive
@@ -310,6 +311,7 @@ Watchman: VERIFIED
 - RENDER-07 — renderer package lint/typecheck/build + test (27 passed); root typecheck
 - RENDER-08 — renderer package lint/typecheck/build + test (31 passed); root typecheck
 - RENDER-09 — renderer package lint/typecheck/build + test (39 passed); root typecheck
+- RENDER-10 — renderer package lint/typecheck/build + test (46 passed); root typecheck
 
 ## Status update format
 
