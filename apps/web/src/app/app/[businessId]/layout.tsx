@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import HomeIcon from "@mui/icons-material/Home";
 import ReceiptIcon from "@mui/icons-material/Receipt";
@@ -9,8 +9,11 @@ import PeopleIcon from "@mui/icons-material/People";
 import CategoryIcon from "@mui/icons-material/Category";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DescriptionIcon from "@mui/icons-material/Description";
+import LogoutIcon from "@mui/icons-material/Logout";
 
+import { Button } from "@/components/ui";
 import { CurrentBusiness } from "@/components/navigation/BusinessSwitcher";
+import { supabase } from "@/lib/supabase";
 
 type NavItem = {
   label: string;
@@ -22,6 +25,7 @@ export default function BusinessLayout({ children }: { children: ReactNode }) {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
   const pathname = usePathname();
+  const router = useRouter();
 
   const navItems: NavItem[] = [
     { label: "Dashboard", href: `/app/${businessId}`, icon: <HomeIcon /> },
@@ -36,6 +40,11 @@ export default function BusinessLayout({ children }: { children: ReactNode }) {
       return pathname === item.href;
     }
     return pathname.startsWith(item.href);
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace("/");
   }
 
   const title = navItems.find((item) => isActive(item))?.label ?? "Invoices";
@@ -81,6 +90,12 @@ export default function BusinessLayout({ children }: { children: ReactNode }) {
             <div className="if-sub">
               <CurrentBusiness businessId={businessId} />
             </div>
+          </div>
+          <div style={{ marginLeft: "auto" }}>
+            <Button variant="outlined" size="small" onClick={() => void handleLogout()}>
+              <LogoutIcon sx={{ mr: 0.5, fontSize: 16 }} />
+              Log out
+            </Button>
           </div>
         </header>
 
