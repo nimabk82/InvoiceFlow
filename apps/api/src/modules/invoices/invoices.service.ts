@@ -415,6 +415,73 @@ export class InvoicesService {
     return invoice;
   }
 
+  async updateInvoice(
+    businessId: string,
+    invoiceId: string,
+    input: CreateInvoiceInput,
+  ): Promise<Invoice> {
+    const existing = await this.findById(businessId, invoiceId);
+
+    if (existing.status !== 'draft') {
+      throw new BadRequestException('Only draft invoices can be edited');
+    }
+
+    const currencyCode = input.currencyCode?.trim();
+
+    if (!currencyCode || !input.issueDate) {
+      throw new BadRequestException('currencyCode and issueDate are required');
+    }
+
+    const business = await this.businessRepository.findById(businessId);
+
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
+
+    const client = input.clientId
+      ? await this.clientRepository.findById(input.clientId, businessId)
+      : undefined;
+
+    const assignment: ThemeAssignment | undefined =
+      (await this.themeAssignment.resolveById(input.themeId, businessId)) ??
+      (await this.themeAssignment.resolveDefault(businessId, 'invoice'));
+
+    const updated: Invoice = {
+      ...existing,
+      number: input.number?.trim() || existing.number,
+      clientId: input.clientId,
+      clientSnapshot: client
+        ? toClientSnapshot(client)
+        : existing.clientSnapshot,
+      currencyCode,
+      issueDate: input.issueDate,
+      dueDate: input.dueDate,
+      themeId: assignment?.themeId ?? existing.themeId,
+      themeVersionId: assignment?.themeVersionId ?? existing.themeVersionId,
+      themeNameSnapshot: assignment?.themeName ?? existing.themeNameSnapshot,
+      items: input.items.map((item) => ({
+        id: randomUUID(),
+        sourceProductServiceId: item.sourceProductServiceId,
+        description: item.description,
+        secondaryDescription: item.secondaryDescription,
+        quantity: item.quantity,
+        rate: item.rate,
+        appliedTaxes: (item.appliedTaxes ?? []).map((tax) => ({
+          name: tax.name,
+          rate: tax.rate,
+        })),
+      })),
+      poNumber: input.poNumber,
+      discount: input.discount,
+      depositTerms: input.depositTerms,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.invoiceRepository.save(updated);
+
+    return updated;
+  }
+
   private async recordActivity(
     businessId: string,
     invoiceId: string,

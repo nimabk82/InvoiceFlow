@@ -186,6 +186,71 @@ export class QuotesService {
     return quote;
   }
 
+  async updateQuote(
+    businessId: string,
+    quoteId: string,
+    input: CreateQuoteInput,
+  ): Promise<Quote> {
+    const existing = await this.findById(businessId, quoteId);
+
+    if (existing.status !== 'draft') {
+      throw new BadRequestException('Only draft quotes can be edited');
+    }
+
+    const currencyCode = input.currencyCode?.trim();
+
+    if (!currencyCode || !input.issueDate) {
+      throw new BadRequestException('currencyCode and issueDate are required');
+    }
+
+    const business = await this.businessRepository.findById(businessId);
+
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
+
+    const client = input.clientId
+      ? await this.clientRepository.findById(input.clientId, businessId)
+      : undefined;
+
+    const assignment: ThemeAssignment | undefined =
+      (await this.themeAssignment.resolveById(input.themeId, businessId)) ??
+      (await this.themeAssignment.resolveDefault(businessId, 'quote'));
+
+    const updated: Quote = {
+      ...existing,
+      number: input.number?.trim() || existing.number,
+      clientId: input.clientId,
+      clientSnapshot: client
+        ? toClientSnapshot(client)
+        : existing.clientSnapshot,
+      currencyCode,
+      issueDate: input.issueDate,
+      validUntil: input.validUntil,
+      themeId: assignment?.themeId ?? existing.themeId,
+      themeVersionId: assignment?.themeVersionId ?? existing.themeVersionId,
+      themeNameSnapshot: assignment?.themeName ?? existing.themeNameSnapshot,
+      items: input.items.map((item) => ({
+        id: randomUUID(),
+        sourceProductServiceId: item.sourceProductServiceId,
+        description: item.description,
+        secondaryDescription: item.secondaryDescription,
+        quantity: item.quantity,
+        rate: item.rate,
+        appliedTaxes: (item.appliedTaxes ?? []).map((tax) => ({
+          name: tax.name,
+          rate: tax.rate,
+        })),
+      })),
+      proposedDepositTerms: input.proposedDepositTerms,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.quoteRepository.save(updated);
+
+    return updated;
+  }
+
   async sendQuote(
     businessId: string,
     quoteId: string,

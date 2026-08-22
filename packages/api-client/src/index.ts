@@ -679,6 +679,22 @@ export class ApiClient {
     });
   }
 
+  async updateQuote(
+    businessId: string,
+    quoteId: string,
+    input: CreateQuoteInput,
+    token: string,
+  ): Promise<Quote> {
+    return this.request<Quote>(
+      `/businesses/${businessId}/quotes/${quoteId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
   async getQuote(
     businessId: string,
     quoteId: string,
@@ -783,6 +799,22 @@ export class ApiClient {
       body: JSON.stringify(input),
       headers: { authorization: `Bearer ${token}` },
     });
+  }
+
+  async updateInvoice(
+    businessId: string,
+    invoiceId: string,
+    input: CreateInvoiceInput,
+    token: string,
+  ): Promise<Invoice> {
+    return this.request<Invoice>(
+      `/businesses/${businessId}/invoices/${invoiceId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
   }
 
   async getInvoice(

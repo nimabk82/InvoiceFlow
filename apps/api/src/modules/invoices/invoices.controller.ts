@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -55,6 +56,15 @@ export class InvoicesController {
     @Body() input: CreateInvoiceInput,
   ) {
     return this.invoicesService.createInvoice(businessId, input);
+  }
+
+  @Patch(':invoiceId')
+  update(
+    @Param('businessId') businessId: string,
+    @Param('invoiceId') invoiceId: string,
+    @Body() input: CreateInvoiceInput,
+  ) {
+    return this.invoicesService.updateInvoice(businessId, invoiceId, input);
   }
 
   @Get(':invoiceId')

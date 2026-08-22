@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -52,6 +53,15 @@ export class QuotesController {
     @Body() input: CreateQuoteInput,
   ) {
     return this.quotesService.createQuote(businessId, input);
+  }
+
+  @Patch(':quoteId')
+  update(
+    @Param('businessId') businessId: string,
+    @Param('quoteId') quoteId: string,
+    @Body() input: CreateQuoteInput,
+  ) {
+    return this.quotesService.updateQuote(businessId, quoteId, input);
   }
 
   @Get(':quoteId')

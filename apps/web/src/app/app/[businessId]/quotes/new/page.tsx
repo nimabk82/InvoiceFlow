@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   ApiClient,
   type Client,
@@ -16,6 +16,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { Button, Input, Select } from "@/components/ui";
 import { ProductLibraryDialog } from "@/components/products/ProductLibraryDialog";
+import { SaveStateBadge } from "@/components/documents/SaveStateBadge";
+import { useAutosave } from "@/hooks/useAutosave";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -55,6 +57,75 @@ export default function NewQuotePage() {
   const [error, setError] = useState<string | null>(null);
   const [reviewIssues, setReviewIssues] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const formSnapshot = useMemo(
+    () =>
+      JSON.stringify({
+        clientId,
+        number,
+        issueDate,
+        validUntil,
+        currencyCode,
+        items,
+        depositType,
+        depositValue,
+        depositDueRule,
+        depositDueDate,
+      }),
+    [
+      clientId,
+      number,
+      issueDate,
+      validUntil,
+      currencyCode,
+      items,
+      depositType,
+      depositValue,
+      depositDueRule,
+      depositDueDate,
+    ],
+  );
+
+  function buildQuoteInput(): Parameters<typeof apiClient.createQuote>[1] {
+    return {
+      number,
+      clientId: clientId || undefined,
+      issueDate,
+      validUntil: validUntil || undefined,
+      currencyCode,
+      items,
+      proposedDepositTerms: depositType
+        ? {
+            type: depositType,
+            value: depositValue,
+            dueRule: depositDueRule,
+            dueDate:
+              depositDueRule === "custom" && depositDueDate
+                ? depositDueDate
+                : undefined,
+          }
+        : undefined,
+    };
+  }
+
+  const autosave = useAutosave({
+    create: async (token) => apiClient.createQuote(businessId, buildQuoteInput(), token),
+    update: async (draftId, token) =>
+      apiClient.updateQuote(businessId, draftId, buildQuoteInput(), token),
+  });
+
+  const lastSnapshotRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastSnapshotRef.current === null) {
+      lastSnapshotRef.current = formSnapshot;
+      return;
+    }
+    if (lastSnapshotRef.current !== formSnapshot) {
+      lastSnapshotRef.current = formSnapshot;
+      autosave.bump();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formSnapshot]);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,39 +226,13 @@ export default function NewQuotePage() {
     setReviewIssues([]);
     setSubmitting(true);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
-      setError("You must be signed in.");
-      setSubmitting(false);
-      return;
-    }
-
     try {
-      const quote = await apiClient.createQuote(
-        businessId,
-        {
-          number,
-          clientId: clientId || undefined,
-          issueDate,
-          validUntil: validUntil || undefined,
-          currencyCode,
-          items,
-          proposedDepositTerms: depositType
-            ? {
-                type: depositType,
-                value: depositValue,
-                dueRule: depositDueRule,
-                dueDate:
-                  depositDueRule === "custom" && depositDueDate
-                    ? depositDueDate
-                    : undefined,
-              }
-            : undefined,
-        },
-        session.access_token,
-      );
+      const quote = await autosave.saveNow();
+      if (!quote) {
+        setError("Failed to save the quote draft.");
+        setSubmitting(false);
+        return;
+      }
       router.push(`/app/${businessId}/quotes/${quote.id}/review`);
     } catch (caught) {
       setError(
@@ -202,28 +247,13 @@ export default function NewQuotePage() {
     setError(null);
     setSubmitting(true);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
-      setError("You must be signed in.");
-      setSubmitting(false);
-      return;
-    }
-
     try {
-      await apiClient.createQuote(
-        businessId,
-        {
-          number,
-          clientId: clientId || undefined,
-          issueDate,
-          validUntil: validUntil || undefined,
-          currencyCode,
-          items,
-        },
-        session.access_token,
-      );
+      const quote = await autosave.saveNow();
+      if (!quote) {
+        setError("Failed to save the quote draft.");
+        setSubmitting(false);
+        return;
+      }
       router.push(`/app/${businessId}/quotes`);
     } catch (caught) {
       setError(
@@ -431,7 +461,7 @@ export default function NewQuotePage() {
 
       <div className="if-sticky-editor">
         <div className="if-sticky-inner">
-          <span className="if-saved">Saved ✓</span>
+          <SaveStateBadge state={autosave.state} onRetry={autosave.retry} />
           <Button type="button" onClick={handleReview} disabled={submitting} sx={{ height: 44, padding: "0 24px" }}>
             {submitting ? "Saving…" : "Review Quote →"}
           </Button>

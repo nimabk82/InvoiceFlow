@@ -137,6 +137,102 @@ describe('InvoicesService', () => {
     );
   });
 
+  it('updates a draft invoice with refreshed snapshots', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      activityEventRepository,
+      themeAssignment,
+      save,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      status: 'draft',
+      number: 'INV-001',
+      clientSnapshot: { displayName: 'Old', emails: [] },
+      businessSnapshot: { displayName: 'Acme' },
+      currencyCode: 'CAD',
+      issueDate: '2026-08-01',
+      items: [],
+    });
+    (businessRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'business-1',
+      name: 'Acme',
+      countryCode: 'CA',
+      currencyCode: 'CAD',
+    });
+    (clientRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'client-2',
+      businessId: 'business-1',
+      name: 'New Client',
+      emails: [{ id: 'e1', address: 'new@example.com', isPrimary: true }],
+    });
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      activityEventRepository,
+      themeAssignment,
+    );
+
+    const updated = await service.updateInvoice('business-1', 'invoice-1', {
+      clientId: 'client-2',
+      issueDate: '2026-08-02',
+      currencyCode: 'CAD',
+      items: [{ description: 'Work', quantity: '1', rate: '50' }],
+    });
+
+    expect(updated.clientSnapshot.displayName).toBe('New Client');
+    expect(updated.items).toHaveLength(1);
+    expect(updated.items[0].description).toBe('Work');
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'invoice-1', clientId: 'client-2' }),
+    );
+  });
+
+  it('rejects editing a sent invoice', async () => {
+    const {
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      activityEventRepository,
+      themeAssignment,
+    } = createRepository();
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      status: 'sent',
+      currencyCode: 'CAD',
+      issueDate: '2026-08-01',
+      items: [],
+    });
+    const service = new InvoicesService(
+      invoiceRepository,
+      businessRepository,
+      clientRepository,
+      emailProvider,
+      paymentRepository,
+      activityEventRepository,
+      themeAssignment,
+    );
+
+    await expect(
+      service.updateInvoice('business-1', 'invoice-1', {
+        issueDate: '2026-08-02',
+        currencyCode: 'CAD',
+        items: [],
+      }),
+    ).rejects.toThrow();
+  });
+
   it('assigns the default invoice theme on create and freezes it on send', async () => {
     const {
       invoiceRepository,
