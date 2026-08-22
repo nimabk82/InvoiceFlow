@@ -137,6 +137,8 @@ export class ThemesService {
       updatedAt: new Date().toISOString(),
     };
 
+    await this.themeRepository.saveTheme(theme);
+
     const version = await this.createVersion(
       theme.id,
       themePresets[presetName],
@@ -165,6 +167,8 @@ export class ThemesService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    await this.themeRepository.saveTheme(copy);
 
     const version = await this.createVersion(copy.id, latest.config);
     copy.currentVersionId = version.id;
