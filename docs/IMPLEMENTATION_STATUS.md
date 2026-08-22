@@ -95,7 +95,7 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - THEME-08..22 — Theme Builder (Web): `/settings/themes/:themeId/edit` three-panel builder — Structure (section toggles + safe reorder, Items<Totals<Deposit + footer last enforced), live `DocumentPaper` preview, and Properties (page size/margin/border/background, brand colors + logo size, typography, header/bill-to/items/totals/deposit/footer controls); undo/redo history; live `diagnoseRender` diagnostics banner (warnings don't block save); Save creates a new immutable version. Themes list links to the builder.
 - AUTH-03 — Forgot/Reset Password (Web): `/auth/forgot-password` sends a Supabase reset email with a redirect to `/auth/reset-password`, which verifies the recovery session and updates the password; "Forgot password?" link on sign-in.
 - QA-01..09 — Acceptance matrices (docs/QA_ACCEPTANCE_STATUS.md): QA-05 calculation tests, QA-06 renderer 18-case baseline, and QA-07/08/09 service-level E2E are automated; QA-01..04 device/keyboard matrices documented for manual pass.
-- INV-08 — Autosave parity (Web + API): draft update endpoints `PATCH /invoices/:id` and `PATCH /quotes/:id` (draft-only, refresh snapshots/theme); `useAutosave` hook drives the shared `autosaveReducer` (Saving… / Saved ✓ / Not saved ⚠ Retry) with debounced create-then-update; both editors show `SaveStateBadge` in the sticky bar and flush on Review/Submit. `@invoiceflow/domain` now exports built dist (matches other multi-file packages).
+- INV-08 — Autosave parity (Web + API, currently disabled): draft update endpoints `PATCH /invoices/:id` and `PATCH /quotes/:id` (draft-only, refresh snapshots/theme) remain available; the `useAutosave` hook + `SaveStateBadge` were removed from the editors — invoice/quote creation again happens on Review/Submit with the static "Saved ✓" indicator.
 
 ## Current ticket
 
@@ -103,12 +103,12 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 
 ## Next recommended tickets
 
-All planned tickets (Platform, Foundation, Domain, API, DB, Renderer, Themes, Lifecycle, Quotes, Clients, Products, Settings, Auth, QA) are complete. Remaining work is the manual device/keyboard QA pass documented in `docs/QA_ACCEPTANCE_STATUS.md`, plus optional deferred surfaces (currency-change warning, client-facing view).
+All planned tickets (Platform, Foundation, Domain, API, DB, Renderer, Themes, Lifecycle, Quotes, Clients, Products, Settings, Auth, QA) are complete. Remaining work is the manual device/keyboard QA pass documented in `docs/QA_ACCEPTANCE_STATUS.md`, plus optional deferred surfaces (currency-change warning, client-facing view, re-enabling autosave).
 
 ## Deferred to the end (design plan)
 
 - Manual QA pass (device/keyboard matrices) — see `docs/QA_ACCEPTANCE_STATUS.md`.
-- Currency-change warning, client-facing view / email attachment renderer surface.
+- Currency-change warning, client-facing view / email attachment renderer surface, re-enable autosave (INV-08).
 - CLIENT-04 — Detail, CLIENT-05 — Archive
 - AUTH-03 — Forgot/Reset Password
 - QA-01..09 — matrices (acceptance at end)
@@ -319,7 +319,7 @@ Watchman: VERIFIED
 - THEME-08..22 — web lint/typecheck/test/build; root typecheck
 - AUTH-03 — web lint/typecheck/test/build (routes /auth/forgot-password, /auth/reset-password)
 - QA-01..09 — matrices documented in docs/QA_ACCEPTANCE_STATUS.md; automated coverage via calculations/validation/renderer/api suites
-- INV-08 — api lint/typecheck/test (136 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/test/build; domain dist export + root typecheck
+- INV-08 — api lint/typecheck/test (136 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/test/build; domain dist export + root typecheck. (Autosave disabled — editors create on Review/Submit; PATCH endpoints retained.)
 
 ## Status update format
 

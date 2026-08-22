@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ApiClient,
   type Client,
@@ -16,8 +16,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { Button, Input, Select } from "@/components/ui";
 import { ProductLibraryDialog } from "@/components/products/ProductLibraryDialog";
-import { SaveStateBadge } from "@/components/documents/SaveStateBadge";
-import { useAutosave } from "@/hooks/useAutosave";
 import { supabase } from "@/lib/supabase";
 
 const apiClient = new ApiClient({
@@ -65,40 +63,6 @@ export default function NewInvoicePage() {
   const [reviewIssues, setReviewIssues] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const formSnapshot = useMemo(
-    () =>
-      JSON.stringify({
-        clientId,
-        number,
-        issueDate,
-        dueDate,
-        currencyCode,
-        poNumber,
-        items,
-        depositType,
-        depositValue,
-        depositDueRule,
-        depositDueDate,
-        discountType,
-        discountValue,
-      }),
-    [
-      clientId,
-      number,
-      issueDate,
-      dueDate,
-      currencyCode,
-      poNumber,
-      items,
-      depositType,
-      depositValue,
-      depositDueRule,
-      depositDueDate,
-      discountType,
-      discountValue,
-    ],
-  );
-
   function buildInvoiceInput(): Parameters<typeof apiClient.createInvoice>[1] {
     return {
       number,
@@ -107,20 +71,7 @@ export default function NewInvoicePage() {
       dueDate: dueDate || undefined,
       currencyCode,
       poNumber: poNumber || undefined,
-      items: items
-        .map((item) => ({
-          ...item,
-          description: item.description.trim(),
-          secondaryDescription: item.secondaryDescription?.trim() || undefined,
-          quantity: item.quantity.trim() || "1",
-          rate: item.rate.trim() || "0",
-        }))
-        .filter(
-          (item) =>
-            item.description !== "" ||
-            item.rate !== "0" ||
-            (item.appliedTaxes ?? []).length > 0,
-        ),
+      items,
       discount: discountType
         ? { type: discountType, value: discountValue }
         : undefined,
@@ -137,43 +88,6 @@ export default function NewInvoicePage() {
         : undefined,
     };
   }
-
-  const hasContent = useMemo(
-    () =>
-      clientId !== "" ||
-      number.trim() !== "" ||
-      issueDate !== "" ||
-      dueDate !== "" ||
-      poNumber !== "" ||
-      items.some(
-        (item) =>
-          item.description.trim() !== "" ||
-          item.rate.trim() !== "" ||
-          (item.appliedTaxes ?? []).length > 0,
-      ),
-    [clientId, number, issueDate, dueDate, poNumber, items],
-  );
-
-  const autosave = useAutosave({
-    create: async (token) => apiClient.createInvoice(businessId, buildInvoiceInput(), token),
-    update: async (draftId, token) =>
-      apiClient.updateInvoice(businessId, draftId, buildInvoiceInput(), token),
-  });
-
-  const lastSnapshotRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (lastSnapshotRef.current === null) {
-      lastSnapshotRef.current = formSnapshot;
-      return;
-    }
-    if (lastSnapshotRef.current !== formSnapshot) {
-      lastSnapshotRef.current = formSnapshot;
-      if (hasContent) {
-        autosave.bump();
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formSnapshot, hasContent]);
 
   async function getToken(): Promise<string | null> {
     const {
@@ -290,6 +204,10 @@ export default function NewInvoicePage() {
     );
   }
 
+  async function saveDraft(token: string) {
+    return apiClient.createInvoice(businessId, buildInvoiceInput(), token);
+  }
+
   function focusFirstIssue(issues: readonly { path?: string }[]) {
     const first = issues.find((issue) => issue.path);
     if (!first?.path) return;
@@ -314,13 +232,15 @@ export default function NewInvoicePage() {
     setReviewIssues([]);
     setSubmitting(true);
 
+    const token = await getToken();
+    if (!token) {
+      setError("You must be signed in to create an invoice.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      const invoice = await autosave.saveNow();
-      if (!invoice) {
-        setError("Failed to save the invoice draft.");
-        setSubmitting(false);
-        return;
-      }
+      const invoice = await saveDraft(token);
       router.push(`/app/${businessId}/invoices/${invoice.id}/review`);
     } catch (caught) {
       setError(
@@ -335,13 +255,16 @@ export default function NewInvoicePage() {
     setError(null);
     setSubmitting(true);
 
+    const token = await getToken();
+    if (!token) {
+      setError("You must be signed in to create an invoice.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      const invoice = await autosave.saveNow();
-      if (!invoice) {
-        setError("Failed to save the invoice draft.");
-        setSubmitting(false);
-        return;
-      }
+      await saveDraft(token);
+
       router.push(`/app/${businessId}/invoices`);
     } catch (caught) {
       setError(
@@ -623,7 +546,7 @@ export default function NewInvoicePage() {
       {/* Sticky editor bar */}
       <div className="if-sticky-editor">
         <div className="if-sticky-inner">
-          <SaveStateBadge state={autosave.state} onRetry={autosave.retry} />
+          <span className="if-saved">Saved ✓</span>
           <Button
             type="button"
             onClick={handleReview}

@@ -276,14 +276,6 @@ body {
   color: #15803d;
   font-weight: 700;
 }
-.if-save-error {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #b42318;
-  font-weight: 700;
-}
 
 /* Editor grid */
 .if-editor-bottom {

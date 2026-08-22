@@ -238,9 +238,6 @@ importers:
       '@invoiceflow/document-schema':
         specifier: workspace:*
         version: link:../../packages/document-schema
-      '@invoiceflow/domain':
-        specifier: workspace:*
-        version: link:../../packages/domain
       '@invoiceflow/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
