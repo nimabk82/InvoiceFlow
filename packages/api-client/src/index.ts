@@ -260,6 +260,34 @@ export type CreateInvoiceInput = Readonly<{
   discount?: CreateInvoiceDiscountInput;
 }>;
 
+export type Quote = Readonly<{
+  id: string;
+  number: string;
+  status: string;
+  currencyCode: string;
+  themeVersionId?: string;
+  issueDate: string;
+  validUntil?: string;
+  clientSnapshot: InvoiceClientSnapshot;
+  businessSnapshot: InvoiceBusinessSnapshot;
+  items: readonly InvoiceItem[];
+  proposedDepositTerms?: InvoiceDepositTerms;
+}>;
+
+export type QuotePage = Readonly<{
+  items: readonly Quote[];
+}>;
+
+export type CreateQuoteInput = Readonly<{
+  number?: string;
+  clientId?: string;
+  issueDate: string;
+  validUntil?: string;
+  currencyCode: string;
+  items: readonly CreateInvoiceItemInput[];
+  proposedDepositTerms?: CreateInvoiceDepositInput;
+}>;
+
 export type SendInvoiceInput = Readonly<{
   to: readonly string[];
   cc?: readonly string[];
@@ -559,6 +587,35 @@ export class ApiClient {
       body: JSON.stringify(input),
       headers: { authorization: `Bearer ${token}` },
     });
+  }
+
+  async listQuotes(businessId: string, token: string): Promise<QuotePage> {
+    return this.request<QuotePage>(`/businesses/${businessId}/quotes`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async createQuote(
+    businessId: string,
+    input: CreateQuoteInput,
+    token: string,
+  ): Promise<Quote> {
+    return this.request<Quote>(`/businesses/${businessId}/quotes`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getQuote(
+    businessId: string,
+    quoteId: string,
+    token: string,
+  ): Promise<Quote> {
+    return this.request<Quote>(
+      `/businesses/${businessId}/quotes/${quoteId}`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
   }
 
   async listInvoices(

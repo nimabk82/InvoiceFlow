@@ -13,6 +13,7 @@ import { DocumentDefaultsModule } from './modules/document-defaults/document-def
 import { HealthModule } from './modules/health/health.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { ProductsModule } from './modules/products/products.module';
+import { QuotesModule } from './modules/quotes/quotes.module';
 import { TaxesModule } from './modules/taxes/taxes.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { TaxesModule } from './modules/taxes/taxes.module';
     InvoicesModule,
     DocumentDefaultsModule,
     TaxesModule,
+    QuotesModule,
   ],
   controllers: [AppController],
   providers: [

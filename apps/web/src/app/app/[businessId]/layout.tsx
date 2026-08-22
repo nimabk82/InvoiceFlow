@@ -8,6 +8,7 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import PeopleIcon from "@mui/icons-material/People";
 import CategoryIcon from "@mui/icons-material/Category";
 import SettingsIcon from "@mui/icons-material/Settings";
+import DescriptionIcon from "@mui/icons-material/Description";
 
 import { CurrentBusiness } from "@/components/navigation/BusinessSwitcher";
 
@@ -25,6 +26,7 @@ export default function BusinessLayout({ children }: { children: ReactNode }) {
   const navItems: NavItem[] = [
     { label: "Dashboard", href: `/app/${businessId}`, icon: <HomeIcon /> },
     { label: "Invoices", href: `/app/${businessId}/invoices`, icon: <ReceiptIcon /> },
+    { label: "Quotes", href: `/app/${businessId}/quotes`, icon: <DescriptionIcon /> },
     { label: "Clients", href: `/app/${businessId}/clients`, icon: <PeopleIcon /> },
     { label: "Products", href: `/app/${businessId}/products`, icon: <CategoryIcon /> },
   ];

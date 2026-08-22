@@ -76,10 +76,11 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - Stage 3 polish — Invoice list (Web): status tabs (All/Draft/Sent/Partial/Paid/Overdue/Void), search by number/client, and status pills on rows.
 - Stage 4 — Settings finish (Web + API): `business_settings` table + `GET/PATCH /businesses/:id/settings`; Payments, Numbering, Branding screens; Manage Businesses screen; settings sub-navigation layout.
 - Design pass (web, match `sample.html`): rethemed MUI to the sample design system; app shell (sidebar/topbar/mobile nav); dashboard, invoice list, invoice editor (client card, inline items, sticky summary + sticky editor bar), invoice detail (hero + amount-strip + timeline), clients/products entity grids; review page to preview layout; toast; inline styles moved to reusable CSS classes.
+- QUOTE-01 — Quote list (Web + API): quotes module (Supabase repo + service + controller) with `GET/POST /businesses/:id/quotes` + `GET /quotes/:quoteId`; quote list page with tabs/search/pills; Quotes nav.
 
 ## Current ticket
 
-- Design pass done (web). Next: deferred breadth (Quotes, Theme Builder, Print/PDF) or mobile parity.
+- QUOTE-02 — Quote editor via shared DocumentEditor.
 
 ## Next recommended tickets
 
