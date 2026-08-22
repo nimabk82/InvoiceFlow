@@ -11,7 +11,11 @@ import type { QuoteStatus } from '@invoiceflow/domain';
 
 import { AuthGuard } from '../auth';
 import { BusinessAccessGuard } from '../businesses/access';
-import type { CreateQuoteInput, ListQuotesOptions } from './quotes.service';
+import type {
+  CreateQuoteInput,
+  ListQuotesOptions,
+  SendQuoteInput,
+} from './quotes.service';
 import { QuotesService } from './quotes.service';
 
 const quoteStatuses: readonly QuoteStatus[] = [
@@ -56,5 +60,14 @@ export class QuotesController {
     @Param('quoteId') quoteId: string,
   ) {
     return this.quotesService.findById(businessId, quoteId);
+  }
+
+  @Post(':quoteId/send')
+  send(
+    @Param('businessId') businessId: string,
+    @Param('quoteId') quoteId: string,
+    @Body() input: SendQuoteInput,
+  ) {
+    return this.quotesService.sendQuote(businessId, quoteId, input);
   }
 }

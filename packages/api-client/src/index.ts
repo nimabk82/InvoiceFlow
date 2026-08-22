@@ -618,6 +618,22 @@ export class ApiClient {
     );
   }
 
+  async sendQuote(
+    businessId: string,
+    quoteId: string,
+    input: SendInvoiceInput,
+    token: string,
+  ): Promise<Quote> {
+    return this.request<Quote>(
+      `/businesses/${businessId}/quotes/${quoteId}/send`,
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+        headers: { authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
   async listInvoices(
     businessId: string,
     token: string,

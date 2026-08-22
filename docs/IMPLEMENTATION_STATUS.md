@@ -77,10 +77,13 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - Stage 4 — Settings finish (Web + API): `business_settings` table + `GET/PATCH /businesses/:id/settings`; Payments, Numbering, Branding screens; Manage Businesses screen; settings sub-navigation layout.
 - Design pass (web, match `sample.html`): rethemed MUI to the sample design system; app shell (sidebar/topbar/mobile nav); dashboard, invoice list, invoice editor (client card, inline items, sticky summary + sticky editor bar), invoice detail (hero + amount-strip + timeline), clients/products entity grids; review page to preview layout; toast; inline styles moved to reusable CSS classes.
 - QUOTE-01 — Quote list (Web + API): quotes module (Supabase repo + service + controller) with `GET/POST /businesses/:id/quotes` + `GET /quotes/:quoteId`; quote list page with tabs/search/pills; Quotes nav.
+- QUOTE-02 — Quote editor (Web): quote editor with client selector, items, proposed deposit ("Deposit upon acceptance"), sticky summary + Review bar.
+- QUOTE-03 — Quote Review (Web): paper preview via shared renderer + theme selector + summary side panel.
+- QUOTE-04 — Send Quote (Web + API): `POST /quotes/:id/send` (draft→sent, email validation, email provider, activity event); send screen with To/CC/BCC/subject/message.
 
 ## Current ticket
 
-- QUOTE-02 — Quote editor via shared DocumentEditor.
+- QUOTE-05 — Client acceptance (next).
 
 ## Next recommended tickets
 

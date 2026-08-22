@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type {
+  ActivityEvent,
   Business,
   BusinessSnapshot,
   Client,
@@ -14,6 +15,10 @@ import type {
 } from '@invoiceflow/domain';
 
 import {
+  ACTIVITY_EVENT_REPOSITORY,
+  type ActivityEventRepository,
+} from '../audit/repositories/activity-event.repository';
+import {
   BUSINESS_REPOSITORY,
   type BusinessRepository,
 } from '../businesses/repositories/business.repository';
@@ -21,6 +26,7 @@ import {
   CLIENT_REPOSITORY,
   type ClientRepository,
 } from '../clients/repositories/client.repository';
+import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
 import {
   QUOTE_REPOSITORY,
   type QuotePage,
@@ -63,6 +69,14 @@ export type ListQuotesOptions = {
   limit?: number;
 };
 
+export type SendQuoteInput = {
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  message?: string;
+};
+
 @Injectable()
 export class QuotesService {
   constructor(
@@ -72,6 +86,10 @@ export class QuotesService {
     private readonly businessRepository: BusinessRepository,
     @Inject(CLIENT_REPOSITORY)
     private readonly clientRepository: ClientRepository,
+    @Inject(EMAIL_PROVIDER)
+    private readonly emailProvider: EmailProvider,
+    @Inject(ACTIVITY_EVENT_REPOSITORY)
+    private readonly activityEventRepository: ActivityEventRepository,
   ) {}
 
   async list(
@@ -145,6 +163,67 @@ export class QuotesService {
 
     return quote;
   }
+
+  async sendQuote(
+    businessId: string,
+    quoteId: string,
+    input: SendQuoteInput,
+  ): Promise<Quote> {
+    const quote = await this.findById(businessId, quoteId);
+
+    if (quote.status !== 'draft') {
+      throw new BadRequestException('Only draft quotes can be sent');
+    }
+
+    const to = input.to ?? [];
+    const cc = input.cc ?? [];
+    const bcc = input.bcc ?? [];
+
+    const invalidEmail = [...to, ...cc, ...bcc].find(
+      (email) => !isValidEmail(email),
+    );
+
+    if (invalidEmail !== undefined) {
+      throw new BadRequestException(`Invalid email address: ${invalidEmail}`);
+    }
+
+    const subject =
+      input.subject?.trim() ||
+      `Quote ${quote.number} from ${quote.businessSnapshot.displayName}`;
+
+    await this.emailProvider.send({
+      to: [...to, ...cc, ...bcc],
+      subject,
+      text: input.message,
+    });
+
+    const sent: Quote = {
+      ...quote,
+      status: 'sent',
+      sentAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.quoteRepository.save(sent);
+    await this.recordActivity(businessId, quoteId, 'sent');
+
+    return sent;
+  }
+
+  private async recordActivity(
+    businessId: string,
+    quoteId: string,
+    type: ActivityEvent['type'],
+  ): Promise<void> {
+    await this.activityEventRepository.record({
+      id: randomUUID(),
+      businessId,
+      entityType: 'quote',
+      entityId: quoteId,
+      type,
+      occurredAt: new Date().toISOString(),
+    });
+  }
 }
 
 function toBusinessSnapshot(business: Business): BusinessSnapshot {
@@ -168,4 +247,8 @@ function toClientSnapshot(client: Client): ClientSnapshot {
     address: client.billingAddress,
     taxNumber: client.taxNumber,
   };
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
