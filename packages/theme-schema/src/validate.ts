@@ -25,7 +25,7 @@ export type ThemeValidationResult = Readonly<{
   issues: readonly ThemeIssue[];
 }>;
 
-const hexColor = /^#[0-9a-fA-F]{6}$/;
+const hexColor = /^#[0-9a-fA-F]{6}$|^#[0-9a-fA-F]{3}$/;
 
 export function validateThemeConfig(config: unknown): ThemeValidationResult {
   const issues: ThemeIssue[] = [];
