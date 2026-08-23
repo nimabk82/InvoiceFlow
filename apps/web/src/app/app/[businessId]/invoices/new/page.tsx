@@ -8,13 +8,14 @@ import {
   type CreateInvoiceItemInput,
   type DepositDueRule,
   type ProductService,
+  type Tax,
 } from "@invoiceflow/api-client";
 import { calculateDocumentTotals } from "@invoiceflow/calculations";
 import { validateDocumentForReview } from "@invoiceflow/validation";
-import { Alert, Box, Card, IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Alert, Card, IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
-import { Button, Input, Select } from "@/components/ui";
+import { Button, Dialog, Input, Select } from "@/components/ui";
 import { ProductLibraryDialog } from "@/components/products/ProductLibraryDialog";
 import { supabase } from "@/lib/supabase";
 
@@ -41,24 +42,43 @@ export default function NewInvoicePage() {
   const draftId = useSearchParams().get("draftId");
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<ProductService[]>([]);
+  const [taxes, setTaxes] = useState<Tax[]>([]);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [itemDialogOpen, setItemDialogOpen] = useState(false);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [newItemDescription, setNewItemDescription] = useState("");
+  const [newItemDetails, setNewItemDetails] = useState("");
+  const [newItemQuantity, setNewItemQuantity] = useState("1");
+  const [newItemRate, setNewItemRate] = useState("");
+  const [newItemTaxIds, setNewItemTaxIds] = useState<string[]>([]);
+  const [editingTaxSnapshots, setEditingTaxSnapshots] = useState<
+    Record<string, { name: string; rate: string }>
+  >({});
+  const [newTaxOpen, setNewTaxOpen] = useState(false);
+  const [newTaxName, setNewTaxName] = useState("");
+  const [newTaxRate, setNewTaxRate] = useState("");
+  const [savingNewTax, setSavingNewTax] = useState(false);
+  const [itemDialogError, setItemDialogError] = useState<string | null>(null);
   const [clientId, setClientId] = useState("");
   const [number, setNumber] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [currencyCode, setCurrencyCode] = useState("CAD");
   const [items, setItems] = useState<LineItem[]>([emptyItem()]);
-  const [depositType, setDepositType] = useState<
-    "" | "percentage" | "fixed"
-  >("");
+  const [depositType, setDepositType] = useState<"" | "percentage" | "fixed">(
+    ""
+  );
   const [depositValue, setDepositValue] = useState("");
   const [depositDueRule, setDepositDueRule] =
     useState<DepositDueRule>("on_receipt");
   const [depositDueDate, setDepositDueDate] = useState("");
   const [poNumber, setPoNumber] = useState("");
-  const [discountType, setDiscountType] = useState<
-    "" | "percentage" | "fixed"
-  >("");
+  const [notes, setNotes] = useState("");
+  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
+  const [depositEditorOpen, setDepositEditorOpen] = useState(false);
+  const [discountType, setDiscountType] = useState<"" | "percentage" | "fixed">(
+    ""
+  );
   const [discountValue, setDiscountValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [reviewIssues, setReviewIssues] = useState<string[]>([]);
@@ -87,6 +107,7 @@ export default function NewInvoicePage() {
                 : undefined,
           }
         : undefined,
+      notes: notes.trim() ? textToRichText(notes) : undefined,
     };
   }
 
@@ -107,9 +128,10 @@ export default function NewInvoicePage() {
         return;
       }
       try {
-        const [page, productPage, draft] = await Promise.all([
+        const [page, productPage, taxList, draft] = await Promise.all([
           apiClient.listClients(businessId, token),
           apiClient.listProducts(businessId, token),
+          apiClient.listTaxes(businessId, token),
           draftId
             ? apiClient.getInvoice(businessId, draftId, token)
             : Promise.resolve(null),
@@ -117,6 +139,7 @@ export default function NewInvoicePage() {
         if (!cancelled) {
           setClients([...page.items]);
           setProducts([...productPage.items]);
+          setTaxes([...taxList]);
           if (draft) {
             if (draft.status !== "draft") {
               setError("Only draft invoices can be edited.");
@@ -128,11 +151,12 @@ export default function NewInvoicePage() {
             setDueDate(draft.dueDate ?? "");
             setCurrencyCode(draft.currencyCode);
             setPoNumber(draft.poNumber ?? "");
+            setNotes(richTextToText(draft.notes));
             setItems(
               draft.items.map((item) => ({
                 ...item,
                 appliedTaxes: [...item.appliedTaxes],
-              })),
+              }))
             );
             setDiscountType(draft.discount?.type ?? "");
             setDiscountValue(draft.discount?.value ?? "");
@@ -145,9 +169,7 @@ export default function NewInvoicePage() {
       } catch (caught) {
         if (!cancelled)
           setError(
-            caught instanceof Error
-              ? caught.message
-              : "Failed to load clients.",
+            caught instanceof Error ? caught.message : "Failed to load clients."
           );
       }
     }
@@ -159,81 +181,171 @@ export default function NewInvoicePage() {
     };
   }, [businessId, draftId]);
 
-  function updateItem(index: number, patch: Partial<LineItem>) {
-    setItems((current) =>
-      current.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+  function openItemDialog(index?: number) {
+    const item = typeof index === "number" ? items[index] : undefined;
+    setEditingItemIndex(typeof index === "number" ? index : null);
+    setNewItemDescription(item?.description ?? "");
+    setNewItemDetails(item?.secondaryDescription ?? "");
+    setNewItemQuantity(item?.quantity ?? "1");
+    setNewItemRate(item?.rate ?? "");
+
+    if (item) {
+      const snapshots: Record<string, { name: string; rate: string }> = {};
+      const taxIds = (item.appliedTaxes ?? []).map((appliedTax, taxIndex) => {
+        const existing = taxes.find(
+          (tax) =>
+            tax.name === appliedTax.name && tax.rate === appliedTax.rate
+        );
+        if (existing) return existing.id;
+        const snapshotId = `snapshot-${taxIndex}`;
+        snapshots[snapshotId] = appliedTax;
+        return snapshotId;
+      });
+      setEditingTaxSnapshots(snapshots);
+      setNewItemTaxIds(taxIds);
+    } else {
+      const defaultTaxId = taxes.find((tax) => tax.isDefault)?.id;
+      setEditingTaxSnapshots({});
+      setNewItemTaxIds(defaultTaxId ? [defaultTaxId] : []);
+    }
+
+    setNewTaxOpen(false);
+    setNewTaxName("");
+    setNewTaxRate("");
+    setItemDialogError(null);
+    setItemDialogOpen(true);
+  }
+
+  function saveItemFromDialog() {
+    const description = newItemDescription.trim();
+    const quantity = Number(newItemQuantity);
+    const rate = Number(newItemRate);
+    if (!description) {
+      setItemDialogError("Enter an item name.");
+      return;
+    }
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      setItemDialogError("Enter a quantity greater than zero.");
+      return;
+    }
+    if (!Number.isFinite(rate) || rate < 0) {
+      setItemDialogError("Enter a valid rate.");
+      return;
+    }
+
+    const selectedTaxes = newItemTaxIds
+      .map(
+        (taxId) =>
+          taxes.find((tax) => tax.id === taxId) ??
+          editingTaxSnapshots[taxId]
+      )
+      .filter(
+        (tax): tax is Tax | { name: string; rate: string } => Boolean(tax)
+      );
+    const existingItem =
+      editingItemIndex === null ? undefined : items[editingItemIndex];
+    const item: LineItem = {
+      description,
+      secondaryDescription: newItemDetails.trim(),
+      quantity: newItemQuantity,
+      rate: newItemRate,
+      sourceProductServiceId: existingItem?.sourceProductServiceId,
+      appliedTaxes: selectedTaxes.map((tax) => ({
+        name: tax.name,
+        rate: tax.rate,
+      })),
+    };
+    setItems((current) => {
+      if (editingItemIndex !== null) {
+        return current.map((currentItem, index) =>
+          index === editingItemIndex ? item : currentItem
+        );
+      }
+      return current.length === 1 && isEmptyItem(current[0])
+        ? [item]
+        : [...current, item];
+    });
+    setItemDialogOpen(false);
+  }
+
+  function addDialogTax() {
+    const available = taxes.find((tax) => !newItemTaxIds.includes(tax.id));
+    if (available) setNewItemTaxIds((current) => [...current, available.id]);
+  }
+
+  function updateDialogTax(index: number, taxId: string) {
+    setNewItemTaxIds((current) =>
+      current.map((currentTaxId, currentIndex) =>
+        currentIndex === index ? taxId : currentTaxId
+      )
     );
   }
 
-  function addItem() {
-    setItems((current) => [...current, emptyItem()]);
+  function removeDialogTax(index: number) {
+    setNewItemTaxIds((current) =>
+      current.filter((_, currentIndex) => currentIndex !== index)
+    );
+  }
+
+  async function createDialogTax() {
+    const name = newTaxName.trim();
+    const rate = Number(newTaxRate);
+    if (!name) {
+      setItemDialogError("Enter a tax name.");
+      return;
+    }
+    if (!Number.isFinite(rate) || rate < 0) {
+      setItemDialogError("Enter a valid tax rate.");
+      return;
+    }
+
+    setSavingNewTax(true);
+    setItemDialogError(null);
+    const token = await getToken();
+    if (!token) {
+      setItemDialogError("You must be signed in to create a tax.");
+      setSavingNewTax(false);
+      return;
+    }
+
+    try {
+      const created = await apiClient.createTax(
+        businessId,
+        { name, rate: newTaxRate },
+        token
+      );
+      setTaxes((current) => [...current, created]);
+      setNewItemTaxIds((current) => [...current, created.id]);
+      setNewTaxName("");
+      setNewTaxRate("");
+      setNewTaxOpen(false);
+    } catch (caught) {
+      setItemDialogError(
+        caught instanceof Error ? caught.message : "Failed to create tax."
+      );
+    } finally {
+      setSavingNewTax(false);
+    }
   }
 
   function addFromLibrary(product: ProductService) {
-    setItems((current) => [
-      ...current,
-      {
-        description: product.name,
-        secondaryDescription: product.description ?? "",
-        quantity: "1",
-        rate: product.defaultRate ?? "",
-        appliedTaxes: [],
-        sourceProductServiceId: product.id,
-      },
-    ]);
+    const libraryItem: LineItem = {
+      description: product.name,
+      secondaryDescription: product.description ?? "",
+      quantity: "1",
+      rate: product.defaultRate ?? "",
+      appliedTaxes: [],
+      sourceProductServiceId: product.id,
+    };
+    setItems((current) =>
+      current.length === 1 && isEmptyItem(current[0])
+        ? [libraryItem]
+        : [...current, libraryItem]
+    );
   }
 
   function removeItem(index: number) {
     setItems((current) => current.filter((_, i) => i !== index));
-  }
-
-  function addTax(itemIndex: number) {
-    setItems((current) =>
-      current.map((item, i) =>
-        i === itemIndex
-          ? {
-              ...item,
-              appliedTaxes: [
-                ...(item.appliedTaxes ?? []),
-                { name: "", rate: "" },
-              ],
-            }
-          : item,
-      ),
-    );
-  }
-
-  function updateTax(
-    itemIndex: number,
-    taxIndex: number,
-    patch: Partial<{ name: string; rate: string }>,
-  ) {
-    setItems((current) =>
-      current.map((item, i) => {
-        if (i !== itemIndex) return item;
-        return {
-          ...item,
-          appliedTaxes: (item.appliedTaxes ?? []).map((tax, ti) =>
-            ti === taxIndex ? { ...tax, ...patch } : tax,
-          ),
-        };
-      }),
-    );
-  }
-
-  function removeTax(itemIndex: number, taxIndex: number) {
-    setItems((current) =>
-      current.map((item, i) =>
-        i === itemIndex
-          ? {
-              ...item,
-              appliedTaxes: (item.appliedTaxes ?? []).filter(
-                (_, ti) => ti !== taxIndex,
-              ),
-            }
-          : item,
-      ),
-    );
   }
 
   async function saveDraft(token: string) {
@@ -246,7 +358,9 @@ export default function NewInvoicePage() {
     const first = issues.find((issue) => issue.path);
     if (!first?.path) return;
     const id = first.path === "client" ? "client-select" : first.path;
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
     document.getElementById(id)?.focus?.();
   }
 
@@ -280,7 +394,7 @@ export default function NewInvoicePage() {
       else router.replace(reviewRoute);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to save invoice.",
+        caught instanceof Error ? caught.message : "Failed to save invoice."
       );
       setSubmitting(false);
     }
@@ -304,7 +418,7 @@ export default function NewInvoicePage() {
       router.push(`/app/${businessId}/invoices`);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to save invoice.",
+        caught instanceof Error ? caught.message : "Failed to save invoice."
       );
       setSubmitting(false);
     }
@@ -323,7 +437,7 @@ export default function NewInvoicePage() {
           quantity: item.quantity || "0",
           rate: item.rate || "0",
           appliedTaxes: (item.appliedTaxes ?? []).filter(
-            (tax) => tax.name.trim() !== "" || tax.rate.trim() !== "",
+            (tax) => tax.name.trim() !== "" || tax.rate.trim() !== ""
           ),
         })),
         depositTerms: depositType
@@ -336,29 +450,46 @@ export default function NewInvoicePage() {
     } catch {
       return null;
     }
-  }, [items, currencyCode, depositType, depositValue, discountType, discountValue]);
+  }, [
+    items,
+    currencyCode,
+    depositType,
+    depositValue,
+    discountType,
+    discountValue,
+  ]);
 
   const selectedClient = clients.find((client) => client.id === clientId);
 
   return (
-    <form onSubmit={handleSubmit}>
-      {/* Client selector */}
-      <Card sx={{ p: 2, mb: 3 }}>
-        <div className="if-eyebrow">Bill to</div>
+    <form onSubmit={handleSubmit} className="if-invoice-editor">
+      <section className="if-editor-section">
+        <div className="if-eyebrow">Client</div>
         {selectedClient ? (
           <div className="if-client-selector">
             <div className="if-selector-main">
               <div className="if-avatar">
-                {(selectedClient.name ?? selectedClient.company ?? "?").slice(0, 2).toUpperCase()}
+                {(selectedClient.name ?? selectedClient.company ?? "?")
+                  .slice(0, 2)
+                  .toUpperCase()}
               </div>
               <div>
-                <strong>{selectedClient.name ?? selectedClient.company ?? "Unnamed client"}</strong>
+                <strong>
+                  {selectedClient.name ??
+                    selectedClient.company ??
+                    "Unnamed client"}
+                </strong>
                 <span>{selectedClient.emails[0]?.address ?? "No email"}</span>
               </div>
             </div>
-            <Button variant="outlined" onClick={() => setClientId("")}>
-              Change
-            </Button>
+            <button
+              type="button"
+              className="if-selector-change"
+              onClick={() => setClientId("")}
+              aria-label="Change client"
+            >
+              ›
+            </button>
           </div>
         ) : (
           <Select
@@ -369,99 +500,294 @@ export default function NewInvoicePage() {
             options={clientOptions}
           />
         )}
+      </section>
 
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mt: 2 }}>
-          <Input label="Invoice #" value={number} onChange={(event) => setNumber(event.target.value)} placeholder="INV-001" />
-          <Input label="Currency" value={currencyCode} onChange={(event) => setCurrencyCode(event.target.value)} />
-          <Input label="Issue date" type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} required />
-          <Input label="Due date" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
-        </Box>
-      </Card>
+      <section className="if-editor-section">
+        <div className="if-eyebrow">Invoice details</div>
+        <div className="if-invoice-details">
+          <Input
+            label="Invoice #"
+            value={number}
+            onChange={(event) => setNumber(event.target.value)}
+            placeholder="INV-001"
+          />
+          <Input
+            label="Issue date"
+            type="date"
+            value={issueDate}
+            onChange={(event) => setIssueDate(event.target.value)}
+            required
+          />
+          <Input
+            label="Due date"
+            type="date"
+            value={dueDate}
+            onChange={(event) => setDueDate(event.target.value)}
+          />
+        </div>
+      </section>
 
-      <div className="if-editor-bottom">
-        {/* Line items */}
-        <div>
-          <Card sx={{ overflow: "hidden" }}>
-            <div className="if-row-grid if-row-head" style={{ gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px" }}>
-              <div>Description</div>
-              <div>Qty</div>
-              <div>Rate</div>
-              <div className="if-right">Amount</div>
-              <div />
-            </div>
-            {items.map((item, index) => (
-              <div
-                key={index}
-                className="if-row-grid if-row"
-                style={{ gridTemplateColumns: "minmax(200px,1fr) 90px 120px 110px 40px" }}
+      <section className="if-editor-section">
+        <div className="if-eyebrow">Items</div>
+        <Card className="if-invoice-items" sx={{ overflow: "hidden" }}>
+          <div className="if-row-grid if-row-head if-invoice-item-grid">
+            <div>Item name</div>
+            <div>Qty</div>
+            <div>Rate</div>
+            <div className="if-right">Amount</div>
+            <div />
+          </div>
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className="if-row-grid if-row if-invoice-item-grid"
+              role="button"
+              tabIndex={0}
+              aria-label={`Edit ${item.description || `item ${index + 1}`}`}
+              onClick={() => openItemDialog(index)}
+              onKeyDown={(event) => {
+                if (
+                  event.currentTarget === event.target &&
+                  (event.key === "Enter" || event.key === " ")
+                ) {
+                  event.preventDefault();
+                  openItemDialog(index);
+                }
+              }}
+            >
+              <div className="if-item-description">
+                <strong className="if-item-name-text">
+                  {item.description || "Unnamed item"}
+                </strong>
+                {item.secondaryDescription ? (
+                  <div className="if-item-detail-text">
+                    {item.secondaryDescription}
+                  </div>
+                ) : null}
+                {(item.appliedTaxes ?? []).length > 0 ? (
+                  <div className="if-item-tax-text">
+                    {(item.appliedTaxes ?? [])
+                      .map((tax) => `${tax.name} ${tax.rate}%`)
+                      .join(" · ")}
+                  </div>
+                ) : null}
+              </div>
+              <span className="if-item-cell-value">{item.quantity}</span>
+              <span className="if-item-cell-value">{item.rate}</span>
+              <div className="if-right if-amount money" data-label="Amount">
+                {formatMoney(
+                  totals?.lineTotals[index]?.toDecimalString() ?? "0",
+                  currencyCode
+                )}
+              </div>
+              <IconButton
+                className="if-item-remove"
+                aria-label="Remove item"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  removeItem(index);
+                }}
               >
-                <div>
-                  <Input
-                    label="Description"
-                    value={item.description}
-                    onChange={(event) => updateItem(index, { description: event.target.value })}
-                    size="small"
-                  />
-                  <Input
-                    label="Details"
-                    value={item.secondaryDescription}
-                    onChange={(event) => updateItem(index, { secondaryDescription: event.target.value })}
-                    size="small"
-                    sx={{ mt: 1 }}
-                  />
-                  {(item.appliedTaxes ?? []).map((tax, taxIndex) => (
-                    <Box key={taxIndex} sx={{ display: "flex", gap: 1, mt: 1 }}>
-                      <Input
-                        size="small"
-                        label="Tax name"
-                        value={tax.name}
-                        onChange={(event) => updateTax(index, taxIndex, { name: event.target.value })}
-                      />
-                      <Input
-                        size="small"
-                        label="%"
-                        value={tax.rate}
-                        onChange={(event) => updateTax(index, taxIndex, { rate: event.target.value })}
-                        sx={{ width: 80 }}
-                      />
-                      <IconButton aria-label="Remove tax" onClick={() => removeTax(index, taxIndex)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  ))}
-                  <Button variant="text" size="small" onClick={() => addTax(index)}>
-                    + Tax
+                <CloseIcon />
+              </IconButton>
+            </div>
+          ))}
+          <div className="if-item-addbar">
+            <button
+              type="button"
+              onClick={() => openItemDialog()}
+              className="if-text-action"
+            >
+              + Add item
+            </button>
+            <button
+              type="button"
+              onClick={() => setLibraryOpen(true)}
+              className="if-item-library-action"
+            >
+              From library
+            </button>
+          </div>
+        </Card>
+      </section>
+
+      <Dialog
+        className="if-add-item-dialog"
+        open={itemDialogOpen}
+        onClose={() => setItemDialogOpen(false)}
+        title={
+          <div className="if-add-item-dialog-title">
+            <span>
+              {editingItemIndex === null
+                ? "Add invoice item"
+                : "Edit invoice item"}
+            </span>
+            <IconButton
+              aria-label="Close add item dialog"
+              onClick={() => setItemDialogOpen(false)}
+            >
+              <CloseIcon />
+            </IconButton>
+          </div>
+        }
+        actions={
+          <>
+            <Button
+              variant="outlined"
+              onClick={() => setItemDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={saveItemFromDialog}>
+              {editingItemIndex === null ? "Add Item" : "Save Item"}
+            </Button>
+          </>
+        }
+      >
+        <div className="if-add-item-form">
+          <div className="if-dialog-field if-dialog-field-wide">
+            <label htmlFor="new-item-description">Item name</label>
+            <Input
+              id="new-item-description"
+              autoFocus
+              value={newItemDescription}
+              onChange={(event) => setNewItemDescription(event.target.value)}
+              placeholder="Consulting"
+            />
+          </div>
+          <div className="if-dialog-field if-dialog-field-wide">
+            <label htmlFor="new-item-details">Details</label>
+            <Input
+              id="new-item-details"
+              value={newItemDetails}
+              onChange={(event) => setNewItemDetails(event.target.value)}
+              placeholder="Optional details"
+            />
+          </div>
+          <div className="if-dialog-field">
+            <label htmlFor="new-item-quantity">Quantity</label>
+            <Input
+              id="new-item-quantity"
+              type="number"
+              slotProps={{ htmlInput: { step: "any", min: 0 } }}
+              value={newItemQuantity}
+              onChange={(event) => setNewItemQuantity(event.target.value)}
+            />
+          </div>
+          <div className="if-dialog-field">
+            <label htmlFor="new-item-rate">Rate</label>
+            <Input
+              id="new-item-rate"
+              type="number"
+              slotProps={{ htmlInput: { step: "any", min: 0 } }}
+              value={newItemRate}
+              onChange={(event) => setNewItemRate(event.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="if-dialog-field if-dialog-field-wide">
+            <label>Taxes</label>
+            <div className="if-dialog-tax-list">
+              {newItemTaxIds.length === 0 ? (
+                <div className="if-dialog-no-tax">No taxes applied</div>
+              ) : null}
+              {newItemTaxIds.map((taxId, taxIndex) => (
+                <div className="if-dialog-tax-row" key={`${taxIndex}-${taxId}`}>
+                  <select
+                    className="if-dialog-select"
+                    aria-label={`Tax ${taxIndex + 1}`}
+                    value={taxId}
+                    onChange={(event) =>
+                      updateDialogTax(taxIndex, event.target.value)
+                    }
+                  >
+                    {editingTaxSnapshots[taxId] ? (
+                      <option value={taxId}>
+                        {editingTaxSnapshots[taxId].name}{" "}
+                        {editingTaxSnapshots[taxId].rate}% (historical)
+                      </option>
+                    ) : null}
+                    {taxes.map((tax) => (
+                      <option
+                        key={tax.id}
+                        value={tax.id}
+                        disabled={
+                          tax.id !== taxId && newItemTaxIds.includes(tax.id)
+                        }
+                      >
+                        {tax.name} {tax.rate}%
+                      </option>
+                    ))}
+                  </select>
+                  <IconButton
+                    aria-label={`Remove tax ${taxIndex + 1}`}
+                    onClick={() => removeDialogTax(taxIndex)}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </div>
+              ))}
+              <div className="if-dialog-tax-actions">
+                {taxes.some((tax) => !newItemTaxIds.includes(tax.id)) ? (
+                  <button
+                    type="button"
+                    className="if-dialog-add-tax"
+                    onClick={addDialogTax}
+                  >
+                    + Add existing tax
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="if-dialog-add-tax"
+                  onClick={() => setNewTaxOpen((open) => !open)}
+                >
+                  + Add new tax
+                </button>
+              </div>
+              {newTaxOpen ? (
+                <div className="if-dialog-new-tax">
+                  <div className="if-dialog-field">
+                    <label htmlFor="new-tax-name">Tax name</label>
+                    <Input
+                      id="new-tax-name"
+                      value={newTaxName}
+                      onChange={(event) => setNewTaxName(event.target.value)}
+                      placeholder="HST"
+                    />
+                  </div>
+                  <div className="if-dialog-field">
+                    <label htmlFor="new-tax-rate">Rate</label>
+                    <Input
+                      id="new-tax-rate"
+                      type="number"
+                      slotProps={{ htmlInput: { step: "any", min: 0 } }}
+                      value={newTaxRate}
+                      onChange={(event) => setNewTaxRate(event.target.value)}
+                      placeholder="13"
+                    />
+                  </div>
+                  <Button
+                    variant="outlined"
+                    onClick={() => void createDialogTax()}
+                    disabled={savingNewTax}
+                  >
+                    {savingNewTax ? "Adding…" : "Create tax"}
                   </Button>
                 </div>
-                <Input
-                  size="small"
-                  label="Qty"
-                  value={item.quantity}
-                  onChange={(event) => updateItem(index, { quantity: event.target.value })}
-                />
-                <Input
-                  size="small"
-                  id={`items[${index}].rate`}
-                  label="Rate"
-                  value={item.rate}
-                  onChange={(event) => updateItem(index, { rate: event.target.value })}
-                />
-                <div className="if-right if-amount money">
-                  {totals?.lineTotals[index]?.toDecimalString() ?? "0.00"}
-                </div>
-                <IconButton aria-label="Remove item" onClick={() => removeItem(index)}>
-                  <DeleteIcon />
-                </IconButton>
-              </div>
-            ))}
-            <div style={{ borderTop: "1px solid #E4E7EC", padding: "11px 16px", background: "#FCFCFD" }}>
-              <button type="button" onClick={addItem} className="if-text-action">+ Add line item</button>
-              <button type="button" onClick={() => setLibraryOpen(true)} className="if-text-action" style={{ marginLeft: 18 }}>
-                + From library
-              </button>
+              ) : null}
             </div>
-          </Card>
+          </div>
+          {itemDialogError ? (
+            <Alert severity="error" className="if-dialog-field-wide">
+              {itemDialogError}
+            </Alert>
+          ) : null}
+        </div>
+      </Dialog>
 
+      <div className="if-editor-bottom">
+        <div className="if-editor-notes-column">
           <ProductLibraryDialog
             open={libraryOpen}
             products={products}
@@ -469,105 +795,214 @@ export default function NewInvoicePage() {
             onSelect={addFromLibrary}
           />
 
-          {/* Deposit + More options */}
-          <Card sx={{ p: 3, mt: 3 }}>
-            <div className="if-eyebrow">Deposit</div>
-            <Select
-              label="Deposit type"
-              value={depositType}
-              onValueChange={(value) => setDepositType(value as "" | "percentage" | "fixed")}
-              options={[
-                { value: "", label: "No deposit" },
-                { value: "percentage", label: "Percentage" },
-                { value: "fixed", label: "Fixed amount" },
-              ]}
-            />
-            {depositType !== "" && (
-              <>
+          <div className="if-eyebrow">Notes</div>
+          <Input
+            multiline
+            minRows={4}
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder="Thank you for your business."
+            aria-label="Invoice notes"
+          />
+
+          <button
+            type="button"
+            className="if-more-options-toggle"
+            onClick={() => setMoreOptionsOpen((open) => !open)}
+            aria-expanded={moreOptionsOpen}
+          >
+            <span>More options</span>
+            <span>{moreOptionsOpen ? "−" : "+"}</span>
+          </button>
+
+          {moreOptionsOpen && (
+            <Card className="if-more-options-panel">
+              <div className="if-options-grid">
                 <Input
-                  label={depositType === "percentage" ? "Deposit %" : "Deposit amount"}
-                  value={depositValue}
-                  onChange={(event) => setDepositValue(event.target.value)}
-                  sx={{ mt: 2 }}
+                  label="PO #"
+                  value={poNumber}
+                  onChange={(event) => setPoNumber(event.target.value)}
+                  placeholder="Optional"
                 />
+                <Input
+                  label="Currency"
+                  value={currencyCode}
+                  onChange={(event) => setCurrencyCode(event.target.value)}
+                />
+              </div>
+              <div className="if-options-grid if-options-grid-secondary">
                 <Select
-                  label="Deposit due"
-                  value={depositDueRule}
-                  onValueChange={(value) => setDepositDueRule(value as DepositDueRule)}
+                  label="Discount type"
+                  value={discountType}
+                  onValueChange={(value) =>
+                    setDiscountType(value as "" | "percentage" | "fixed")
+                  }
                   options={[
-                    { value: "on_receipt", label: "On receipt" },
-                    { value: "days_7", label: "Within 7 days" },
-                    { value: "days_15", label: "Within 15 days" },
-                    { value: "custom", label: "Custom date" },
+                    { value: "", label: "No discount" },
+                    { value: "percentage", label: "Percentage" },
+                    { value: "fixed", label: "Fixed amount" },
                   ]}
                 />
-                {depositDueRule === "custom" && (
+                {discountType !== "" && (
                   <Input
-                    label="Deposit due date"
-                    type="date"
-                    value={depositDueDate}
-                    onChange={(event) => setDepositDueDate(event.target.value)}
+                    label={
+                      discountType === "percentage"
+                        ? "Discount %"
+                        : "Discount amount"
+                    }
+                    value={discountValue}
+                    onChange={(event) => setDiscountValue(event.target.value)}
                   />
                 )}
-              </>
-            )}
-          </Card>
-
-          <Card sx={{ p: 3, mt: 3 }}>
-            <div className="if-eyebrow">More options</div>
-            <Input label="PO #" value={poNumber} onChange={(event) => setPoNumber(event.target.value)} />
-            <Select
-              label="Discount type"
-              value={discountType}
-              onValueChange={(value) => setDiscountType(value as "" | "percentage" | "fixed")}
-              options={[
-                { value: "", label: "No discount" },
-                { value: "percentage", label: "Percentage" },
-                { value: "fixed", label: "Fixed amount" },
-              ]}
-            />
-            {discountType !== "" && (
-              <Input
-                label={discountType === "percentage" ? "Discount %" : "Discount amount"}
-                value={discountValue}
-                onChange={(event) => setDiscountValue(event.target.value)}
-              />
-            )}
-          </Card>
+              </div>
+            </Card>
+          )}
         </div>
 
-        {/* Sticky summary */}
-        <Card className="if-summary" sx={{ p: 2 }}>
-          <div className="if-section-title">Summary</div>
+        <Card className="if-summary" sx={{ p: 2.25 }}>
           {totals ? (
             <>
-              <SumRow label="Subtotal" value={totals.subtotal.toDecimalString()} />
+              <SumRow
+                label="Subtotal"
+                value={formatMoney(
+                  totals.subtotal.toDecimalString(),
+                  currencyCode
+                )}
+              />
               {totals.discountAmount && !totals.discountAmount.isZero && (
-                <SumRow label="Discount" value={`-${totals.discountAmount.toDecimalString()}`} />
+                <SumRow
+                  label="Discount"
+                  value={`−${formatMoney(
+                    totals.discountAmount.toDecimalString(),
+                    currencyCode
+                  )}`}
+                />
               )}
-              <SumRow label="Tax" value={totals.taxTotal.toDecimalString()} />
+              <SumRow
+                label="Tax"
+                value={formatMoney(
+                  totals.taxTotal.toDecimalString(),
+                  currencyCode
+                )}
+              />
               <div className="if-sumrow if-total money">
-                <span>Total</span>
-                <strong>{totals.total.toDecimalString()}</strong>
+                <strong>Total</strong>
+                <strong>
+                  {formatMoney(totals.total.toDecimalString(), currencyCode)}
+                </strong>
               </div>
-              {totals.deposit && (
-                <div className="if-depositbox">
-                  <div className="if-dtop">
-                    <span className="if-label">Deposit due</span>
-                    <span className="if-amt money">{totals.deposit.required.toDecimalString()}</span>
-                  </div>
-                  <div className="if-dtop" style={{ marginTop: 4 }}>
-                    <span className="if-label">Remaining</span>
-                    <span className="if-amt money" style={{ fontSize: 15 }}>{totals.deposit.remaining.toDecimalString()}</span>
-                  </div>
-                </div>
-              )}
             </>
           ) : null}
+
+          <div className="if-depositbox">
+            {totals?.deposit ? (
+              <>
+                <div className="if-dtop">
+                  <div>
+                    <div className="if-label">Deposit required</div>
+                    <div className="if-deposit-meta">
+                      {depositSummary(
+                        depositType,
+                        depositValue,
+                        depositDueRule
+                      )}
+                    </div>
+                  </div>
+                  <span className="if-amt money">
+                    {formatMoney(
+                      totals.deposit.required.toDecimalString(),
+                      currencyCode
+                    )}
+                  </span>
+                </div>
+                <div className="if-sumrow if-deposit-remaining">
+                  <span>Remaining</span>
+                  <strong>
+                    {formatMoney(
+                      totals.deposit.remaining.toDecimalString(),
+                      currencyCode
+                    )}
+                  </strong>
+                </div>
+              </>
+            ) : (
+              <div className="if-dtop">
+                <div>
+                  <div className="if-label">Deposit</div>
+                  <div className="if-deposit-meta">Not required</div>
+                </div>
+              </div>
+            )}
+            <button
+              type="button"
+              className="if-text-action if-deposit-edit"
+              onClick={() => setDepositEditorOpen((open) => !open)}
+            >
+              {totals?.deposit ? "Edit deposit" : "Add deposit"}
+            </button>
+          </div>
+
+          {depositEditorOpen && (
+            <div className="if-deposit-editor">
+              <Select
+                label="Deposit type"
+                value={depositType}
+                onValueChange={(value) =>
+                  setDepositType(value as "" | "percentage" | "fixed")
+                }
+                options={[
+                  { value: "", label: "No deposit" },
+                  { value: "percentage", label: "Percentage" },
+                  { value: "fixed", label: "Fixed amount" },
+                ]}
+              />
+              {depositType !== "" && (
+                <>
+                  <Input
+                    label={
+                      depositType === "percentage"
+                        ? "Deposit %"
+                        : "Deposit amount"
+                    }
+                    value={depositValue}
+                    onChange={(event) => setDepositValue(event.target.value)}
+                    sx={{ mt: 2 }}
+                  />
+                  <Select
+                    label="Deposit due"
+                    value={depositDueRule}
+                    onValueChange={(value) =>
+                      setDepositDueRule(value as DepositDueRule)
+                    }
+                    options={[
+                      { value: "on_receipt", label: "On receipt" },
+                      { value: "days_7", label: "Within 7 days" },
+                      { value: "days_15", label: "Within 15 days" },
+                      { value: "custom", label: "Custom date" },
+                    ]}
+                  />
+                  {depositDueRule === "custom" && (
+                    <Input
+                      label="Deposit due date"
+                      type="date"
+                      value={depositDueDate}
+                      onChange={(event) =>
+                        setDepositDueDate(event.target.value)
+                      }
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </Card>
       </div>
 
-      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
       {reviewIssues.length > 0 && (
         <Alert severity="warning" sx={{ mt: 2 }}>
           <strong>Review blocked</strong>
@@ -604,4 +1039,65 @@ function SumRow({ label, value }: { label: string; value: string }) {
       <strong>{value}</strong>
     </div>
   );
+}
+
+function isEmptyItem(item: LineItem | undefined): boolean {
+  return (
+    Boolean(item) &&
+    item!.description.trim() === "" &&
+    item!.rate.trim() === "" &&
+    !item!.sourceProductServiceId
+  );
+}
+
+function textToRichText(value: string) {
+  return {
+    type: "doc" as const,
+    content: value.split(/\n+/).map((text) => ({
+      type: "paragraph",
+      content: text ? [{ type: "text", text }] : [],
+    })),
+  };
+}
+
+function richTextToText(
+  document:
+    | { content?: readonly { content?: readonly { text?: string }[] }[] }
+    | undefined
+): string {
+  return (
+    document?.content
+      ?.map(
+        (block) => block.content?.map((node) => node.text ?? "").join("") ?? ""
+      )
+      .join("\n") ?? ""
+  );
+}
+
+function formatMoney(value: string, currencyCode: string): string {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return value;
+  try {
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: currencyCode,
+    }).format(amount);
+  } catch {
+    return `${value} ${currencyCode}`;
+  }
+}
+
+function depositSummary(
+  type: string,
+  value: string,
+  dueRule: DepositDueRule
+): string {
+  const amount = type === "percentage" ? `${value || "0"}%` : "Fixed amount";
+  const due = {
+    on_receipt: "Due on receipt",
+    days_7: "Due in 7 days",
+    days_15: "Due in 15 days",
+    custom: "Custom due date",
+  }[dueRule];
+  return `${amount} · ${due}`;
 }

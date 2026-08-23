@@ -47,7 +47,9 @@ export default function BusinessLayout({ children }: { children: ReactNode }) {
     router.replace("/");
   }
 
-  const title = navItems.find((item) => isActive(item))?.label ?? "Invoices";
+  const title = pathname.endsWith("/invoices/new")
+    ? "New Invoice"
+    : navItems.find((item) => isActive(item))?.label ?? "Invoices";
 
   return (
     <div className="if-shell">

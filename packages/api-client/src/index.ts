@@ -208,6 +208,14 @@ export type InvoiceDepositTerms = Readonly<{
   dueDate?: string;
 }>;
 
+export type InvoiceRichTextDocument = Readonly<{
+  type: 'doc';
+  content: readonly Readonly<{
+    type: string;
+    content?: readonly Readonly<{ type: string; text?: string }>[];
+  }>[];
+}>;
+
 export type Invoice = Readonly<{
   id: string;
   number: string;
@@ -225,6 +233,7 @@ export type Invoice = Readonly<{
   items: readonly InvoiceItem[];
   discount?: InvoiceDiscount;
   depositTerms?: InvoiceDepositTerms;
+  notes?: InvoiceRichTextDocument;
 }>;
 
 export type InvoicePage = Readonly<{
@@ -265,6 +274,7 @@ export type CreateInvoiceInput = Readonly<{
   items: readonly CreateInvoiceItemInput[];
   depositTerms?: CreateInvoiceDepositInput;
   discount?: CreateInvoiceDiscountInput;
+  notes?: InvoiceRichTextDocument;
 }>;
 
 export type Quote = Readonly<{

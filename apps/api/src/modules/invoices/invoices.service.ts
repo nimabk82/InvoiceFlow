@@ -13,6 +13,7 @@ import type {
   ActivityEvent,
   Invoice,
   Payment,
+  RichTextDocument,
 } from '@invoiceflow/domain';
 import {
   calculateDocumentTotals,
@@ -87,6 +88,7 @@ export type CreateInvoiceInput = {
   items: CreateInvoiceItemInput[];
   depositTerms?: CreateInvoiceDepositInput;
   discount?: CreateInvoiceDiscountInput;
+  notes?: RichTextDocument;
 };
 
 export type ListInvoicesOptions = {
@@ -478,6 +480,7 @@ export class InvoicesService {
       poNumber: input.poNumber,
       discount: input.discount,
       depositTerms: input.depositTerms,
+      notes: input.notes,
       status: 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -552,6 +555,7 @@ export class InvoicesService {
       poNumber: input.poNumber,
       discount: input.discount,
       depositTerms: input.depositTerms,
+      notes: input.notes,
       updatedAt: new Date().toISOString(),
     };
 
