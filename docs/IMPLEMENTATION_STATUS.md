@@ -107,7 +107,7 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 
 ## In-progress (session handoff, 2026-08-22)
 
-- The forward migrations `20260822120000_atomic_document_workflows.sql` and `20260822130000_provision_owner_business.sql` are committed-ready but not applied. `supabase db push --linked --dry-run` is blocked because the remote migration history reports older versions absent from the local directory; investigate history before applying and do not repair it blindly.
+- None. Phase 1 migrations `20260822120000_atomic_document_workflows.sql` and `20260822130000_provision_owner_business.sql` are applied to the linked development project. Supabase commands must run from `infrastructure/supabase/`; running from the repository root makes the CLI miss the configured migration directory and falsely reports remote-only versions.
 - **Earlier fix this session: invoice/quote detail routes returned 404** because the `next dev` server (PID 8804) had a stale route manifest after many file additions. Restarted web dev server (`nohup pnpm dev > /tmp/web-dev.log 2>&1 &` in `apps/web`); all routes now 200. If 404s reappear after route additions, restart the dev server.
 - **Committed this session:** `1dbbd1c` — reverted INV-08 autosave in web editors (static "Saved ✓", create on Review/Submit; `useAutosave` + `SaveStateBadge` deleted, `@invoiceflow/domain` removed from web deps; API PATCH draft endpoints retained). All web + api + root checks green before commit.
 
@@ -330,9 +330,9 @@ Watchman: VERIFIED
 - AUTH-03 — web lint/typecheck/test/build (routes /auth/forgot-password, /auth/reset-password)
 - QA-01..09 — matrices documented in docs/QA_ACCEPTANCE_STATUS.md; automated coverage via calculations/validation/renderer/api suites
 - INV-08 — api lint/typecheck/test (136 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/test/build; domain dist export + root typecheck. (Autosave disabled — editors create on Review/Submit; PATCH endpoints retained.)
-- Phase 1 web stabilization — api-client lint/typecheck/test (9 passed)/build; web lint/typecheck/test; web production build compiled and completed route generation.
-- Phase 1 API hardening — API lint/typecheck/test (156 passed)/build; validation lint/typecheck/test (9 passed)/build; linked schema lint clean. Migration push dry run blocked by pre-existing remote/local migration-history mismatch.
 - Phase 1 web stabilization — api-client lint/typecheck/test (9 passed)/build; web lint/typecheck/test (2 passed)/build.
+- Phase 1 API hardening — API lint/typecheck/test (156 passed)/build; validation lint/typecheck/test (9 passed)/build.
+- Phase 1 migrations — linked local/remote history aligned through `20260822130000`; `supabase db push --linked --dry-run` reports up to date; linked schema lint reports no errors. Commands run from `infrastructure/supabase/`.
 
 ## Status update format
 
