@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ApiClient,
@@ -38,6 +38,7 @@ export default function NewInvoicePage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
   const router = useRouter();
+  const draftId = useSearchParams().get("draftId");
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<ProductService[]>([]);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -106,10 +107,41 @@ export default function NewInvoicePage() {
         return;
       }
       try {
-        const page = await apiClient.listClients(businessId, token);
-        if (!cancelled) setClients([...page.items]);
-        const productPage = await apiClient.listProducts(businessId, token);
-        if (!cancelled) setProducts([...productPage.items]);
+        const [page, productPage, draft] = await Promise.all([
+          apiClient.listClients(businessId, token),
+          apiClient.listProducts(businessId, token),
+          draftId
+            ? apiClient.getInvoice(businessId, draftId, token)
+            : Promise.resolve(null),
+        ]);
+        if (!cancelled) {
+          setClients([...page.items]);
+          setProducts([...productPage.items]);
+          if (draft) {
+            if (draft.status !== "draft") {
+              setError("Only draft invoices can be edited.");
+              return;
+            }
+            setClientId(draft.clientId ?? "");
+            setNumber(draft.number);
+            setIssueDate(draft.issueDate);
+            setDueDate(draft.dueDate ?? "");
+            setCurrencyCode(draft.currencyCode);
+            setPoNumber(draft.poNumber ?? "");
+            setItems(
+              draft.items.map((item) => ({
+                ...item,
+                appliedTaxes: [...item.appliedTaxes],
+              })),
+            );
+            setDiscountType(draft.discount?.type ?? "");
+            setDiscountValue(draft.discount?.value ?? "");
+            setDepositType(draft.depositTerms?.type ?? "");
+            setDepositValue(draft.depositTerms?.value ?? "");
+            setDepositDueRule(draft.depositTerms?.dueRule ?? "on_receipt");
+            setDepositDueDate(draft.depositTerms?.dueDate ?? "");
+          }
+        }
       } catch (caught) {
         if (!cancelled)
           setError(
@@ -125,7 +157,7 @@ export default function NewInvoicePage() {
     return () => {
       cancelled = true;
     };
-  }, [businessId]);
+  }, [businessId, draftId]);
 
   function updateItem(index: number, patch: Partial<LineItem>) {
     setItems((current) =>
@@ -205,7 +237,9 @@ export default function NewInvoicePage() {
   }
 
   async function saveDraft(token: string) {
-    return apiClient.createInvoice(businessId, buildInvoiceInput(), token);
+    return draftId
+      ? apiClient.updateInvoice(businessId, draftId, buildInvoiceInput(), token)
+      : apiClient.createInvoice(businessId, buildInvoiceInput(), token);
   }
 
   function focusFirstIssue(issues: readonly { path?: string }[]) {
@@ -241,10 +275,12 @@ export default function NewInvoicePage() {
 
     try {
       const invoice = await saveDraft(token);
-      router.push(`/app/${businessId}/invoices/${invoice.id}/review`);
+      const reviewRoute = `/app/${businessId}/invoices/${invoice.id}/review`;
+      if (draftId) router.push(reviewRoute);
+      else router.replace(reviewRoute);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to create invoice.",
+        caught instanceof Error ? caught.message : "Failed to save invoice.",
       );
       setSubmitting(false);
     }
@@ -268,7 +304,7 @@ export default function NewInvoicePage() {
       router.push(`/app/${businessId}/invoices`);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to create invoice.",
+        caught instanceof Error ? caught.message : "Failed to save invoice.",
       );
       setSubmitting(false);
     }
@@ -546,7 +582,7 @@ export default function NewInvoicePage() {
       {/* Sticky editor bar */}
       <div className="if-sticky-editor">
         <div className="if-sticky-inner">
-          <span className="if-saved">Saved ✓</span>
+          <span className="if-saved">Changes save on Review</span>
           <Button
             type="button"
             onClick={handleReview}

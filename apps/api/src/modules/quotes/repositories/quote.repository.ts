@@ -1,4 +1,4 @@
-import type { Quote, QuoteStatus } from '@invoiceflow/domain';
+import type { Invoice, Quote, QuoteStatus } from '@invoiceflow/domain';
 
 export const QUOTE_REPOSITORY = Symbol('QUOTE_REPOSITORY');
 
@@ -18,4 +18,6 @@ export interface QuoteRepository {
   findById(id: string, businessId: string): Promise<Quote | null>;
   list(query: QuoteListQuery): Promise<QuotePage>;
   save(quote: Quote): Promise<void>;
+  markSent(id: string, businessId: string, sentAt: string): Promise<boolean>;
+  convertToInvoice(quote: Quote, invoice: Invoice): Promise<boolean>;
 }

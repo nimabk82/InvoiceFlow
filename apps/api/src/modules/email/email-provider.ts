@@ -14,5 +14,6 @@ export type EmailDeliveryResult = Readonly<{
 export const EMAIL_PROVIDER = Symbol('EMAIL_PROVIDER');
 
 export interface EmailProvider {
+  assertAvailable?(): void;
   send(message: EmailMessage): Promise<EmailDeliveryResult>;
 }

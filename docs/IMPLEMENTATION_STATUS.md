@@ -95,15 +95,19 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - THEME-08..22 — Theme Builder (Web): `/settings/themes/:themeId/edit` three-panel builder — Structure (section toggles + safe reorder, Items<Totals<Deposit + footer last enforced), live `DocumentPaper` preview, and Properties (page size/margin/border/background, brand colors + logo size, typography, header/bill-to/items/totals/deposit/footer controls); undo/redo history; live `diagnoseRender` diagnostics banner (warnings don't block save); Save creates a new immutable version. Themes list links to the builder.
 - AUTH-03 — Forgot/Reset Password (Web): `/auth/forgot-password` sends a Supabase reset email with a redirect to `/auth/reset-password`, which verifies the recovery session and updates the password; "Forgot password?" link on sign-in.
 - QA-01..09 — Acceptance matrices (docs/QA_ACCEPTANCE_STATUS.md): QA-05 calculation tests, QA-06 renderer 18-case baseline, and QA-07/08/09 service-level E2E are automated; QA-01..04 device/keyboard matrices documented for manual pass.
-- INV-08 — Autosave parity (Web + API, currently disabled): draft update endpoints `PATCH /invoices/:id` and `PATCH /quotes/:id` (draft-only, refresh snapshots/theme) remain available; the `useAutosave` hook + `SaveStateBadge` were removed from the editors — invoice/quote creation again happens on Review/Submit with the static "Saved ✓" indicator.
+- INV-08 — Draft editing without autosave (Web + API): draft update endpoints `PATCH /invoices/:id` and `PATCH /quotes/:id` are used by `/invoices/new?draftId=` and `/quotes/new?draftId=`; editors hydrate persisted drafts and save only on Review. New drafts POST once, then Review links explicitly return to edit mode.
+- Phase 1 web stabilization — API client coalesces identical in-flight GETs by base URL/path/auth and evicts settled requests; detail pages retain cancellable effects without broken start guards; invoice/quote draft Review loops persist edits without claiming autosave.
+- Phase 1 API validation slice — authoritative invoice/quote final-send checks, explicit client ownership validation, and decimal-safe payment eligibility/balance enforcement through shared validation/calculation packages.
+- Phase 1 account/email hardening — first-business provisioning atomically creates the auth-backed account, business, and owner membership through a service-role-only RPC; validated email provider selection rejects logger use in production and otherwise fails closed when delivery is disabled.
+- Phase 1 atomic workflow hardening — PostgreSQL RPCs provide transactional invoice/quote aggregate saves, draft-to-sent compare-and-set transitions, and atomic quote-to-invoice conversion with stale-write protection.
 
 ## Current ticket
 
-- None — all planned tickets complete. See `docs/QA_ACCEPTANCE_STATUS.md` for acceptance matrix status and remaining manual/device passes.
+- Phase 1 production hardening — web draft/load stabilization and the first API validation, atomic workflow, account provisioning, and email-safety slices are implemented. Remaining work: atomic payment recording, atomic theme-version creation, and a durable email outbox/real provider.
 
 ## In-progress (session handoff, 2026-08-22)
 
-- **Bug: detail pages fetch each resource twice (dev only).** Web runs `reactStrictMode: true`, so `useEffect` loaders in the client detail pages double-invoke in dev, firing every `GET` twice. Fixed: added a `startedRef` guard keyed by route params to the mount effects in `apps/web/src/app/app/[businessId]/invoices/[invoiceId]/page.tsx`, `quotes/[quoteId]/page.tsx`, and `clients/[clientId]/page.tsx` so StrictMode's dev remount only triggers one real fetch; the existing `cancelled` cleanup is kept, and navigating to a different detail id still refetches (key includes the id). Web lint/typecheck/test all green.
+- The forward migrations `20260822120000_atomic_document_workflows.sql` and `20260822130000_provision_owner_business.sql` are committed-ready but not applied. `supabase db push --linked --dry-run` is blocked because the remote migration history reports older versions absent from the local directory; investigate history before applying and do not repair it blindly.
 - **Earlier fix this session: invoice/quote detail routes returned 404** because the `next dev` server (PID 8804) had a stale route manifest after many file additions. Restarted web dev server (`nohup pnpm dev > /tmp/web-dev.log 2>&1 &` in `apps/web`); all routes now 200. If 404s reappear after route additions, restart the dev server.
 - **Committed this session:** `1dbbd1c` — reverted INV-08 autosave in web editors (static "Saved ✓", create on Review/Submit; `useAutosave` + `SaveStateBadge` deleted, `@invoiceflow/domain` removed from web deps; API PATCH draft endpoints retained). All web + api + root checks green before commit.
 
@@ -326,6 +330,9 @@ Watchman: VERIFIED
 - AUTH-03 — web lint/typecheck/test/build (routes /auth/forgot-password, /auth/reset-password)
 - QA-01..09 — matrices documented in docs/QA_ACCEPTANCE_STATUS.md; automated coverage via calculations/validation/renderer/api suites
 - INV-08 — api lint/typecheck/test (136 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/test/build; domain dist export + root typecheck. (Autosave disabled — editors create on Review/Submit; PATCH endpoints retained.)
+- Phase 1 web stabilization — api-client lint/typecheck/test (9 passed)/build; web lint/typecheck/test; web production build compiled and completed route generation.
+- Phase 1 API hardening — API lint/typecheck/test (156 passed)/build; validation lint/typecheck/test (9 passed)/build; linked schema lint clean. Migration push dry run blocked by pre-existing remote/local migration-history mismatch.
+- Phase 1 web stabilization — api-client lint/typecheck/test (9 passed)/build; web lint/typecheck/test (2 passed)/build.
 
 ## Status update format
 

@@ -68,7 +68,7 @@ const repositoryCases: readonly RepositoryCase[] = [
       findById: jest.fn().mockResolvedValue(null),
       listByOwner: jest.fn().mockResolvedValue([]),
       isMember: jest.fn().mockResolvedValue(false),
-      addMember: jest.fn().mockResolvedValue(undefined),
+      provisionOwnerBusiness: jest.fn().mockResolvedValue(undefined),
       save: jest.fn().mockResolvedValue(undefined),
     },
   },

@@ -46,7 +46,7 @@ test('createBusiness sends the payload with a bearer token', async () => {
   assert.equal(business.id, 'b1');
   assert.equal(captured.url, 'http://localhost:3001/businesses');
   assert.equal(captured.init.method, 'POST');
-  assert.equal(captured.init.headers.authorization, 'Bearer session-token');
+  assert.equal(captured.init.headers.get('authorization'), 'Bearer session-token');
 });
 
 test('listBusinesses returns the parsed list', async () => {
@@ -84,4 +84,81 @@ test('throws ApiRequestError on a non-ok response', async () => {
     assert.equal(error.status, 500);
     return true;
   });
+});
+
+test('deduplicates identical concurrent GET requests', async () => {
+  let resolveResponse;
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls += 1;
+    return new Promise((resolve) => {
+      resolveResponse = resolve;
+    });
+  };
+  const client = new ApiClient({ baseUrl: 'http://localhost:3001', fetchImpl });
+
+  const first = client.listBusinesses('same-token');
+  const second = client.listBusinesses('same-token');
+  assert.equal(calls, 1);
+
+  resolveResponse(okResponse([{ id: 'b1' }]));
+  const [firstResult, secondResult] = await Promise.all([first, second]);
+  assert.deepEqual(firstResult, secondResult);
+});
+
+test('does not deduplicate GET requests with different paths or auth', async () => {
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls += 1;
+    return okResponse({ items: [] });
+  };
+  const client = new ApiClient({ baseUrl: 'http://localhost:3001', fetchImpl });
+
+  await Promise.all([
+    client.listClients('business-1', 'token-1'),
+    client.listProducts('business-1', 'token-1'),
+    client.listClients('business-1', 'token-2'),
+  ]);
+
+  assert.equal(calls, 3);
+});
+
+test('evicts GET requests after resolution and rejection so they can retry', async () => {
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls += 1;
+    if (calls === 2) {
+      return { ok: false, status: 503, json: async () => ({}) };
+    }
+    return okResponse([]);
+  };
+  const client = new ApiClient({ baseUrl: 'http://localhost:3001', fetchImpl });
+
+  await client.listBusinesses('token');
+  await assert.rejects(client.listBusinesses('token'));
+  await client.listBusinesses('token');
+
+  assert.equal(calls, 3);
+});
+
+test('does not deduplicate concurrent mutation requests', async () => {
+  let calls = 0;
+  let resolveResponses;
+  const responses = new Promise((resolve) => {
+    resolveResponses = resolve;
+  });
+  const fetchImpl = async () => {
+    calls += 1;
+    await responses;
+    return okResponse({ id: `b${calls}` });
+  };
+  const client = new ApiClient({ baseUrl: 'http://localhost:3001', fetchImpl });
+  const input = { name: 'Acme', countryCode: 'CA', currencyCode: 'CAD' };
+
+  const first = client.createBusiness(input, 'token');
+  const second = client.createBusiness(input, 'token');
+  assert.equal(calls, 2);
+
+  resolveResponses();
+  await Promise.all([first, second]);
 });

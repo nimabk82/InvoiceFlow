@@ -37,7 +37,8 @@ function createClient(
   results: Record<string, unknown>,
 ): SupabaseInvoiceRepositoryClient {
   const from = jest.fn((table: string) => createBuilder(results[table]));
-  return { from } as unknown as SupabaseInvoiceRepositoryClient;
+  const rpc = jest.fn((name: string) => Promise.resolve(results[name]));
+  return { from, rpc } as unknown as SupabaseInvoiceRepositoryClient;
 }
 
 const clientSnapshot = {
@@ -118,9 +119,7 @@ describe('SupabaseInvoiceRepository', () => {
 
   it('persists the invoice row and replaces its items on save', async () => {
     const client = createClient({
-      invoices: { error: null },
-      document_items: { error: null },
-      document_item_taxes: { error: null },
+      save_invoice_aggregate: { error: null },
     });
     const repository = new SupabaseInvoiceRepository(client);
 
@@ -147,5 +146,30 @@ describe('SupabaseInvoiceRepository', () => {
         updatedAt: '2026-08-01T00:00:00.000Z',
       }),
     ).resolves.toBeUndefined();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(client.rpc).toHaveBeenCalledWith(
+      'save_invoice_aggregate',
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        p_invoice: expect.objectContaining({ id: 'inv1' }),
+        p_items: [
+          expect.objectContaining({
+            id: 'i1',
+            taxes: [expect.objectContaining({ name: 'GST' })],
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('returns the database compare-and-set result when marking sent', async () => {
+    const client = createClient({
+      send_invoice_if_draft: { data: false, error: null },
+    });
+    const repository = new SupabaseInvoiceRepository(client);
+
+    await expect(
+      repository.markSent('inv1', 'b1', '2026-08-22T00:00:00.000Z'),
+    ).resolves.toBe(false);
   });
 });

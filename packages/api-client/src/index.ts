@@ -165,6 +165,7 @@ export type InvoiceItem = Readonly<{
   quantity: string;
   rate: string;
   appliedTaxes: Readonly<{ name: string; rate: string }>[];
+  sourceProductServiceId?: string;
 }>;
 
 export type InvoiceAddress = Readonly<{
@@ -276,6 +277,7 @@ export type Quote = Readonly<{
   themeNameSnapshot?: string;
   issueDate: string;
   validUntil?: string;
+  clientId?: string;
   clientSnapshot: InvoiceClientSnapshot;
   businessSnapshot: InvoiceBusinessSnapshot;
   items: readonly InvoiceItem[];
@@ -402,6 +404,7 @@ export class ApiClient {
   private readonly baseUrl: string;
   private readonly tokenProvider?: TokenProvider;
   private readonly fetchImpl: typeof fetch;
+  private readonly inFlightGets = new Map<string, Promise<unknown>>();
 
   constructor(options: ApiClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
@@ -1075,30 +1078,44 @@ export class ApiClient {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const headers: Record<string, string> = {
-      'content-type': 'application/json',
-    };
+    const headers = new Headers(init?.headers);
     const token = this.tokenProvider?.();
 
+    headers.set('content-type', 'application/json');
     if (token) {
-      headers.authorization = `Bearer ${token}`;
+      headers.set('authorization', `Bearer ${token}`);
     }
 
-    const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
-      ...init,
-      headers: {
-        ...(init?.headers as Record<string, string> | undefined),
-        ...headers,
-      },
-    });
+    const method = (init?.method ?? 'GET').toUpperCase();
+    const key = `${this.baseUrl}\n${path}\n${headers.get('authorization') ?? ''}`;
+    const existing = method === 'GET' ? this.inFlightGets.get(key) : undefined;
+    if (existing) return existing as Promise<T>;
 
-    if (!response.ok) {
-      throw new ApiRequestError(
-        response.status,
-        `Request to ${path} failed with status ${response.status}`,
-      );
+    const request = (async () => {
+      const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
+        ...init,
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new ApiRequestError(
+          response.status,
+          `Request to ${path} failed with status ${response.status}`,
+        );
+      }
+
+      return (await response.json()) as T;
+    })();
+
+    if (method !== 'GET') return request;
+
+    this.inFlightGets.set(key, request);
+    try {
+      return await request;
+    } finally {
+      if (this.inFlightGets.get(key) === request) {
+        this.inFlightGets.delete(key);
+      }
     }
-
-    return (await response.json()) as T;
   }
 }

@@ -60,6 +60,10 @@ type DocumentItemTaxRow = {
   rate: string;
 };
 
+type AggregateItemRow = DocumentItemRow & {
+  taxes: Omit<DocumentItemTaxRow, 'id' | 'item_id'>[];
+};
+
 type Database = {
   public: {
     Tables: {
@@ -83,7 +87,20 @@ type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      save_invoice_aggregate: {
+        Args: { p_invoice: InvoiceRow; p_items: AggregateItemRow[] };
+        Returns: undefined;
+      };
+      send_invoice_if_draft: {
+        Args: {
+          p_invoice_id: string;
+          p_business_id: string;
+          p_sent_at: string;
+        };
+        Returns: boolean;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -149,64 +166,32 @@ export class SupabaseInvoiceRepository implements InvoiceRepository {
   }
 
   async save(invoice: Invoice): Promise<void> {
-    const { error } = await this.client
-      .from('invoices')
-      .upsert(mapInvoiceToRow(invoice));
+    const { error } = await this.client.rpc('save_invoice_aggregate', {
+      p_invoice: mapInvoiceToRow(invoice),
+      p_items: mapAggregateItems(invoice),
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async markSent(
+    id: string,
+    businessId: string,
+    sentAt: string,
+  ): Promise<boolean> {
+    const { data, error } = await this.client.rpc('send_invoice_if_draft', {
+      p_invoice_id: id,
+      p_business_id: businessId,
+      p_sent_at: sentAt,
+    });
 
     if (error) {
       throw new Error(error.message);
     }
 
-    await this.replaceItems(invoice);
-  }
-
-  private async replaceItems(invoice: Invoice): Promise<void> {
-    const { error: deleteError } = await this.client
-      .from('document_items')
-      .delete()
-      .eq('document_type', 'invoice')
-      .eq('document_id', invoice.id);
-
-    if (deleteError) {
-      throw new Error(deleteError.message);
-    }
-
-    if (invoice.items.length === 0) {
-      return;
-    }
-
-    const itemRows = invoice.items.map((item, index) =>
-      mapItemToRow(item, invoice.id, index),
-    );
-
-    const { error: itemError } = await this.client
-      .from('document_items')
-      .insert(itemRows);
-
-    if (itemError) {
-      throw new Error(itemError.message);
-    }
-
-    const taxRows = invoice.items.flatMap((item) =>
-      item.appliedTaxes.map((tax) => ({
-        item_id: item.id,
-        tax_id: tax.taxId ?? null,
-        name: tax.name,
-        rate: tax.rate,
-      })),
-    );
-
-    if (taxRows.length === 0) {
-      return;
-    }
-
-    const { error: taxError } = await this.client
-      .from('document_item_taxes')
-      .insert(taxRows);
-
-    if (taxError) {
-      throw new Error(taxError.message);
-    }
+    return data;
   }
 
   async delete(id: string, businessId: string): Promise<void> {
@@ -351,6 +336,17 @@ function mapItemToRow(
     rate: item.rate,
     sort_order: sortOrder,
   };
+}
+
+function mapAggregateItems(invoice: Invoice): AggregateItemRow[] {
+  return invoice.items.map((item, index) => ({
+    ...mapItemToRow(item, invoice.id, index),
+    taxes: item.appliedTaxes.map((tax) => ({
+      tax_id: tax.taxId ?? null,
+      name: tax.name,
+      rate: tax.rate,
+    })),
+  }));
 }
 
 function mapInvoice(row: InvoiceRow, items: DocumentItem[]): Invoice {

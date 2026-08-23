@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   validateDocumentForEdit,
+  validateFinalDocumentForSend,
   validateDocumentForReview,
   validateDocumentForSend,
   validateEmail,
@@ -64,4 +65,44 @@ test('send validation rejects invalid recipient emails', () => {
   });
   assert.equal(result.valid, false);
   assert.equal(result.issues[0].code, 'invalid_email');
+});
+
+test('final send validation accepts a complete document and recipients', () => {
+  const result = validateFinalDocumentForSend({
+    clientSelected: true,
+    items: [{ description: 'Work', quantity: '1.5', rate: '0' }],
+    themeId: 'theme-1',
+    themeVersionId: 'version-1',
+    to: ['to@example.com'],
+    cc: ['cc@example.com'],
+    bcc: ['bcc@example.com'],
+  });
+
+  assert.equal(result.valid, true);
+});
+
+test('final send validation reports all authoritative send requirements', () => {
+  const result = validateFinalDocumentForSend({
+    clientSelected: false,
+    items: [
+      { description: ' ', quantity: '0', rate: '-1' },
+      { description: 'Work', quantity: 'abc', rate: 'abc' },
+    ],
+    to: [],
+    cc: ['invalid'],
+  });
+  const codes = result.issues.map((issue) => issue.code);
+
+  assert.equal(result.valid, false);
+  assert.deepEqual(codes, [
+    'client_required',
+    'description_required',
+    'nonpositive_quantity',
+    'negative_rate',
+    'invalid_quantity',
+    'invalid_rate',
+    'theme_required',
+    'recipient_required',
+    'invalid_email',
+  ]);
 });

@@ -13,8 +13,12 @@ export const apiLogLevels = [
 ] as const satisfies readonly LogLevel[];
 export type ApiLogLevel = (typeof apiLogLevels)[number];
 
+export const emailProviders = ['logger', 'disabled'] as const;
+export type EmailProviderName = (typeof emailProviders)[number];
+
 export type EnvironmentVariables = Readonly<{
   CORS_ORIGINS: readonly string[];
+  EMAIL_PROVIDER: EmailProviderName;
   HOST: string;
   LOG_LEVEL: ApiLogLevel;
   NODE_ENV: NodeEnvironment;
@@ -71,6 +75,29 @@ function parseLogLevel(value: unknown): ApiLogLevel {
   }
 
   return logLevel as ApiLogLevel;
+}
+
+function parseEmailProvider(
+  value: unknown,
+  environment: NodeEnvironment,
+): EmailProviderName {
+  const provider =
+    value ?? (environment === 'production' ? 'disabled' : 'logger');
+
+  if (
+    typeof provider !== 'string' ||
+    !emailProviders.includes(provider as EmailProviderName)
+  ) {
+    throw new Error(
+      `EMAIL_PROVIDER must be one of: ${emailProviders.join(', ')}`,
+    );
+  }
+
+  if (environment === 'production' && provider === 'logger') {
+    throw new Error('EMAIL_PROVIDER=logger is not allowed in production');
+  }
+
+  return provider as EmailProviderName;
 }
 
 function normalizeOrigin(origin: string): string {
@@ -145,6 +172,7 @@ export function validateEnvironment(
 
   return {
     CORS_ORIGINS: parseCorsOrigins(values.CORS_ORIGINS, environment),
+    EMAIL_PROVIDER: parseEmailProvider(values.EMAIL_PROVIDER, environment),
     HOST: parseHost(values.HOST),
     LOG_LEVEL: parseLogLevel(values.LOG_LEVEL),
     NODE_ENV: environment,

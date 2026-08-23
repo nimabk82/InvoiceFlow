@@ -13,6 +13,11 @@ type Builder = {
   then: (onFulfilled?: (value: unknown) => unknown) => Promise<unknown>;
 };
 
+type ClientResult = {
+  client: SupabaseBusinessClient;
+  rpc: jest.Mock;
+};
+
 function createBuilder(result: unknown): Builder {
   const builder: Builder = {
     select: jest.fn(() => builder),
@@ -29,7 +34,15 @@ function createClient(
   results: Record<string, unknown>,
 ): SupabaseBusinessClient {
   const from = jest.fn((table: string) => createBuilder(results[table]));
-  return { from } as unknown as SupabaseBusinessClient;
+  return { from, rpc: jest.fn() } as unknown as SupabaseBusinessClient;
+}
+
+function createRpcClient(result: unknown): ClientResult {
+  const rpc = jest.fn().mockResolvedValue(result);
+  return {
+    client: { rpc } as unknown as SupabaseBusinessClient,
+    rpc,
+  };
 }
 
 const businessId = '00000000-0000-0000-0000-000000000001';
@@ -132,13 +145,28 @@ describe('SupabaseBusinessRepository', () => {
     );
   });
 
-  it('inserts a member on addMember', async () => {
-    const client = createClient({ business_members: { error: null } });
+  it('atomically provisions the account, business, and owner membership', async () => {
+    const { client, rpc } = createRpcClient({ error: null });
     const repository = new SupabaseBusinessRepository(client);
 
     await expect(
-      repository.addMember('account-1', 'b1', 'owner'),
+      repository.provisionOwnerBusiness({
+        id: businessId,
+        ownerAccountId: accountId,
+        name: 'Acme',
+        countryCode: 'CA',
+        currencyCode: 'CAD',
+      }),
     ).resolves.toBeUndefined();
+
+    expect(rpc).toHaveBeenCalledWith(
+      'provision_owner_business',
+      expect.objectContaining({
+        p_business_id: businessId,
+        p_name: 'Acme',
+        p_owner_account_id: accountId,
+      }),
+    );
   });
 
   it('upserts a business on save', async () => {

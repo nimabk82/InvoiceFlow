@@ -61,8 +61,7 @@ export class BusinessesService {
       logoAssetId: input.logoAssetId,
     };
 
-    await this.businessRepository.save(business);
-    await this.businessRepository.addMember(accountId, business.id, 'owner');
+    await this.businessRepository.provisionOwnerBusiness(business);
 
     return business;
   }

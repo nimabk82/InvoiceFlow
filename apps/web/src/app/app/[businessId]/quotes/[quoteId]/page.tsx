@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ApiClient,
   type ActivityEvent,
@@ -35,12 +35,7 @@ export default function QuoteDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast, setToast } = useToast();
 
-  const startedRef = useRef<string | null>(null);
-
   useEffect(() => {
-    const key = `${businessId}:${quoteId}`;
-    if (startedRef.current === key) return;
-    startedRef.current = key;
     let cancelled = false;
 
     async function load() {

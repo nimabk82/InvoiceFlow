@@ -145,6 +145,7 @@ export default function QuoteReviewPage() {
   }, [quote]);
 
   const theme: ThemeConfig = themePresets[preset];
+  const editRoute = `/app/${businessId}/quotes/new?draftId=${encodeURIComponent(quoteId)}`;
 
   if (error) {
     return (
@@ -176,7 +177,7 @@ export default function QuoteReviewPage() {
             Theme changes appearance only.
           </Typography>
         </div>
-        <Button variant="outlined" onClick={() => router.back()}>Back to Edit</Button>
+        <Button variant="outlined" onClick={() => router.push(editRoute)}>Back to Edit</Button>
       </div>
 
       {newerVersion && (
@@ -231,7 +232,7 @@ export default function QuoteReviewPage() {
               Send Quote
             </Button>
             <Button variant="outlined" sx={{ width: "100%" }}>Download PDF</Button>
-            <Button variant="text" onClick={() => router.back()} sx={{ width: "100%" }}>Back to Edit</Button>
+            <Button variant="text" onClick={() => router.push(editRoute)} sx={{ width: "100%" }}>Back to Edit</Button>
           </div>
         </div>
       </div>

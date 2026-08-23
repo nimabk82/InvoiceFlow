@@ -2,17 +2,20 @@ import type { BusinessRepository } from '../businesses/repositories/business.rep
 import type { ClientRepository } from '../clients/repositories/client.repository';
 import type { EmailProvider } from '../email/email-provider';
 import type { ActivityEventRepository } from '../audit/repositories/activity-event.repository';
-import type { InvoiceRepository } from '../invoices/repositories/invoice.repository';
 import type { ThemeAssignmentService } from '../theme-assignment/theme-assignment.service';
 import { QuotesService } from './quotes.service';
 import type { QuoteRepository } from './repositories/quote.repository';
 
 function createDeps() {
   const save = jest.fn().mockResolvedValue(undefined);
+  const markSent = jest.fn().mockResolvedValue(true);
+  const convertToInvoice = jest.fn().mockResolvedValue(true);
   const quoteRepository = {
     findById: jest.fn(),
     list: jest.fn().mockResolvedValue({ items: [] }),
     save,
+    markSent,
+    convertToInvoice,
   } as unknown as QuoteRepository;
   const businessRepository = {
     findById: jest.fn(),
@@ -27,13 +30,6 @@ function createDeps() {
     record: activityRecord,
     list: jest.fn().mockResolvedValue({ items: [] }),
   } as unknown as ActivityEventRepository;
-  const invoiceSave = jest.fn().mockResolvedValue(undefined);
-  const invoiceRepository = {
-    findById: jest.fn(),
-    list: jest.fn(),
-    save: invoiceSave,
-    delete: jest.fn(),
-  } as unknown as InvoiceRepository;
   const themeAssignment = {
     resolveDefault: jest.fn().mockResolvedValue(undefined),
     resolveById: jest.fn().mockResolvedValue(undefined),
@@ -48,12 +44,12 @@ function createDeps() {
     clientRepository,
     emailProvider,
     activityEventRepository,
-    invoiceRepository,
     themeAssignment,
     save,
     emailSend,
     activityRecord,
-    invoiceSave,
+    markSent,
+    convertToInvoice,
   };
 }
 
@@ -64,7 +60,6 @@ function buildService(deps: ReturnType<typeof createDeps>) {
     deps.clientRepository,
     deps.emailProvider,
     deps.activityEventRepository,
-    deps.invoiceRepository,
     deps.themeAssignment,
   );
 }
@@ -135,6 +130,41 @@ describe('QuotesService', () => {
     ).rejects.toThrow();
   });
 
+  it('rejects an explicit client outside the business on create and update', async () => {
+    const deps = createDeps();
+    const service = buildService(deps);
+    (deps.businessRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'business-1',
+      name: 'Acme',
+    });
+    (deps.clientRepository.findById as jest.Mock).mockResolvedValue(null);
+    (deps.quoteRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'quote-1',
+      businessId: 'business-1',
+      status: 'draft',
+      number: 'Q-1',
+      clientSnapshot: { displayName: 'Old', emails: [] },
+      businessSnapshot: { displayName: 'Acme' },
+      currencyCode: 'CAD',
+      issueDate: '2026-08-01',
+      items: [],
+    });
+    const input = {
+      clientId: 'foreign-client',
+      issueDate: '2026-08-22',
+      currencyCode: 'CAD',
+      items: [],
+    };
+
+    await expect(service.createQuote('business-1', input)).rejects.toThrow(
+      'Client not found for this business',
+    );
+    await expect(
+      service.updateQuote('business-1', 'quote-1', input),
+    ).rejects.toThrow('Client not found for this business');
+    expect(deps.save).not.toHaveBeenCalled();
+  });
+
   it('sends a draft quote, emails recipients, transitions to sent, and records activity', async () => {
     const deps = createDeps();
     const { emailSend, activityRecord } = deps;
@@ -144,7 +174,11 @@ describe('QuotesService', () => {
       businessId: 'business-1',
       number: 'Q-1',
       status: 'draft',
+      clientId: 'client-1',
       businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: 'Work', quantity: '1', rate: '10' }],
       convertedInvoiceIds: [],
     });
 
@@ -158,9 +192,66 @@ describe('QuotesService', () => {
     );
     expect(sent.status).toBe('sent');
     expect(sent.sentAt).toBeDefined();
+    expect(deps.markSent).toHaveBeenCalledWith(
+      'quote-1',
+      'business-1',
+      sent.sentAt,
+    );
     expect(activityRecord).toHaveBeenCalledWith(
       expect.objectContaining({ entityType: 'quote', type: 'sent' }),
     );
+  });
+
+  it('does not email when the draft-to-sent compare-and-set loses', async () => {
+    const deps = createDeps();
+    const service = buildService(deps);
+    (deps.quoteRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'quote-1',
+      businessId: 'business-1',
+      number: 'Q-1',
+      status: 'draft',
+      clientId: 'client-1',
+      businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: 'Work', quantity: '1', rate: '10' }],
+      convertedInvoiceIds: [],
+    });
+    deps.markSent.mockResolvedValue(false);
+
+    await expect(
+      service.sendQuote('business-1', 'quote-1', {
+        to: ['client@example.com'],
+        subject: 'Quote',
+      }),
+    ).rejects.toThrow('Only draft quotes can be sent');
+    expect(deps.emailSend).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid quote content and recipients before email delivery', async () => {
+    const deps = createDeps();
+    const service = buildService(deps);
+    (deps.quoteRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'quote-1',
+      businessId: 'business-1',
+      number: 'Q-1',
+      status: 'draft',
+      clientId: 'client-1',
+      businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: ' ', quantity: '0', rate: '-1' }],
+      convertedInvoiceIds: [],
+    });
+
+    await expect(
+      service.sendQuote('business-1', 'quote-1', {
+        to: ['invalid'],
+        subject: 'Quote',
+      }),
+    ).rejects.toThrow('Enter an item description');
+    expect(deps.emailSend).not.toHaveBeenCalled();
+    expect(deps.save).not.toHaveBeenCalled();
   });
 
   it('accepts a sent quote and records an accepted event', async () => {
@@ -218,7 +309,7 @@ describe('QuotesService', () => {
 
   it('converts an accepted quote into a draft invoice preserving the relationship', async () => {
     const deps = createDeps();
-    const { invoiceSave, activityRecord } = deps;
+    const { activityRecord } = deps;
     const service = buildService(deps);
     (deps.quoteRepository.findById as jest.Mock).mockResolvedValue({
       id: 'quote-1',
@@ -247,6 +338,7 @@ describe('QuotesService', () => {
         dueRule: 'on_receipt',
       },
       convertedInvoiceIds: [],
+      updatedAt: '2026-08-22T00:00:00.000Z',
     });
 
     const { quote, invoice } = await service.convertQuote(
@@ -269,7 +361,8 @@ describe('QuotesService', () => {
       dueRule: 'on_receipt',
     });
     expect(quote.convertedInvoiceIds).toContain(invoice.id);
-    expect(invoiceSave).toHaveBeenCalledWith(
+    expect(deps.convertToInvoice).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'quote-1' }),
       expect.objectContaining({ id: invoice.id }),
     );
     expect(activityRecord).toHaveBeenCalledWith(

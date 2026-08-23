@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ApiClient,
@@ -38,6 +38,7 @@ export default function NewQuotePage() {
   const params = useParams<{ businessId: string }>();
   const businessId = params.businessId;
   const router = useRouter();
+  const draftId = useSearchParams().get("draftId");
 
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<ProductService[]>([]);
@@ -87,10 +88,40 @@ export default function NewQuotePage() {
       } = await supabase.auth.getSession();
       if (!session) return;
       try {
-        const page = await apiClient.listClients(businessId, session.access_token);
-        if (!cancelled) setClients([...page.items]);
-        const productPage = await apiClient.listProducts(businessId, session.access_token);
-        if (!cancelled) setProducts([...productPage.items]);
+        const [page, productPage, draft] = await Promise.all([
+          apiClient.listClients(businessId, session.access_token),
+          apiClient.listProducts(businessId, session.access_token),
+          draftId
+            ? apiClient.getQuote(businessId, draftId, session.access_token)
+            : Promise.resolve(null),
+        ]);
+        if (!cancelled) {
+          setClients([...page.items]);
+          setProducts([...productPage.items]);
+          if (draft) {
+            if (draft.status !== "draft") {
+              setError("Only draft quotes can be edited.");
+              return;
+            }
+            setClientId(draft.clientId ?? "");
+            setNumber(draft.number);
+            setIssueDate(draft.issueDate);
+            setValidUntil(draft.validUntil ?? "");
+            setCurrencyCode(draft.currencyCode);
+            setItems(
+              draft.items.map((item) => ({
+                ...item,
+                appliedTaxes: [...item.appliedTaxes],
+              })),
+            );
+            setDepositType(draft.proposedDepositTerms?.type ?? "");
+            setDepositValue(draft.proposedDepositTerms?.value ?? "");
+            setDepositDueRule(
+              draft.proposedDepositTerms?.dueRule ?? "on_receipt",
+            );
+            setDepositDueDate(draft.proposedDepositTerms?.dueDate ?? "");
+          }
+        }
       } catch (caught) {
         if (!cancelled)
           setError(
@@ -103,7 +134,7 @@ export default function NewQuotePage() {
     return () => {
       cancelled = true;
     };
-  }, [businessId]);
+  }, [businessId, draftId]);
 
   function updateItem(index: number, patch: Partial<LineItem>) {
     setItems((current) =>
@@ -187,15 +218,24 @@ export default function NewQuotePage() {
     }
 
     try {
-      const quote = await apiClient.createQuote(
-        businessId,
-        buildQuoteInput(),
-        session.access_token,
-      );
-      router.push(`/app/${businessId}/quotes/${quote.id}/review`);
+      const quote = draftId
+        ? await apiClient.updateQuote(
+            businessId,
+            draftId,
+            buildQuoteInput(),
+            session.access_token,
+          )
+        : await apiClient.createQuote(
+            businessId,
+            buildQuoteInput(),
+            session.access_token,
+          );
+      const reviewRoute = `/app/${businessId}/quotes/${quote.id}/review`;
+      if (draftId) router.push(reviewRoute);
+      else router.replace(reviewRoute);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to create quote.",
+        caught instanceof Error ? caught.message : "Failed to save quote.",
       );
       setSubmitting(false);
     }
@@ -216,11 +256,24 @@ export default function NewQuotePage() {
     }
 
     try {
-      await apiClient.createQuote(businessId, buildQuoteInput(), session.access_token);
+      if (draftId) {
+        await apiClient.updateQuote(
+          businessId,
+          draftId,
+          buildQuoteInput(),
+          session.access_token,
+        );
+      } else {
+        await apiClient.createQuote(
+          businessId,
+          buildQuoteInput(),
+          session.access_token,
+        );
+      }
       router.push(`/app/${businessId}/quotes`);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to create quote.",
+        caught instanceof Error ? caught.message : "Failed to save quote.",
       );
       setSubmitting(false);
     }
@@ -424,7 +477,7 @@ export default function NewQuotePage() {
 
       <div className="if-sticky-editor">
         <div className="if-sticky-inner">
-          <span className="if-saved">Saved ✓</span>
+          <span className="if-saved">Changes save on Review</span>
           <Button type="button" onClick={handleReview} disabled={submitting} sx={{ height: 44, padding: "0 24px" }}>
             {submitting ? "Saving…" : "Review Quote →"}
           </Button>

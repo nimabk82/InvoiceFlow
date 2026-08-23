@@ -9,6 +9,7 @@ describe('validateEnvironment', () => {
   it('provides safe development defaults for non-Supabase variables', () => {
     expect(validateEnvironment({ ...validSupabase })).toEqual({
       CORS_ORIGINS: ['http://localhost:3000'],
+      EMAIL_PROVIDER: 'logger',
       HOST: '0.0.0.0',
       LOG_LEVEL: 'log',
       NODE_ENV: 'development',
@@ -34,6 +35,7 @@ describe('validateEnvironment', () => {
         'https://app.invoiceflow.test',
         'https://admin.invoiceflow.test',
       ],
+      EMAIL_PROVIDER: 'logger',
       HOST: '127.0.0.1',
       LOG_LEVEL: 'debug',
       NODE_ENV: 'test',
@@ -50,6 +52,7 @@ describe('validateEnvironment', () => {
     [{ HOST: '' }, 'HOST'],
     [{ LOG_LEVEL: 'trace' }, 'LOG_LEVEL'],
     [{ CORS_ORIGINS: 'file:///tmp/app' }, 'CORS_ORIGINS'],
+    [{ EMAIL_PROVIDER: 'smtp' }, 'EMAIL_PROVIDER'],
     [{ SUPABASE_URL: '' }, 'SUPABASE_URL'],
     [{ SUPABASE_URL: 'not-a-url' }, 'SUPABASE_URL'],
     [{ SUPABASE_URL: 'ftp://bad.protocol' }, 'SUPABASE_URL'],
@@ -61,9 +64,22 @@ describe('validateEnvironment', () => {
   });
 
   it('does not allow localhost implicitly in production', () => {
-    expect(
-      validateEnvironment({ ...validSupabase, NODE_ENV: 'production' })
-        .CORS_ORIGINS,
-    ).toEqual([]);
+    const config = validateEnvironment({
+      ...validSupabase,
+      NODE_ENV: 'production',
+    });
+
+    expect(config.CORS_ORIGINS).toEqual([]);
+    expect(config.EMAIL_PROVIDER).toBe('disabled');
+  });
+
+  it('rejects the logger email provider in production', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validSupabase,
+        EMAIL_PROVIDER: 'logger',
+        NODE_ENV: 'production',
+      }),
+    ).toThrow('EMAIL_PROVIDER=logger is not allowed in production');
   });
 });

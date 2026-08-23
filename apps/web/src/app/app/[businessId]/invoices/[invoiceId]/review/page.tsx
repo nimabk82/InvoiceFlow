@@ -148,6 +148,7 @@ export default function InvoiceReviewPage() {
   }, [invoice]);
 
   const theme: ThemeConfig = themePresets[preset];
+  const editRoute = `/app/${businessId}/invoices/new?draftId=${encodeURIComponent(invoiceId)}`;
 
   if (error) {
     return (
@@ -187,7 +188,7 @@ export default function InvoiceReviewPage() {
             Theme changes appearance only — financial values are unchanged.
           </Typography>
         </div>
-        <Button variant="outlined" onClick={() => router.back()}>
+        <Button variant="outlined" onClick={() => router.push(editRoute)}>
           Back to Edit
         </Button>
       </div>
@@ -249,7 +250,7 @@ export default function InvoiceReviewPage() {
             <Button variant="outlined" sx={{ width: "100%" }}>
               Download PDF
             </Button>
-            <Button variant="text" onClick={() => router.back()} sx={{ width: "100%" }}>
+            <Button variant="text" onClick={() => router.push(editRoute)} sx={{ width: "100%" }}>
               Back to Edit
             </Button>
           </div>

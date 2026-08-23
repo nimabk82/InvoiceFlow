@@ -6,6 +6,7 @@ import type {
   ClientSnapshot,
   DepositTerms,
   DocumentItem,
+  Invoice,
   Quote,
   QuoteStatus,
   RichTextDocument,
@@ -57,6 +58,10 @@ type DocumentItemTaxRow = {
   rate: string;
 };
 
+type AggregateItemRow = DocumentItemRow & {
+  taxes: Omit<DocumentItemTaxRow, 'id' | 'item_id'>[];
+};
+
 type Database = {
   public: {
     Tables: {
@@ -80,7 +85,31 @@ type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      save_quote_aggregate: {
+        Args: { p_quote: QuoteRow; p_items: AggregateItemRow[] };
+        Returns: undefined;
+      };
+      send_quote_if_draft: {
+        Args: {
+          p_quote_id: string;
+          p_business_id: string;
+          p_sent_at: string;
+        };
+        Returns: boolean;
+      };
+      convert_quote_to_invoice: {
+        Args: {
+          p_quote_id: string;
+          p_business_id: string;
+          p_expected_updated_at: string;
+          p_quote_updated_at: string;
+          p_invoice: Record<string, unknown>;
+          p_items: AggregateItemRow[];
+        };
+        Returns: boolean;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -144,64 +173,49 @@ export class SupabaseQuoteRepository implements QuoteRepository {
   }
 
   async save(quote: Quote): Promise<void> {
-    const { error } = await this.client
-      .from('quotes')
-      .upsert(mapQuoteToRow(quote));
+    const { error } = await this.client.rpc('save_quote_aggregate', {
+      p_quote: mapQuoteToRow(quote),
+      p_items: mapAggregateItems(quote, 'quote'),
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async markSent(
+    id: string,
+    businessId: string,
+    sentAt: string,
+  ): Promise<boolean> {
+    const { data, error } = await this.client.rpc('send_quote_if_draft', {
+      p_quote_id: id,
+      p_business_id: businessId,
+      p_sent_at: sentAt,
+    });
 
     if (error) {
       throw new Error(error.message);
     }
 
-    await this.replaceItems(quote);
+    return data;
   }
 
-  private async replaceItems(quote: Quote): Promise<void> {
-    const { error: deleteError } = await this.client
-      .from('document_items')
-      .delete()
-      .eq('document_type', 'quote')
-      .eq('document_id', quote.id);
+  async convertToInvoice(quote: Quote, invoice: Invoice): Promise<boolean> {
+    const { data, error } = await this.client.rpc('convert_quote_to_invoice', {
+      p_quote_id: quote.id,
+      p_business_id: quote.businessId,
+      p_expected_updated_at: quote.updatedAt,
+      p_quote_updated_at: invoice.updatedAt,
+      p_invoice: mapInvoiceToRpcRow(invoice),
+      p_items: mapAggregateItems(invoice, 'invoice'),
+    });
 
-    if (deleteError) {
-      throw new Error(deleteError.message);
+    if (error) {
+      throw new Error(error.message);
     }
 
-    if (quote.items.length === 0) {
-      return;
-    }
-
-    const itemRows = quote.items.map((item, index) =>
-      mapItemToRow(item, quote.id, index),
-    );
-
-    const { error: itemError } = await this.client
-      .from('document_items')
-      .insert(itemRows);
-
-    if (itemError) {
-      throw new Error(itemError.message);
-    }
-
-    const taxRows = quote.items.flatMap((item) =>
-      item.appliedTaxes.map((tax) => ({
-        item_id: item.id,
-        tax_id: tax.taxId ?? null,
-        name: tax.name,
-        rate: tax.rate,
-      })),
-    );
-
-    if (taxRows.length === 0) {
-      return;
-    }
-
-    const { error: taxError } = await this.client
-      .from('document_item_taxes')
-      .insert(taxRows);
-
-    if (taxError) {
-      throw new Error(taxError.message);
-    }
+    return data;
   }
 
   private async loadItems(
@@ -284,10 +298,11 @@ function mapItemToRow(
   item: DocumentItem,
   documentId: string,
   sortOrder: number,
+  documentType: 'invoice' | 'quote' = 'quote',
 ): DocumentItemRow {
   return {
     id: item.id,
-    document_type: 'quote',
+    document_type: documentType,
     document_id: documentId,
     source_product_service_id: item.sourceProductServiceId ?? null,
     description: item.description,
@@ -295,6 +310,47 @@ function mapItemToRow(
     quantity: item.quantity,
     rate: item.rate,
     sort_order: sortOrder,
+  };
+}
+
+function mapAggregateItems(
+  document: Quote | Invoice,
+  documentType: 'invoice' | 'quote',
+): AggregateItemRow[] {
+  return document.items.map((item, index) => ({
+    ...mapItemToRow(item, document.id, index, documentType),
+    taxes: item.appliedTaxes.map((tax) => ({
+      tax_id: tax.taxId ?? null,
+      name: tax.name,
+      rate: tax.rate,
+    })),
+  }));
+}
+
+function mapInvoiceToRpcRow(invoice: Invoice): Record<string, unknown> {
+  return {
+    id: invoice.id,
+    business_id: invoice.businessId,
+    number: invoice.number,
+    client_id: invoice.clientId ?? null,
+    client_snapshot: invoice.clientSnapshot,
+    business_snapshot: invoice.businessSnapshot,
+    currency_code: invoice.currencyCode,
+    issue_date: invoice.issueDate,
+    due_date: invoice.dueDate ?? null,
+    discount: invoice.discount ?? null,
+    deposit_terms: invoice.depositTerms ?? null,
+    notes: invoice.notes ?? null,
+    terms: invoice.terms ?? null,
+    po_number: invoice.poNumber ?? null,
+    status: invoice.status,
+    source_quote_id: invoice.sourceQuoteId ?? null,
+    theme_id: invoice.themeId ?? null,
+    theme_version_id: invoice.themeVersionId ?? null,
+    theme_name_snapshot: invoice.themeNameSnapshot ?? null,
+    created_at: invoice.createdAt,
+    updated_at: invoice.updatedAt,
+    sent_at: invoice.sentAt ?? null,
   };
 }
 

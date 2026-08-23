@@ -7,10 +7,12 @@ import type { ThemeAssignmentService } from '../theme-assignment/theme-assignmen
 function createRepository() {
   const list = jest.fn().mockResolvedValue({ items: [] });
   const save = jest.fn().mockResolvedValue(undefined);
+  const markSent = jest.fn().mockResolvedValue(true);
   const invoiceRepository = {
     findById: jest.fn(),
     list,
     save,
+    markSent,
   } as unknown as InvoiceRepository;
   const businessRepository = {
     findById: jest.fn(),
@@ -48,7 +50,20 @@ function createRepository() {
     themeAssignment,
     list,
     save,
+    markSent,
   };
+}
+
+function buildService(deps: ReturnType<typeof createRepository>) {
+  return new InvoicesService(
+    deps.invoiceRepository,
+    deps.businessRepository,
+    deps.clientRepository,
+    deps.emailProvider,
+    deps.paymentRepository,
+    deps.activityEventRepository,
+    deps.themeAssignment,
+  );
 }
 
 describe('InvoicesService', () => {
@@ -242,7 +257,7 @@ describe('InvoicesService', () => {
       paymentRepository,
       activityEventRepository,
       themeAssignment,
-      save,
+      markSent,
     } = createRepository();
     (businessRepository.findById as jest.Mock).mockResolvedValue({
       id: 'business-1',
@@ -280,7 +295,10 @@ describe('InvoicesService', () => {
       'invoice',
     );
 
-    (invoiceRepository.findById as jest.Mock).mockResolvedValue(invoice);
+    (invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      ...invoice,
+      clientId: 'client-1',
+    });
     const sent = await service.sendInvoice('business-1', invoice.id, {
       to: ['client@example.com'],
       subject: 'Invoice',
@@ -288,12 +306,10 @@ describe('InvoicesService', () => {
 
     expect(sent.status).toBe('sent');
     expect(sent.themeVersionId).toBe('tv-1');
-    expect(save).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        status: 'sent',
-        themeId: 'theme-1',
-        themeVersionId: 'tv-1',
-      }),
+    expect(markSent).toHaveBeenCalledWith(
+      invoice.id,
+      'business-1',
+      sent.sentAt,
     );
   });
 
@@ -326,6 +342,41 @@ describe('InvoicesService', () => {
     ).rejects.toThrow();
   });
 
+  it('rejects an explicit client outside the business on create and update', async () => {
+    const deps = createRepository();
+    const service = buildService(deps);
+    (deps.businessRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'business-1',
+      name: 'Acme',
+    });
+    (deps.clientRepository.findById as jest.Mock).mockResolvedValue(null);
+    (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      status: 'draft',
+      number: 'INV-1',
+      clientSnapshot: { displayName: 'Old', emails: [] },
+      businessSnapshot: { displayName: 'Acme' },
+      currencyCode: 'CAD',
+      issueDate: '2026-08-01',
+      items: [],
+    });
+    const input = {
+      clientId: 'foreign-client',
+      issueDate: '2026-08-22',
+      currencyCode: 'CAD',
+      items: [],
+    };
+
+    await expect(service.createInvoice('business-1', input)).rejects.toThrow(
+      'Client not found for this business',
+    );
+    await expect(
+      service.updateInvoice('business-1', 'invoice-1', input),
+    ).rejects.toThrow('Client not found for this business');
+    expect(deps.save).not.toHaveBeenCalled();
+  });
+
   it('sends a draft invoice, emails recipients, and transitions to sent', async () => {
     const {
       invoiceRepository,
@@ -335,14 +386,18 @@ describe('InvoicesService', () => {
       paymentRepository,
       activityEventRepository,
       themeAssignment,
-      save,
+      markSent,
     } = createRepository();
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
       id: 'invoice-1',
       businessId: 'business-1',
       number: 'INV-1',
       status: 'draft',
+      clientId: 'client-1',
       businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: 'Work', quantity: '1', rate: '10' }],
     });
     const service = new InvoicesService(
       invoiceRepository,
@@ -368,9 +423,44 @@ describe('InvoicesService', () => {
     );
     expect(sent.status).toBe('sent');
     expect(sent.sentAt).toBeDefined();
-    expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'sent' }),
+    expect(markSent).toHaveBeenCalledWith(
+      'invoice-1',
+      'business-1',
+      sent.sentAt,
     );
+  });
+
+  it('does not email when the draft-to-sent compare-and-set loses', async () => {
+    const deps = createRepository();
+    (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'draft',
+      clientId: 'client-1',
+      businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: 'Work', quantity: '1', rate: '10' }],
+    });
+    deps.markSent.mockResolvedValue(false);
+    const service = new InvoicesService(
+      deps.invoiceRepository,
+      deps.businessRepository,
+      deps.clientRepository,
+      deps.emailProvider,
+      deps.paymentRepository,
+      deps.activityEventRepository,
+      deps.themeAssignment,
+    );
+
+    await expect(
+      service.sendInvoice('business-1', 'invoice-1', {
+        to: ['client@example.com'],
+        subject: 'Invoice',
+      }),
+    ).rejects.toThrow('Only draft invoices can be sent');
+    expect(deps.emailProvider.send).not.toHaveBeenCalled();
   });
 
   it('rejects sending when an email address is invalid', async () => {
@@ -389,7 +479,11 @@ describe('InvoicesService', () => {
       businessId: 'business-1',
       number: 'INV-1',
       status: 'draft',
+      clientId: 'client-1',
       businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: 'Work', quantity: '1', rate: '10' }],
     });
     const service = new InvoicesService(
       invoiceRepository,
@@ -410,6 +504,28 @@ describe('InvoicesService', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  it('rejects sending an incomplete document before email delivery', async () => {
+    const deps = createRepository();
+    const service = buildService(deps);
+    (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'draft',
+      businessSnapshot: { displayName: 'Acme' },
+      items: [],
+    });
+
+    await expect(
+      service.sendInvoice('business-1', 'invoice-1', {
+        to: [],
+        subject: 'Invoice',
+      }),
+    ).rejects.toThrow('Select a client');
+    expect(deps.emailProvider.send).not.toHaveBeenCalled();
+    expect(deps.save).not.toHaveBeenCalled();
+  });
+
   it('records a payment and marks a fully paid invoice as paid', async () => {
     const {
       invoiceRepository,
@@ -424,13 +540,11 @@ describe('InvoicesService', () => {
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
       id: 'invoice-1',
       businessId: 'business-1',
+      status: 'sent',
       currencyCode: 'CAD',
       items: [{ quantity: '2', rate: '500', appliedTaxes: [] }],
     });
-    paymentRepository.listByInvoice.mockResolvedValue([
-      { id: 'p1', invoiceId: 'invoice-1', amount: '500' },
-      { id: 'p2', invoiceId: 'invoice-1', amount: '500' },
-    ]);
+    paymentRepository.listByInvoice.mockResolvedValue([]);
     const service = new InvoicesService(
       invoiceRepository,
       businessRepository,
@@ -442,7 +556,7 @@ describe('InvoicesService', () => {
     );
 
     const { invoice } = await service.recordPayment('business-1', 'invoice-1', {
-      amount: '500',
+      amount: '1000',
       paidAt: '2026-08-20T00:00:00.000Z',
     });
 
@@ -467,12 +581,11 @@ describe('InvoicesService', () => {
     (invoiceRepository.findById as jest.Mock).mockResolvedValue({
       id: 'invoice-1',
       businessId: 'business-1',
+      status: 'sent',
       currencyCode: 'CAD',
       items: [{ quantity: '2', rate: '500', appliedTaxes: [] }],
     });
-    paymentRepository.listByInvoice.mockResolvedValue([
-      { id: 'p1', invoiceId: 'invoice-1', amount: '250' },
-    ]);
+    paymentRepository.listByInvoice.mockResolvedValue([]);
     const service = new InvoicesService(
       invoiceRepository,
       businessRepository,
@@ -492,6 +605,72 @@ describe('InvoicesService', () => {
     expect(save).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'partially_paid' }),
     );
+  });
+
+  it.each(['abc', '0', '-1', '0.001'])(
+    'rejects invalid or nonpositive payment amount %s before persistence',
+    async (amount) => {
+      const deps = createRepository();
+      const service = buildService(deps);
+      (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+        id: 'invoice-1',
+        businessId: 'business-1',
+        status: 'sent',
+        currencyCode: 'CAD',
+        items: [{ quantity: '1', rate: '100', appliedTaxes: [] }],
+      });
+
+      await expect(
+        service.recordPayment('business-1', 'invoice-1', {
+          amount,
+          paidAt: '2026-08-20T00:00:00.000Z',
+        }),
+      ).rejects.toThrow();
+      expect(deps.paymentRepository.save).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rejects payment for an ineligible invoice status', async () => {
+    const deps = createRepository();
+    const service = buildService(deps);
+    (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      status: 'draft',
+      currencyCode: 'CAD',
+      items: [{ quantity: '1', rate: '100', appliedTaxes: [] }],
+    });
+
+    await expect(
+      service.recordPayment('business-1', 'invoice-1', {
+        amount: '10',
+        paidAt: '2026-08-20T00:00:00.000Z',
+      }),
+    ).rejects.toThrow('Payments can only be recorded');
+    expect(deps.paymentRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects a payment that exceeds the remaining balance', async () => {
+    const deps = createRepository();
+    const service = buildService(deps);
+    (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      status: 'partially_paid',
+      currencyCode: 'CAD',
+      items: [{ quantity: '1', rate: '100', appliedTaxes: [] }],
+    });
+    deps.paymentRepository.listByInvoice.mockResolvedValue([
+      { id: 'p1', invoiceId: 'invoice-1', amount: '75.00' },
+    ]);
+
+    await expect(
+      service.recordPayment('business-1', 'invoice-1', {
+        amount: '25.01',
+        paidAt: '2026-08-20T00:00:00.000Z',
+      }),
+    ).rejects.toThrow('Payment amount exceeds invoice balance');
+    expect(deps.paymentRepository.save).not.toHaveBeenCalled();
   });
 
   it('derives the effective payment status when reading an invoice', async () => {

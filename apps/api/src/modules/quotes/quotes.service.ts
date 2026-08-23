@@ -14,6 +14,7 @@ import type {
   Invoice,
   Quote,
 } from '@invoiceflow/domain';
+import { validateFinalDocumentForSend } from '@invoiceflow/validation';
 
 import {
   ACTIVITY_EVENT_REPOSITORY,
@@ -32,10 +33,6 @@ import {
   ThemeAssignmentService,
   type ThemeAssignment,
 } from '../theme-assignment/theme-assignment.service';
-import {
-  INVOICE_REPOSITORY,
-  type InvoiceRepository,
-} from '../invoices/repositories/invoice.repository';
 import {
   QUOTE_REPOSITORY,
   type QuotePage,
@@ -101,8 +98,6 @@ export class QuotesService {
     private readonly emailProvider: EmailProvider,
     @Inject(ACTIVITY_EVENT_REPOSITORY)
     private readonly activityEventRepository: ActivityEventRepository,
-    @Inject(INVOICE_REPOSITORY)
-    private readonly invoiceRepository: InvoiceRepository,
     private readonly themeAssignment: ThemeAssignmentService,
   ) {}
 
@@ -142,6 +137,10 @@ export class QuotesService {
     const client = input.clientId
       ? await this.clientRepository.findById(input.clientId, businessId)
       : undefined;
+
+    if (input.clientId && !client) {
+      throw new BadRequestException('Client not found for this business');
+    }
 
     const assignment: ThemeAssignment | undefined =
       (await this.themeAssignment.resolveById(input.themeId, businessId)) ??
@@ -213,6 +212,10 @@ export class QuotesService {
       ? await this.clientRepository.findById(input.clientId, businessId)
       : undefined;
 
+    if (input.clientId && !client) {
+      throw new BadRequestException('Client not found for this business');
+    }
+
     const assignment: ThemeAssignment | undefined =
       (await this.themeAssignment.resolveById(input.themeId, businessId)) ??
       (await this.themeAssignment.resolveDefault(businessId, 'quote'));
@@ -266,32 +269,48 @@ export class QuotesService {
     const cc = input.cc ?? [];
     const bcc = input.bcc ?? [];
 
-    const invalidEmail = [...to, ...cc, ...bcc].find(
-      (email) => !isValidEmail(email),
-    );
+    const validation = validateFinalDocumentForSend({
+      clientSelected: Boolean(quote.clientId),
+      items: quote.items,
+      themeId: quote.themeId,
+      themeVersionId: quote.themeVersionId,
+      to,
+      cc,
+      bcc,
+    });
 
-    if (invalidEmail !== undefined) {
-      throw new BadRequestException(`Invalid email address: ${invalidEmail}`);
+    if (!validation.valid) {
+      throw new BadRequestException(validation.issues[0]?.message);
     }
 
     const subject =
       input.subject?.trim() ||
       `Quote ${quote.number} from ${quote.businessSnapshot.displayName}`;
 
+    this.emailProvider.assertAvailable?.();
+
+    const sentAt = new Date().toISOString();
+    const sent: Quote = {
+      ...quote,
+      status: 'sent',
+      sentAt,
+      updatedAt: sentAt,
+    };
+
+    const transitioned = await this.quoteRepository.markSent(
+      quoteId,
+      businessId,
+      sentAt,
+    );
+    if (!transitioned) {
+      throw new BadRequestException('Only draft quotes can be sent');
+    }
+
     await this.emailProvider.send({
       to: [...to, ...cc, ...bcc],
       subject,
       text: input.message,
     });
-
-    const sent: Quote = {
-      ...quote,
-      status: 'sent',
-      sentAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.quoteRepository.save(sent);
     await this.recordActivity(businessId, quoteId, 'sent');
 
     return sent;
@@ -347,6 +366,7 @@ export class QuotesService {
       );
     }
 
+    const convertedAt = new Date().toISOString();
     const invoice: Invoice = {
       id: randomUUID(),
       businessId,
@@ -368,19 +388,25 @@ export class QuotesService {
       terms: quote.terms,
       status: 'draft',
       sourceQuoteId: quote.id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: convertedAt,
+      updatedAt: convertedAt,
     };
-
-    await this.invoiceRepository.save(invoice);
 
     const updated: Quote = {
       ...quote,
       convertedInvoiceIds: [...quote.convertedInvoiceIds, invoice.id],
-      updatedAt: new Date().toISOString(),
+      updatedAt: convertedAt,
     };
 
-    await this.quoteRepository.save(updated);
+    const converted = await this.quoteRepository.convertToInvoice(
+      quote,
+      invoice,
+    );
+    if (!converted) {
+      throw new BadRequestException(
+        'Quote changed before it could be converted; retry the conversion',
+      );
+    }
     await this.recordActivity(businessId, quoteId, 'converted', {
       invoiceId: invoice.id,
     });
@@ -471,8 +497,4 @@ function toClientSnapshot(client: Client): ClientSnapshot {
     address: client.billingAddress,
     taxNumber: client.taxNumber,
   };
-}
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }

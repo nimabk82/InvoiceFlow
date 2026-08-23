@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiClient, type Client, type Invoice } from "@invoiceflow/api-client";
 import { Alert, Card, Typography } from "@mui/material";
 
@@ -21,12 +21,7 @@ export default function ClientDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast, setToast } = useToast();
 
-  const startedRef = useRef<string | null>(null);
-
   useEffect(() => {
-    const key = `${businessId}:${clientId}`;
-    if (startedRef.current === key) return;
-    startedRef.current = key;
     let cancelled = false;
 
     async function load() {

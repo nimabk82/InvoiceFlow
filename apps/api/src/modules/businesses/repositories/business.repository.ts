@@ -6,10 +6,6 @@ export interface BusinessRepository {
   findById(id: string): Promise<Business | null>;
   listByOwner(ownerAccountId: string): Promise<Business[]>;
   isMember(accountId: string, businessId: string): Promise<boolean>;
-  addMember(
-    accountId: string,
-    businessId: string,
-    role?: string,
-  ): Promise<void>;
+  provisionOwnerBusiness(business: Business): Promise<void>;
   save(business: Business): Promise<void>;
 }

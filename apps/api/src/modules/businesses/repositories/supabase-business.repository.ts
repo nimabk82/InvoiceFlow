@@ -26,12 +26,6 @@ type BusinessRow = {
   default_quote_theme_id: string | null;
 };
 
-type MemberRow = {
-  account_id: string;
-  business_id: string;
-  role: string;
-};
-
 type Database = {
   public: {
     Tables: {
@@ -42,14 +36,31 @@ type Database = {
         Relationships: [];
       };
       business_members: {
-        Row: MemberRow;
-        Insert: MemberRow;
-        Update: Partial<MemberRow>;
+        Row: {
+          account_id: string;
+          business_id: string;
+          role: string;
+        };
+        Insert: {
+          account_id: string;
+          business_id: string;
+          role: string;
+        };
+        Update: Partial<{
+          account_id: string;
+          business_id: string;
+          role: string;
+        }>;
         Relationships: [];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      provision_owner_business: {
+        Args: ProvisionOwnerBusinessArgs;
+        Returns: undefined;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -111,14 +122,26 @@ export class SupabaseBusinessRepository implements BusinessRepository {
     return data !== null;
   }
 
-  async addMember(
-    accountId: string,
-    businessId: string,
-    role = 'owner',
-  ): Promise<void> {
-    const { error } = await this.client
-      .from('business_members')
-      .insert({ account_id: accountId, business_id: businessId, role });
+  async provisionOwnerBusiness(business: Business): Promise<void> {
+    const row = mapToRow(business);
+    const { error } = await this.client.rpc('provision_owner_business', {
+      p_address_city: row.address_city,
+      p_address_country_code: row.address_country_code,
+      p_address_line1: row.address_line1,
+      p_address_line2: row.address_line2,
+      p_address_postal_code: row.address_postal_code,
+      p_address_region: row.address_region,
+      p_business_id: row.id,
+      p_country_code: row.country_code,
+      p_currency_code: row.currency_code,
+      p_email: row.email,
+      p_legal_name: row.legal_name,
+      p_logo_asset_id: row.logo_asset_id,
+      p_name: row.name,
+      p_owner_account_id: row.owner_account_id,
+      p_phone: row.phone,
+      p_website: row.website,
+    });
 
     if (error) {
       throw new Error(error.message);
@@ -135,6 +158,25 @@ export class SupabaseBusinessRepository implements BusinessRepository {
     }
   }
 }
+
+type ProvisionOwnerBusinessArgs = {
+  p_address_city: string | null;
+  p_address_country_code: string | null;
+  p_address_line1: string | null;
+  p_address_line2: string | null;
+  p_address_postal_code: string | null;
+  p_address_region: string | null;
+  p_business_id: string;
+  p_country_code: string;
+  p_currency_code: string;
+  p_email: string | null;
+  p_legal_name: string | null;
+  p_logo_asset_id: string | null;
+  p_name: string;
+  p_owner_account_id: string;
+  p_phone: string | null;
+  p_website: string | null;
+};
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
