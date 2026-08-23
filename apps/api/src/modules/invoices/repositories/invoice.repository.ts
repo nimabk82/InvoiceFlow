@@ -1,4 +1,5 @@
 import type { Invoice, InvoiceStatus } from '@invoiceflow/domain';
+import type { DocumentEmail } from '../../email/repositories/email-outbox.repository';
 
 export const INVOICE_REPOSITORY = Symbol('INVOICE_REPOSITORY');
 
@@ -18,6 +19,11 @@ export interface InvoiceRepository {
   findById(id: string, businessId: string): Promise<Invoice | null>;
   list(query: InvoiceListQuery): Promise<InvoicePage>;
   save(invoice: Invoice): Promise<void>;
-  markSent(id: string, businessId: string, sentAt: string): Promise<boolean>;
+  markSentAndEnqueue(
+    id: string,
+    businessId: string,
+    sentAt: string,
+    email: DocumentEmail,
+  ): Promise<string | null>;
   delete(id: string, businessId: string): Promise<void>;
 }

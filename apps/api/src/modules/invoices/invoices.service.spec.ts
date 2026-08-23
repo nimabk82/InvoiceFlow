@@ -3,16 +3,17 @@ import type { ClientRepository } from '../clients/repositories/client.repository
 import { InvoicesService } from './invoices.service';
 import type { InvoiceRepository } from './repositories/invoice.repository';
 import type { ThemeAssignmentService } from '../theme-assignment/theme-assignment.service';
+import { PaymentRecordingError } from '../payments/repositories/payment.repository';
 
 function createRepository() {
   const list = jest.fn().mockResolvedValue({ items: [] });
   const save = jest.fn().mockResolvedValue(undefined);
-  const markSent = jest.fn().mockResolvedValue(true);
+  const markSent = jest.fn().mockResolvedValue('outbox-1');
   const invoiceRepository = {
     findById: jest.fn(),
     list,
     save,
-    markSent,
+    markSentAndEnqueue: markSent,
   } as unknown as InvoiceRepository;
   const businessRepository = {
     findById: jest.fn(),
@@ -21,12 +22,17 @@ function createRepository() {
     findById: jest.fn(),
   } as unknown as ClientRepository;
   const emailProvider = {
-    send: jest.fn().mockResolvedValue({ accepted: true }),
+    assertAvailable: jest.fn(),
+    dispatch: jest.fn().mockResolvedValue(true),
   };
   const paymentRepository = {
     findById: jest.fn(),
     listByInvoice: jest.fn().mockResolvedValue([]),
     save: jest.fn().mockResolvedValue(undefined),
+    recordAtomically: jest.fn().mockResolvedValue({
+      status: 'partially_paid',
+      updatedAt: '2026-08-22T00:00:00.000Z',
+    }),
   };
   const activityEventRepository = {
     record: jest.fn().mockResolvedValue(undefined),
@@ -310,6 +316,10 @@ describe('InvoicesService', () => {
       invoice.id,
       'business-1',
       sent.sentAt,
+      expect.objectContaining({
+        to: ['client@example.com'],
+        subject: 'Invoice',
+      }),
     );
   });
 
@@ -415,18 +425,18 @@ describe('InvoicesService', () => {
       subject: 'Your invoice',
     });
 
-    expect(emailProvider.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: ['a@example.com', 'b@example.com', 'c@example.com'],
-        subject: 'Your invoice',
-      }),
-    );
+    expect(emailProvider.dispatch).toHaveBeenCalledWith('outbox-1');
     expect(sent.status).toBe('sent');
     expect(sent.sentAt).toBeDefined();
     expect(markSent).toHaveBeenCalledWith(
       'invoice-1',
       'business-1',
       sent.sentAt,
+      expect.objectContaining({
+        to: ['a@example.com', 'b@example.com'],
+        cc: ['c@example.com'],
+        subject: 'Your invoice',
+      }),
     );
   });
 
@@ -443,7 +453,7 @@ describe('InvoicesService', () => {
       themeVersionId: 'version-1',
       items: [{ description: 'Work', quantity: '1', rate: '10' }],
     });
-    deps.markSent.mockResolvedValue(false);
+    deps.markSent.mockResolvedValue(null);
     const service = new InvoicesService(
       deps.invoiceRepository,
       deps.businessRepository,
@@ -460,7 +470,58 @@ describe('InvoicesService', () => {
         subject: 'Invoice',
       }),
     ).rejects.toThrow('Only draft invoices can be sent');
-    expect(deps.emailProvider.send).not.toHaveBeenCalled();
+    expect(deps.emailProvider.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('fails before transitioning when email delivery is disabled', async () => {
+    const deps = createRepository();
+    (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'draft',
+      clientId: 'client-1',
+      businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: 'Work', quantity: '1', rate: '10' }],
+    });
+    deps.emailProvider.assertAvailable.mockImplementation(() => {
+      throw new Error('Email delivery is disabled');
+    });
+    const service = buildService(deps);
+
+    await expect(
+      service.sendInvoice('business-1', 'invoice-1', {
+        to: ['client@example.com'],
+        subject: 'Invoice',
+      }),
+    ).rejects.toThrow('Email delivery is disabled');
+    expect(deps.markSent).not.toHaveBeenCalled();
+  });
+
+  it('returns the sent invoice when best-effort dispatch fails', async () => {
+    const deps = createRepository();
+    (deps.invoiceRepository.findById as jest.Mock).mockResolvedValue({
+      id: 'invoice-1',
+      businessId: 'business-1',
+      number: 'INV-1',
+      status: 'draft',
+      clientId: 'client-1',
+      businessSnapshot: { displayName: 'Acme' },
+      themeId: 'theme-1',
+      themeVersionId: 'version-1',
+      items: [{ description: 'Work', quantity: '1', rate: '10' }],
+    });
+    deps.emailProvider.dispatch.mockResolvedValue(false);
+    const service = buildService(deps);
+
+    await expect(
+      service.sendInvoice('business-1', 'invoice-1', {
+        to: ['client@example.com'],
+        subject: 'Invoice',
+      }),
+    ).resolves.toEqual(expect.objectContaining({ status: 'sent' }));
   });
 
   it('rejects sending when an email address is invalid', async () => {
@@ -522,7 +583,7 @@ describe('InvoicesService', () => {
         subject: 'Invoice',
       }),
     ).rejects.toThrow('Select a client');
-    expect(deps.emailProvider.send).not.toHaveBeenCalled();
+    expect(deps.emailProvider.dispatch).not.toHaveBeenCalled();
     expect(deps.save).not.toHaveBeenCalled();
   });
 
@@ -544,7 +605,10 @@ describe('InvoicesService', () => {
       currencyCode: 'CAD',
       items: [{ quantity: '2', rate: '500', appliedTaxes: [] }],
     });
-    paymentRepository.listByInvoice.mockResolvedValue([]);
+    paymentRepository.recordAtomically.mockResolvedValue({
+      status: 'paid',
+      updatedAt: '2026-08-22T00:00:00.000Z',
+    });
     const service = new InvoicesService(
       invoiceRepository,
       businessRepository,
@@ -560,11 +624,17 @@ describe('InvoicesService', () => {
       paidAt: '2026-08-20T00:00:00.000Z',
     });
 
-    expect(paymentRepository.save).toHaveBeenCalled();
-    expect(invoice.status).toBe('paid');
-    expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'paid' }),
+    expect(paymentRepository.recordAtomically).toHaveBeenCalledWith(
+      expect.objectContaining({
+        invoiceId: 'invoice-1',
+        businessId: 'business-1',
+        amount: '1000.00',
+        invoiceTotal: '1000.00',
+      }),
     );
+    expect(invoice.status).toBe('paid');
+    expect(save).not.toHaveBeenCalled();
+    expect(activityEventRepository.record).not.toHaveBeenCalled();
   });
 
   it('records a partial payment and marks the invoice partially paid', async () => {
@@ -585,7 +655,10 @@ describe('InvoicesService', () => {
       currencyCode: 'CAD',
       items: [{ quantity: '2', rate: '500', appliedTaxes: [] }],
     });
-    paymentRepository.listByInvoice.mockResolvedValue([]);
+    paymentRepository.recordAtomically.mockResolvedValue({
+      status: 'partially_paid',
+      updatedAt: '2026-08-22T00:00:00.000Z',
+    });
     const service = new InvoicesService(
       invoiceRepository,
       businessRepository,
@@ -602,9 +675,14 @@ describe('InvoicesService', () => {
     });
 
     expect(invoice.status).toBe('partially_paid');
-    expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'partially_paid' }),
+    expect(paymentRepository.recordAtomically).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: '250.00',
+        invoiceTotal: '1000.00',
+      }),
     );
+    expect(save).not.toHaveBeenCalled();
+    expect(activityEventRepository.record).not.toHaveBeenCalled();
   });
 
   it.each(['abc', '0', '-1', '0.001'])(
@@ -626,7 +704,7 @@ describe('InvoicesService', () => {
           paidAt: '2026-08-20T00:00:00.000Z',
         }),
       ).rejects.toThrow();
-      expect(deps.paymentRepository.save).not.toHaveBeenCalled();
+      expect(deps.paymentRepository.recordAtomically).not.toHaveBeenCalled();
     },
   );
 
@@ -647,7 +725,7 @@ describe('InvoicesService', () => {
         paidAt: '2026-08-20T00:00:00.000Z',
       }),
     ).rejects.toThrow('Payments can only be recorded');
-    expect(deps.paymentRepository.save).not.toHaveBeenCalled();
+    expect(deps.paymentRepository.recordAtomically).not.toHaveBeenCalled();
   });
 
   it('rejects a payment that exceeds the remaining balance', async () => {
@@ -660,9 +738,9 @@ describe('InvoicesService', () => {
       currencyCode: 'CAD',
       items: [{ quantity: '1', rate: '100', appliedTaxes: [] }],
     });
-    deps.paymentRepository.listByInvoice.mockResolvedValue([
-      { id: 'p1', invoiceId: 'invoice-1', amount: '75.00' },
-    ]);
+    deps.paymentRepository.recordAtomically.mockRejectedValue(
+      new PaymentRecordingError('overpayment'),
+    );
 
     await expect(
       service.recordPayment('business-1', 'invoice-1', {
@@ -670,7 +748,8 @@ describe('InvoicesService', () => {
         paidAt: '2026-08-20T00:00:00.000Z',
       }),
     ).rejects.toThrow('Payment amount exceeds invoice balance');
-    expect(deps.paymentRepository.save).not.toHaveBeenCalled();
+    expect(deps.save).not.toHaveBeenCalled();
+    expect(deps.activityEventRepository.record).not.toHaveBeenCalled();
   });
 
   it('derives the effective payment status when reading an invoice', async () => {

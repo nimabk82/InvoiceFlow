@@ -1,5 +1,8 @@
 export type EmailMessage = Readonly<{
+  idempotencyKey?: string;
   to: string | readonly string[];
+  cc?: readonly string[];
+  bcc?: readonly string[];
   from?: string;
   subject: string;
   text?: string;

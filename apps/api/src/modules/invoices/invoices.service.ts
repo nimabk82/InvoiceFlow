@@ -29,7 +29,10 @@ import {
   CLIENT_REPOSITORY,
   type ClientRepository,
 } from '../clients/repositories/client.repository';
-import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
+import {
+  EMAIL_DISPATCHER,
+  type EmailDispatcher,
+} from '../email/email-dispatcher';
 import {
   ACTIVITY_EVENT_REPOSITORY,
   type ActivityEventRepository,
@@ -40,6 +43,8 @@ import {
 } from '../theme-assignment/theme-assignment.service';
 import {
   PAYMENT_REPOSITORY,
+  PaymentRecordingError,
+  type AtomicPaymentResult,
   type PaymentRepository,
 } from '../payments/repositories/payment.repository';
 import {
@@ -113,8 +118,8 @@ export class InvoicesService {
     private readonly businessRepository: BusinessRepository,
     @Inject(CLIENT_REPOSITORY)
     private readonly clientRepository: ClientRepository,
-    @Inject(EMAIL_PROVIDER)
-    private readonly emailProvider: EmailProvider,
+    @Inject(EMAIL_DISPATCHER)
+    private readonly emailProvider: EmailDispatcher,
     @Inject(PAYMENT_REPOSITORY)
     private readonly paymentRepository: PaymentRepository,
     @Inject(ACTIVITY_EVENT_REPOSITORY)
@@ -175,7 +180,7 @@ export class InvoicesService {
       input.subject?.trim() ||
       `Invoice ${invoice.number} from ${invoice.businessSnapshot.displayName}`;
 
-    this.emailProvider.assertAvailable?.();
+    this.emailProvider.assertAvailable();
 
     const sentAt = new Date().toISOString();
     const sent: Invoice = {
@@ -185,21 +190,24 @@ export class InvoicesService {
       updatedAt: sentAt,
     };
 
-    const transitioned = await this.invoiceRepository.markSent(
+    const outboxId = await this.invoiceRepository.markSentAndEnqueue(
       invoiceId,
       businessId,
       sentAt,
+      {
+        commandKey: `invoice:${invoiceId}:send`,
+        to,
+        cc,
+        bcc,
+        subject,
+        text: input.message,
+      },
     );
-    if (!transitioned) {
+    if (!outboxId) {
       throw new BadRequestException('Only draft invoices can be sent');
     }
 
-    await this.emailProvider.send({
-      to: [...to, ...cc, ...bcc],
-      subject,
-      text: input.message,
-    });
-    await this.recordActivity(businessId, invoiceId, 'sent');
+    await this.emailProvider.dispatch(outboxId);
 
     return sent;
   }
@@ -221,7 +229,11 @@ export class InvoicesService {
       throw new BadRequestException('Payment amount is required');
     }
 
-    if (!input.paidAt) {
+    if (
+      typeof input.paidAt !== 'string' ||
+      input.paidAt.trim() === '' ||
+      Number.isNaN(Date.parse(input.paidAt))
+    ) {
       throw new BadRequestException('Payment date is required');
     }
 
@@ -246,42 +258,50 @@ export class InvoicesService {
       throw new BadRequestException('Payment amount must be greater than zero');
     }
 
-    const payments = await this.paymentRepository.listByInvoice(invoiceId);
     const total = calculateDocumentTotals({
       currencyCode: invoice.currencyCode,
       items: invoice.items,
       discount: invoice.discount,
       depositTerms: invoice.depositTerms,
     }).total;
-    const currentBalance = calculatePaidBalance(total, payments);
-
-    if (amount.compare(currentBalance.balance) > 0) {
-      throw new BadRequestException('Payment amount exceeds invoice balance');
-    }
 
     const paymentId = randomUUID();
-    await this.paymentRepository.save({
-      id: paymentId,
-      invoiceId,
-      amount: amount.toDecimalString(),
-      paidAt: input.paidAt,
-      method: input.method,
-      reference: input.reference,
-    });
-
-    const paid = currentBalance.paid.add(amount);
-    const status = derivePaymentStatus(invoice.status, total, paid);
+    const recordedAt = new Date().toISOString();
+    let result: AtomicPaymentResult;
+    try {
+      result = await this.paymentRepository.recordAtomically({
+        paymentId,
+        invoiceId,
+        businessId,
+        amount: amount.toDecimalString(),
+        invoiceTotal: total.toDecimalString(),
+        paidAt: input.paidAt,
+        method: input.method,
+        reference: input.reference,
+        recordedAt,
+      });
+    } catch (error) {
+      if (error instanceof PaymentRecordingError) {
+        if (error.failure === 'invoice_not_found') {
+          throw new NotFoundException('Invoice not found');
+        }
+        if (error.failure === 'overpayment') {
+          throw new BadRequestException(
+            'Payment amount exceeds invoice balance',
+          );
+        }
+        throw new BadRequestException(
+          'Payments can only be recorded for sent, viewed, partially paid, or overdue invoices',
+        );
+      }
+      throw error;
+    }
 
     const updated: Invoice = {
       ...invoice,
-      status,
-      updatedAt: new Date().toISOString(),
+      status: result.status,
+      updatedAt: result.updatedAt,
     };
-
-    await this.invoiceRepository.save(updated);
-    await this.recordActivity(businessId, invoiceId, 'payment_recorded', {
-      amount: amount.toDecimalString(),
-    });
 
     return { invoice: updated, paymentId };
   }

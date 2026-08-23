@@ -1,6 +1,6 @@
 import type { BusinessRepository } from '../businesses/repositories/business.repository';
 import type { ClientRepository } from '../clients/repositories/client.repository';
-import type { EmailProvider } from '../email/email-provider';
+import type { EmailDispatcher } from '../email/email-dispatcher';
 import type { ActivityEventRepository } from '../audit/repositories/activity-event.repository';
 import type { ThemeAssignmentService } from '../theme-assignment/theme-assignment.service';
 import { QuotesService } from './quotes.service';
@@ -8,13 +8,13 @@ import type { QuoteRepository } from './repositories/quote.repository';
 
 function createDeps() {
   const save = jest.fn().mockResolvedValue(undefined);
-  const markSent = jest.fn().mockResolvedValue(true);
+  const markSent = jest.fn().mockResolvedValue('outbox-1');
   const convertToInvoice = jest.fn().mockResolvedValue(true);
   const quoteRepository = {
     findById: jest.fn(),
     list: jest.fn().mockResolvedValue({ items: [] }),
     save,
-    markSent,
+    markSentAndEnqueue: markSent,
     convertToInvoice,
   } as unknown as QuoteRepository;
   const businessRepository = {
@@ -23,8 +23,11 @@ function createDeps() {
   const clientRepository = {
     findById: jest.fn(),
   } as unknown as ClientRepository;
-  const emailSend = jest.fn().mockResolvedValue({ accepted: true });
-  const emailProvider = { send: emailSend } as unknown as EmailProvider;
+  const emailSend = jest.fn().mockResolvedValue(true);
+  const emailProvider = {
+    assertAvailable: jest.fn(),
+    dispatch: emailSend,
+  } as unknown as EmailDispatcher;
   const activityRecord = jest.fn().mockResolvedValue(undefined);
   const activityEventRepository = {
     record: activityRecord,
@@ -187,19 +190,19 @@ describe('QuotesService', () => {
       subject: 'Your quote',
     });
 
-    expect(emailSend).toHaveBeenCalledWith(
-      expect.objectContaining({ to: ['a@example.com'] }),
-    );
+    expect(emailSend).toHaveBeenCalledWith('outbox-1');
     expect(sent.status).toBe('sent');
     expect(sent.sentAt).toBeDefined();
     expect(deps.markSent).toHaveBeenCalledWith(
       'quote-1',
       'business-1',
       sent.sentAt,
+      expect.objectContaining({
+        to: ['a@example.com'],
+        subject: 'Your quote',
+      }),
     );
-    expect(activityRecord).toHaveBeenCalledWith(
-      expect.objectContaining({ entityType: 'quote', type: 'sent' }),
-    );
+    expect(activityRecord).not.toHaveBeenCalled();
   });
 
   it('does not email when the draft-to-sent compare-and-set loses', async () => {
@@ -217,7 +220,7 @@ describe('QuotesService', () => {
       items: [{ description: 'Work', quantity: '1', rate: '10' }],
       convertedInvoiceIds: [],
     });
-    deps.markSent.mockResolvedValue(false);
+    deps.markSent.mockResolvedValue(null);
 
     await expect(
       service.sendQuote('business-1', 'quote-1', {

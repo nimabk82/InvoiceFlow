@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
 import type { DocumentTheme, DocumentThemeVersion } from '@invoiceflow/domain';
 import { themePresets, validateThemeConfig } from '@invoiceflow/theme-schema';
 
@@ -126,28 +125,14 @@ export class ThemesService {
 
     const name = input.name?.trim() || titleCase(preset);
 
-    const theme: DocumentTheme = {
-      id: randomUUID(),
+    return this.themeRepository.createThemeWithInitialVersion({
       businessId,
       name,
       appliesToInvoice: input.appliesToInvoice ?? true,
       appliesToQuote: input.appliesToQuote ?? false,
-      currentVersionId: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.themeRepository.saveTheme(theme);
-
-    const version = await this.createVersion(
-      theme.id,
-      themePresets[presetName],
-    );
-    theme.currentVersionId = version.id;
-
-    await this.themeRepository.saveTheme(theme);
-
-    return theme;
+      schemaVersion: THEME_SCHEMA_VERSION,
+      config: themePresets[presetName],
+    });
   }
 
   async duplicate(businessId: string, themeId: string): Promise<DocumentTheme> {
@@ -157,25 +142,14 @@ export class ThemesService {
       throw new BadRequestException('Theme has no versions to duplicate');
     }
 
-    const copy: DocumentTheme = {
-      id: randomUUID(),
+    return this.themeRepository.createThemeWithInitialVersion({
       businessId,
       name: `${detail.theme.name} (copy)`,
       appliesToInvoice: detail.theme.appliesToInvoice,
       appliesToQuote: detail.theme.appliesToQuote,
-      currentVersionId: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.themeRepository.saveTheme(copy);
-
-    const version = await this.createVersion(copy.id, latest.config);
-    copy.currentVersionId = version.id;
-
-    await this.themeRepository.saveTheme(copy);
-
-    return copy;
+      schemaVersion: THEME_SCHEMA_VERSION,
+      config: latest.config,
+    });
   }
 
   async update(
@@ -302,35 +276,14 @@ export class ThemesService {
       );
     }
 
-    const version = await this.createVersion(themeId, config);
-    const updated: DocumentTheme = {
-      ...theme,
-      currentVersionId: version.id,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.themeRepository.saveTheme(updated);
+    await this.themeRepository.appendVersion({
+      themeId,
+      businessId,
+      schemaVersion: THEME_SCHEMA_VERSION,
+      config,
+    });
 
     return this.get(businessId, themeId);
-  }
-
-  private async createVersion(
-    themeId: string,
-    config: unknown,
-  ): Promise<DocumentThemeVersion> {
-    const versionNumber = await this.themeRepository.nextVersionNumber(themeId);
-    const version: DocumentThemeVersion = {
-      id: randomUUID(),
-      themeId,
-      version: versionNumber,
-      schemaVersion: THEME_SCHEMA_VERSION,
-      config: config as Record<string, unknown>,
-      createdAt: new Date().toISOString(),
-    };
-
-    await this.themeRepository.createVersion(version);
-
-    return version;
   }
 }
 

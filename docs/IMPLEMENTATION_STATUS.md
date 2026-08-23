@@ -100,14 +100,18 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - Phase 1 API validation slice — authoritative invoice/quote final-send checks, explicit client ownership validation, and decimal-safe payment eligibility/balance enforcement through shared validation/calculation packages.
 - Phase 1 account/email hardening — first-business provisioning atomically creates the auth-backed account, business, and owner membership through a service-role-only RPC; validated email provider selection rejects logger use in production and otherwise fails closed when delivery is disabled.
 - Phase 1 atomic workflow hardening — PostgreSQL RPCs provide transactional invoice/quote aggregate saves, draft-to-sent compare-and-set transitions, and atomic quote-to-invoice conversion with stale-write protection.
+- Phase 1 atomic payment recording — a service-role-only PostgreSQL RPC locks the invoice, enforces status/balance against the shared-calculator total, and atomically records payment, derived status, and activity.
+- Phase 1 atomic theme lifecycle — service-role RPCs atomically create themes with v1 and append row-locked monotonic versions while advancing `current_version_id`; preset creation, duplication, and config saves use repository atomic operations.
+- Phase 1 durable email outbox — invoice/quote draft-to-sent transitions atomically enqueue idempotent email commands; claim/accepted/failed RPCs and an API dispatcher preserve delivery attempts for retry without rolling back sent documents.
+- Phase 1 production email delivery — Resend HTTP provider with conditional production-safe configuration and a lifecycle-managed, non-overlapping email outbox poller.
 
 ## Current ticket
 
-- Phase 1 production hardening — web draft/load stabilization and the first API validation, atomic workflow, account provisioning, and email-safety slices are implemented. Remaining work: atomic payment recording, atomic theme-version creation, and a durable email outbox/real provider.
+- None. Phase 1 production hardening is complete for the scoped web/API work. React Native remains intentionally deferred.
 
 ## In-progress (session handoff, 2026-08-22)
 
-- None. Phase 1 migrations `20260822120000_atomic_document_workflows.sql` and `20260822130000_provision_owner_business.sql` are applied to the linked development project. Supabase commands must run from `infrastructure/supabase/`; running from the repository root makes the CLI miss the configured migration directory and falsely reports remote-only versions.
+- None. Phase 1 migrations through `20260822160000` are applied to the linked development project. Supabase commands must run from `infrastructure/supabase/`.
 - **Earlier fix this session: invoice/quote detail routes returned 404** because the `next dev` server (PID 8804) had a stale route manifest after many file additions. Restarted web dev server (`nohup pnpm dev > /tmp/web-dev.log 2>&1 &` in `apps/web`); all routes now 200. If 404s reappear after route additions, restart the dev server.
 - **Committed this session:** `1dbbd1c` — reverted INV-08 autosave in web editors (static "Saved ✓", create on Review/Submit; `useAutosave` + `SaveStateBadge` deleted, `@invoiceflow/domain` removed from web deps; API PATCH draft endpoints retained). All web + api + root checks green before commit.
 
@@ -332,7 +336,7 @@ Watchman: VERIFIED
 - INV-08 — api lint/typecheck/test (136 passed)/build; api-client lint/typecheck/test/build; web lint/typecheck/test/build; domain dist export + root typecheck. (Autosave disabled — editors create on Review/Submit; PATCH endpoints retained.)
 - Phase 1 web stabilization — api-client lint/typecheck/test (9 passed)/build; web lint/typecheck/test (2 passed)/build.
 - Phase 1 API hardening — API lint/typecheck/test (156 passed)/build; validation lint/typecheck/test (9 passed)/build.
-- Phase 1 migrations — linked local/remote history aligned through `20260822130000`; `supabase db push --linked --dry-run` reports up to date; linked schema lint reports no errors. Commands run from `infrastructure/supabase/`.
+- Phase 1 completion — API lint/typecheck/test (174 passed)/build; local and linked migration histories aligned through `20260822160000`; push dry run reports up to date; linked schema lint reports no errors. Commands run from `infrastructure/supabase/`.
 
 ## Status update format
 

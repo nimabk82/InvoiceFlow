@@ -3,7 +3,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DocumentTheme, DocumentThemeVersion } from '@invoiceflow/domain';
 
 import { SUPABASE_CLIENT } from '../../../infrastructure/supabase/supabase-client.token';
-import type { ThemeRepository } from './theme.repository';
+import type {
+  AppendThemeVersionInput,
+  CreateThemeWithInitialVersionInput,
+  ThemeRepository,
+} from './theme.repository';
 
 type ThemeRow = {
   id: string;
@@ -44,7 +48,28 @@ type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      create_theme_with_initial_version: {
+        Args: {
+          p_business_id: string;
+          p_name: string;
+          p_applies_to_invoice: boolean;
+          p_applies_to_quote: boolean;
+          p_schema_version: number;
+          p_config: Record<string, unknown>;
+        };
+        Returns: ThemeRow;
+      };
+      append_theme_version: {
+        Args: {
+          p_theme_id: string;
+          p_business_id: string;
+          p_schema_version: number;
+          p_config: Record<string, unknown>;
+        };
+        Returns: ThemeVersionRow;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -126,21 +151,45 @@ export class SupabaseThemeRepository implements ThemeRepository {
     }
   }
 
-  async createVersion(version: DocumentThemeVersion): Promise<void> {
-    const { error } = await this.client
-      .from('theme_versions')
-      .upsert(mapVersionToRow(version));
+  async createThemeWithInitialVersion(
+    input: CreateThemeWithInitialVersionInput,
+  ): Promise<DocumentTheme> {
+    const { data, error } = await this.client.rpc(
+      'create_theme_with_initial_version',
+      {
+        p_business_id: input.businessId,
+        p_name: input.name,
+        p_applies_to_invoice: input.appliesToInvoice,
+        p_applies_to_quote: input.appliesToQuote,
+        p_schema_version: input.schemaVersion,
+        p_config: input.config,
+      },
+    );
 
-    if (error) {
-      throw new Error(error.message);
+    if (error || !data) {
+      throw new Error(error?.message ?? 'Theme creation returned no data');
     }
+
+    return mapThemeRow(data);
   }
 
-  async nextVersionNumber(themeId: string): Promise<number> {
-    const versions = await this.listVersions(themeId);
-    return versions.length === 0
-      ? 1
-      : versions[versions.length - 1].version + 1;
+  async appendVersion(
+    input: AppendThemeVersionInput,
+  ): Promise<DocumentThemeVersion> {
+    const { data, error } = await this.client.rpc('append_theme_version', {
+      p_theme_id: input.themeId,
+      p_business_id: input.businessId,
+      p_schema_version: input.schemaVersion,
+      p_config: input.config,
+    });
+
+    if (error || !data) {
+      throw new Error(
+        error?.message ?? 'Theme version append returned no data',
+      );
+    }
+
+    return mapVersionRow(data);
   }
 }
 
@@ -181,17 +230,5 @@ function mapVersionRow(row: ThemeVersionRow): DocumentThemeVersion {
     config: row.config,
     createdAt: row.created_at,
     createdBy: row.created_by ?? undefined,
-  };
-}
-
-function mapVersionToRow(version: DocumentThemeVersion): ThemeVersionRow {
-  return {
-    id: version.id,
-    theme_id: version.themeId,
-    version: version.version,
-    schema_version: version.schemaVersion,
-    config: version.config,
-    created_at: version.createdAt,
-    created_by: version.createdBy ?? null,
   };
 }

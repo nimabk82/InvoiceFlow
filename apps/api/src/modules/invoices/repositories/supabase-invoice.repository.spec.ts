@@ -162,14 +162,28 @@ describe('SupabaseInvoiceRepository', () => {
     );
   });
 
-  it('returns the database compare-and-set result when marking sent', async () => {
+  it('returns the outbox id from the atomic send operation', async () => {
     const client = createClient({
-      send_invoice_if_draft: { data: false, error: null },
+      send_invoice_and_enqueue_email: { data: 'outbox-1', error: null },
     });
     const repository = new SupabaseInvoiceRepository(client);
 
     await expect(
-      repository.markSent('inv1', 'b1', '2026-08-22T00:00:00.000Z'),
-    ).resolves.toBe(false);
+      repository.markSentAndEnqueue('inv1', 'b1', '2026-08-22T00:00:00.000Z', {
+        commandKey: 'command-1',
+        to: ['client@example.com'],
+        cc: [],
+        bcc: [],
+        subject: 'Invoice',
+      }),
+    ).resolves.toBe('outbox-1');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(client.rpc).toHaveBeenCalledWith(
+      'send_invoice_and_enqueue_email',
+      expect.objectContaining({
+        p_command_key: 'command-1',
+        p_to_addresses: ['client@example.com'],
+      }),
+    );
   });
 });

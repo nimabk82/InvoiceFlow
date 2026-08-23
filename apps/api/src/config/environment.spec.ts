@@ -82,4 +82,47 @@ describe('validateEnvironment', () => {
       }),
     ).toThrow('EMAIL_PROVIDER=logger is not allowed in production');
   });
+
+  it('requires Resend credentials when the provider is selected', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validSupabase,
+        EMAIL_PROVIDER: 'resend',
+        NODE_ENV: 'production',
+      }),
+    ).toThrow('RESEND_API_KEY');
+
+    expect(() =>
+      validateEnvironment({
+        ...validSupabase,
+        EMAIL_PROVIDER: 'resend',
+        NODE_ENV: 'production',
+        RESEND_API_KEY: 're_test',
+      }),
+    ).toThrow('EMAIL_FROM');
+  });
+
+  it('normalizes valid Resend configuration', () => {
+    const config = validateEnvironment({
+      ...validSupabase,
+      EMAIL_FROM: ' InvoiceFlow <billing@example.com> ',
+      EMAIL_PROVIDER: 'resend',
+      NODE_ENV: 'production',
+      RESEND_API_KEY: ' re_test ',
+    });
+
+    expect(config.EMAIL_PROVIDER).toBe('resend');
+    expect(config.EMAIL_FROM).toBe('InvoiceFlow <billing@example.com>');
+    expect(config.RESEND_API_KEY).toBe('re_test');
+  });
+
+  it('allows explicit disabled delivery in production', () => {
+    const config = validateEnvironment({
+      ...validSupabase,
+      EMAIL_PROVIDER: 'disabled',
+      NODE_ENV: 'production',
+    });
+
+    expect(config.EMAIL_PROVIDER).toBe('disabled');
+  });
 });

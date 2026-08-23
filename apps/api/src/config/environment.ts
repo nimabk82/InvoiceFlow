@@ -13,16 +13,18 @@ export const apiLogLevels = [
 ] as const satisfies readonly LogLevel[];
 export type ApiLogLevel = (typeof apiLogLevels)[number];
 
-export const emailProviders = ['logger', 'disabled'] as const;
+export const emailProviders = ['logger', 'resend', 'disabled'] as const;
 export type EmailProviderName = (typeof emailProviders)[number];
 
 export type EnvironmentVariables = Readonly<{
   CORS_ORIGINS: readonly string[];
+  EMAIL_FROM?: string;
   EMAIL_PROVIDER: EmailProviderName;
   HOST: string;
   LOG_LEVEL: ApiLogLevel;
   NODE_ENV: NodeEnvironment;
   PORT: number;
+  RESEND_API_KEY?: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
 }>;
@@ -100,6 +102,44 @@ function parseEmailProvider(
   return provider as EmailProviderName;
 }
 
+function parseResendConfiguration(
+  values: Record<string, unknown>,
+  provider: EmailProviderName,
+): Pick<EnvironmentVariables, 'EMAIL_FROM' | 'RESEND_API_KEY'> {
+  if (provider !== 'resend') {
+    return {};
+  }
+
+  if (
+    typeof values.RESEND_API_KEY !== 'string' ||
+    values.RESEND_API_KEY.trim().length === 0
+  ) {
+    throw new Error(
+      'RESEND_API_KEY must be a non-empty string when EMAIL_PROVIDER=resend',
+    );
+  }
+
+  if (
+    typeof values.EMAIL_FROM !== 'string' ||
+    !isValidEmailSender(values.EMAIL_FROM.trim())
+  ) {
+    throw new Error(
+      'EMAIL_FROM must be a valid email sender when EMAIL_PROVIDER=resend',
+    );
+  }
+
+  return {
+    EMAIL_FROM: values.EMAIL_FROM.trim(),
+    RESEND_API_KEY: values.RESEND_API_KEY.trim(),
+  };
+}
+
+function isValidEmailSender(value: string): boolean {
+  const namedSender = /^.+<([^<>]+)>$/.exec(value);
+  const address = namedSender?.[1] ?? value;
+  return /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(address);
+}
+
 function normalizeOrigin(origin: string): string {
   let url: URL;
 
@@ -169,10 +209,11 @@ export function validateEnvironment(
   values: Record<string, unknown>,
 ): EnvironmentVariables {
   const environment = parseNodeEnvironment(values.NODE_ENV);
+  const emailProvider = parseEmailProvider(values.EMAIL_PROVIDER, environment);
 
   return {
     CORS_ORIGINS: parseCorsOrigins(values.CORS_ORIGINS, environment),
-    EMAIL_PROVIDER: parseEmailProvider(values.EMAIL_PROVIDER, environment),
+    EMAIL_PROVIDER: emailProvider,
     HOST: parseHost(values.HOST),
     LOG_LEVEL: parseLogLevel(values.LOG_LEVEL),
     NODE_ENV: environment,
@@ -181,5 +222,6 @@ export function validateEnvironment(
     SUPABASE_SERVICE_ROLE_KEY: parseSupabaseServiceRoleKey(
       values.SUPABASE_SERVICE_ROLE_KEY,
     ),
+    ...parseResendConfiguration(values, emailProvider),
   };
 }

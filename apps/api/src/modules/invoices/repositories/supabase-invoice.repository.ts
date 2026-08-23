@@ -13,6 +13,7 @@ import type {
 } from '@invoiceflow/domain';
 
 import { SUPABASE_CLIENT } from '../../../infrastructure/supabase/supabase-client.token';
+import type { DocumentEmail } from '../../email/repositories/email-outbox.repository';
 import type { InvoicePage, InvoiceRepository } from './invoice.repository';
 
 type InvoiceRow = {
@@ -92,13 +93,19 @@ type Database = {
         Args: { p_invoice: InvoiceRow; p_items: AggregateItemRow[] };
         Returns: undefined;
       };
-      send_invoice_if_draft: {
+      send_invoice_and_enqueue_email: {
         Args: {
           p_invoice_id: string;
           p_business_id: string;
           p_sent_at: string;
+          p_command_key: string;
+          p_to_addresses: readonly string[];
+          p_cc_addresses: readonly string[];
+          p_bcc_addresses: readonly string[];
+          p_subject: string;
+          p_text_body: string | null;
         };
-        Returns: boolean;
+        Returns: string | null;
       };
     };
     Enums: Record<string, never>;
@@ -176,16 +183,26 @@ export class SupabaseInvoiceRepository implements InvoiceRepository {
     }
   }
 
-  async markSent(
+  async markSentAndEnqueue(
     id: string,
     businessId: string,
     sentAt: string,
-  ): Promise<boolean> {
-    const { data, error } = await this.client.rpc('send_invoice_if_draft', {
-      p_invoice_id: id,
-      p_business_id: businessId,
-      p_sent_at: sentAt,
-    });
+    email: DocumentEmail,
+  ): Promise<string | null> {
+    const { data, error } = await this.client.rpc(
+      'send_invoice_and_enqueue_email',
+      {
+        p_invoice_id: id,
+        p_business_id: businessId,
+        p_sent_at: sentAt,
+        p_command_key: email.commandKey,
+        p_to_addresses: email.to,
+        p_cc_addresses: email.cc,
+        p_bcc_addresses: email.bcc,
+        p_subject: email.subject,
+        p_text_body: email.text ?? null,
+      },
+    );
 
     if (error) {
       throw new Error(error.message);

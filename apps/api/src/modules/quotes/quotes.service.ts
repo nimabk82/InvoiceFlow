@@ -28,7 +28,10 @@ import {
   CLIENT_REPOSITORY,
   type ClientRepository,
 } from '../clients/repositories/client.repository';
-import { EMAIL_PROVIDER, type EmailProvider } from '../email/email-provider';
+import {
+  EMAIL_DISPATCHER,
+  type EmailDispatcher,
+} from '../email/email-dispatcher';
 import {
   ThemeAssignmentService,
   type ThemeAssignment,
@@ -94,8 +97,8 @@ export class QuotesService {
     private readonly businessRepository: BusinessRepository,
     @Inject(CLIENT_REPOSITORY)
     private readonly clientRepository: ClientRepository,
-    @Inject(EMAIL_PROVIDER)
-    private readonly emailProvider: EmailProvider,
+    @Inject(EMAIL_DISPATCHER)
+    private readonly emailProvider: EmailDispatcher,
     @Inject(ACTIVITY_EVENT_REPOSITORY)
     private readonly activityEventRepository: ActivityEventRepository,
     private readonly themeAssignment: ThemeAssignmentService,
@@ -287,7 +290,7 @@ export class QuotesService {
       input.subject?.trim() ||
       `Quote ${quote.number} from ${quote.businessSnapshot.displayName}`;
 
-    this.emailProvider.assertAvailable?.();
+    this.emailProvider.assertAvailable();
 
     const sentAt = new Date().toISOString();
     const sent: Quote = {
@@ -297,21 +300,24 @@ export class QuotesService {
       updatedAt: sentAt,
     };
 
-    const transitioned = await this.quoteRepository.markSent(
+    const outboxId = await this.quoteRepository.markSentAndEnqueue(
       quoteId,
       businessId,
       sentAt,
+      {
+        commandKey: `quote:${quoteId}:send`,
+        to,
+        cc,
+        bcc,
+        subject,
+        text: input.message,
+      },
     );
-    if (!transitioned) {
+    if (!outboxId) {
       throw new BadRequestException('Only draft quotes can be sent');
     }
 
-    await this.emailProvider.send({
-      to: [...to, ...cc, ...bcc],
-      subject,
-      text: input.message,
-    });
-    await this.recordActivity(businessId, quoteId, 'sent');
+    await this.emailProvider.dispatch(outboxId);
 
     return sent;
   }

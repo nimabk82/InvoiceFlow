@@ -102,18 +102,25 @@ describe('SupabaseQuoteRepository', () => {
     );
   });
 
-  it('returns a failed send compare-and-set without hiding it', async () => {
+  it('returns a failed atomic send without hiding it', async () => {
     const client = createClient({
-      send_quote_if_draft: { data: false, error: null },
+      send_quote_and_enqueue_email: { data: null, error: null },
     });
     const repository = new SupabaseQuoteRepository(client);
 
     await expect(
-      repository.markSent(
+      repository.markSentAndEnqueue(
         quote.id,
         quote.businessId,
         '2026-08-22T02:00:00.000Z',
+        {
+          commandKey: 'command-1',
+          to: ['client@example.com'],
+          cc: [],
+          bcc: [],
+          subject: 'Quote',
+        },
       ),
-    ).resolves.toBe(false);
+    ).resolves.toBeNull();
   });
 });

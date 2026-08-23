@@ -97,6 +97,10 @@ const repositoryCases: readonly RepositoryCase[] = [
       findById: jest.fn().mockResolvedValue(null),
       listByInvoice: jest.fn().mockResolvedValue([]),
       save: jest.fn().mockResolvedValue(undefined),
+      recordAtomically: jest.fn().mockResolvedValue({
+        status: 'partially_paid',
+        updatedAt: '2026-08-22T00:00:00.000Z',
+      }),
     },
   },
   {
@@ -134,9 +138,9 @@ const repositoryCases: readonly RepositoryCase[] = [
       getVersion: jest.fn().mockResolvedValue(null),
       listByBusiness: jest.fn().mockResolvedValue([]),
       listVersions: jest.fn().mockResolvedValue([]),
-      nextVersionNumber: jest.fn().mockResolvedValue(1),
       saveTheme: jest.fn().mockResolvedValue(undefined),
-      createVersion: jest.fn().mockResolvedValue(undefined),
+      createThemeWithInitialVersion: jest.fn(),
+      appendVersion: jest.fn(),
     },
   },
 ];

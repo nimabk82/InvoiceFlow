@@ -96,16 +96,43 @@ jest.mock('@invoiceflow/theme-schema', () => {
 
 function createDeps() {
   const saveTheme = jest.fn().mockResolvedValue(undefined);
-  const createVersion = jest.fn().mockResolvedValue(undefined);
+  const createThemeWithInitialVersion = jest
+    .fn()
+    .mockImplementation(
+      (input: {
+        businessId: string;
+        name: string;
+        appliesToInvoice: boolean;
+        appliesToQuote: boolean;
+      }) =>
+        Promise.resolve({
+          id: 'new-theme',
+          businessId: input.businessId,
+          name: input.name,
+          appliesToInvoice: input.appliesToInvoice,
+          appliesToQuote: input.appliesToQuote,
+          currentVersionId: 'new-version',
+          createdAt: '2026-08-22T00:00:00.000Z',
+          updatedAt: '2026-08-22T00:00:00.000Z',
+        }),
+    );
+  const appendVersion = jest.fn().mockResolvedValue({
+    id: 'v2',
+    themeId: 'theme-1',
+    version: 2,
+    schemaVersion: 1,
+    config: {},
+    createdAt: '2026-08-22T00:00:00.000Z',
+  });
   const businessSave = jest.fn().mockResolvedValue(undefined);
   const themeRepository = {
     getTheme: jest.fn(),
     getVersion: jest.fn(),
     listByBusiness: jest.fn().mockResolvedValue([]),
     listVersions: jest.fn().mockResolvedValue([]),
-    nextVersionNumber: jest.fn().mockResolvedValue(1),
     saveTheme,
-    createVersion,
+    createThemeWithInitialVersion,
+    appendVersion,
   } as unknown as ThemeRepository;
   const businessRepository = {
     findById: jest.fn().mockResolvedValue({ id: 'business-1', name: 'Acme' }),
@@ -115,7 +142,8 @@ function createDeps() {
     themeRepository,
     businessRepository,
     saveTheme,
-    createVersion,
+    createThemeWithInitialVersion,
+    appendVersion,
     businessSave,
   };
 }
@@ -136,10 +164,10 @@ const baseTheme = {
 };
 
 describe('ThemesService', () => {
-  it('creates a theme from a preset and saves it with a version', async () => {
+  it('creates a theme from a preset with its initial version atomically', async () => {
     const deps = createDeps();
     const service = buildService(deps);
-    const { saveTheme, createVersion } = deps;
+    const { saveTheme, createThemeWithInitialVersion } = deps;
 
     const theme = await service.createFromPreset('business-1', {
       preset: 'clean',
@@ -149,12 +177,14 @@ describe('ThemesService', () => {
     expect(theme.name).toBe('Clean');
     expect(theme.appliesToInvoice).toBe(true);
     expect(theme.currentVersionId).not.toBe('');
-    expect(saveTheme).toHaveBeenCalledWith(
-      expect.objectContaining({ id: theme.id }),
+    expect(createThemeWithInitialVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        businessId: 'business-1',
+        name: 'Clean',
+        schemaVersion: 1,
+      }),
     );
-    expect(createVersion).toHaveBeenCalledWith(
-      expect.objectContaining({ themeId: theme.id, version: 1 }),
-    );
+    expect(saveTheme).not.toHaveBeenCalled();
   });
 
   it('rejects an unknown preset', async () => {
@@ -168,7 +198,7 @@ describe('ThemesService', () => {
 
   it('duplicates a theme copying the latest version config', async () => {
     const deps = createDeps();
-    const { createVersion } = deps;
+    const { createThemeWithInitialVersion, saveTheme } = deps;
     (deps.themeRepository.getTheme as jest.Mock).mockResolvedValue(baseTheme);
     (deps.themeRepository.listVersions as jest.Mock).mockResolvedValue([
       {
@@ -185,12 +215,15 @@ describe('ThemesService', () => {
     const copy = await service.duplicate('business-1', 'theme-1');
 
     expect(copy.name).toBe('Clean (copy)');
-    expect(createVersion).toHaveBeenCalledWith(
+    expect(createThemeWithInitialVersion).toHaveBeenCalledWith(
       expect.objectContaining({
+        businessId: 'business-1',
+        name: 'Clean (copy)',
         config: { page: { size: 'letter' } },
-        version: 1,
+        schemaVersion: 1,
       }),
     );
+    expect(saveTheme).not.toHaveBeenCalled();
   });
 
   it('archives and restores a theme', async () => {
@@ -207,9 +240,8 @@ describe('ThemesService', () => {
 
   it('saves a new immutable version when the config changes', async () => {
     const deps = createDeps();
-    const { createVersion } = deps;
+    const { appendVersion, saveTheme } = deps;
     (deps.themeRepository.getTheme as jest.Mock).mockResolvedValue(baseTheme);
-    (deps.themeRepository.nextVersionNumber as jest.Mock).mockResolvedValue(2);
     (deps.themeRepository.listVersions as jest.Mock).mockResolvedValue([]);
     const service = buildService(deps);
 
@@ -245,9 +277,15 @@ describe('ThemesService', () => {
 
     await service.saveConfig('business-1', 'theme-1', config);
 
-    expect(createVersion).toHaveBeenCalledWith(
-      expect.objectContaining({ themeId: 'theme-1', version: 2 }),
+    expect(appendVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        themeId: 'theme-1',
+        businessId: 'business-1',
+        schemaVersion: 1,
+        config,
+      }),
     );
+    expect(saveTheme).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid theme config', async () => {
