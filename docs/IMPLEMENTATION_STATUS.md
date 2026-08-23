@@ -104,6 +104,7 @@ Design-First — prioritize matching `sample.html`; defer feature breadth to the
 - Phase 1 atomic theme lifecycle — service-role RPCs atomically create themes with v1 and append row-locked monotonic versions while advancing `current_version_id`; preset creation, duplication, and config saves use repository atomic operations.
 - Phase 1 durable email outbox — invoice/quote draft-to-sent transitions atomically enqueue idempotent email commands; claim/accepted/failed RPCs and an API dispatcher preserve delivery attempts for retry without rolling back sent documents.
 - Phase 1 production email delivery — Resend HTTP provider with conditional production-safe configuration and a lifecycle-managed, non-overlapping email outbox poller.
+- API development startup fix — shared calculation classes no longer use parameter properties unsupported by Node's strip-only TypeScript loader; API starts on port 3001 again.
 
 ## Current ticket
 
@@ -337,6 +338,7 @@ Watchman: VERIFIED
 - Phase 1 web stabilization — api-client lint/typecheck/test (9 passed)/build; web lint/typecheck/test (2 passed)/build.
 - Phase 1 API hardening — API lint/typecheck/test (156 passed)/build; validation lint/typecheck/test (9 passed)/build.
 - Phase 1 completion — API lint/typecheck/test (174 passed)/build; local and linked migration histories aligned through `20260822160000`; push dry run reports up to date; linked schema lint reports no errors. Commands run from `infrastructure/supabase/`.
+- API startup fix — calculations lint/typecheck/test (11 passed); API lint/typecheck/test (174 passed)/build; live `/health` 200 and unauthenticated `/businesses` 401 verified.
 
 ## Status update format
 

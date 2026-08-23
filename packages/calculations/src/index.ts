@@ -22,10 +22,13 @@ function divideHalfAwayFromZero(coefficient: bigint, divisor: bigint): bigint {
 }
 
 export class Decimal {
-  private constructor(
-    readonly coefficient: bigint,
-    readonly scale: number,
-  ) {}
+  readonly coefficient: bigint;
+  readonly scale: number;
+
+  private constructor(coefficient: bigint, scale: number) {
+    this.coefficient = coefficient;
+    this.scale = scale;
+  }
 
   static fromString(value: string): Decimal {
     const trimmed = value.trim();
@@ -194,11 +197,19 @@ export class Decimal {
 }
 
 export class Money {
+  readonly minorUnits: bigint;
+  readonly currencyCode: string;
+  readonly scale: number;
+
   private constructor(
-    readonly minorUnits: bigint,
-    readonly currencyCode: string,
-    readonly scale: number,
-  ) {}
+    minorUnits: bigint,
+    currencyCode: string,
+    scale: number,
+  ) {
+    this.minorUnits = minorUnits;
+    this.currencyCode = currencyCode;
+    this.scale = scale;
+  }
 
   static fromDecimalString(
     value: string,
