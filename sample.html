@@ -131,6 +131,10 @@ a{color:inherit}
 .settings-section{max-width:650px}.settings-section .field{margin-bottom:16px}
 .taxrow{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}.taxrow:last-child{border-bottom:0}
 
+.tax-builder{display:grid;gap:10px;margin-top:9px}.tax-builder-row{display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:8px;align-items:center}.tax-builder-row .select{width:100%}.tax-add-row{display:flex;align-items:center;gap:10px;margin-top:8px}.tax-builder-empty{font-size:13px;color:var(--muted);padding:3px 0}.tax-create-inline{font-size:12px;color:var(--text2);margin-top:3px}.tax-create-inline button{border:0;background:none;color:var(--primary);padding:0;font:inherit;font-weight:700;cursor:pointer}
+.tax-applied-list{display:grid;gap:8px;margin-top:8px}.tax-applied-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#fff}.tax-applied-meta{display:flex;align-items:center;gap:8px;min-width:0}.tax-picker-list{display:grid;gap:8px;margin-top:12px;max-height:310px;overflow:auto}.tax-picker-option{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer}.tax-picker-option:hover{background:#f8fafc;border-color:#b8c4d4}.tax-picker-option.selected{border-color:#93b4f7;background:var(--primary-soft)}.tax-picker-option input{width:18px;height:18px;accent-color:var(--primary)}.tax-picker-empty{padding:20px 8px;text-align:center;color:var(--muted);font-size:13px}.tax-picker-create{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.tax-options{display:grid;gap:8px;margin-top:8px}.tax-option{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;cursor:pointer}.tax-option:hover{border-color:#b8c4d4;background:#f8fafc}.tax-option-main{display:flex;align-items:center;gap:10px}.tax-option input{width:17px;height:17px;accent-color:var(--primary)}.tax-option-rate{font-size:12px;color:var(--text2);font-weight:700}.tax-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.tax-mini{font-size:11px;font-weight:700;color:#344054;background:#f2f4f7;border-radius:999px;padding:2px 6px}.summary-tax-empty{font-size:12px;color:var(--muted);padding:6px 0}
+
 /* MODALS */
 dialog{border:0;border-radius:16px;padding:0;box-shadow:var(--shadow);width:min(560px,calc(100vw - 32px));color:var(--text)}
 dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
@@ -168,6 +172,76 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
   dialog:not(.preview-dialog){width:100vw;max-width:none;margin:auto 0 0;border-radius:18px 18px 0 0}.preview-dialog{width:100vw;height:100vh;max-width:none;max-height:none;border-radius:0;margin:0}.preview-layout{display:block;min-height:100vh}.paper-wrap{padding:16px}.paper{padding:22px;min-height:640px}.preview-side{border-left:0;border-top:1px solid var(--border);padding-bottom:90px}
 }
 @media(min-width:768px){.mobile-details{display:none}}
+
+/* ===== POLISH PASS ===== */
+:root{
+  --page-max:1200px;
+  --soft-blue:#F7FAFF;
+}
+body{letter-spacing:-.005em}
+.card{box-shadow:0 1px 2px rgba(16,24,40,.025)}
+.topbar h1,.section-title,.detail-title h2,.auth-card h1,.setup-wrap h1{letter-spacing:-.035em}
+.page{max-width:var(--page-max)}
+.topbar{box-shadow:0 1px 0 rgba(16,24,40,.02)}
+.sidebar{box-shadow:1px 0 0 rgba(16,24,40,.015)}
+.nav button,.settings-nav button,.business-switch,.client-selector,.table-row,.mobile-card,.entity{
+  transition:background-color .15s ease,border-color .15s ease,transform .15s ease;
+}
+.business-switch:hover,.client-selector:hover,.mobile-card:hover,.entity:hover{border-color:#C8D3E0}
+.entity:hover{transform:translateY(-1px)}
+.btn{transition:background-color .15s ease,border-color .15s ease,transform .08s ease}
+.btn:active{transform:translateY(1px)}
+.hero-actions{align-items:center}
+.page-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}
+.page-intro h2{font-size:20px;margin:0;letter-spacing:-.025em}
+.page-intro p{font-size:13px;color:var(--text2);margin:5px 0 0;line-height:1.5}
+.stat{min-height:126px}
+.stat .value{font-variant-numeric:tabular-nums}
+.attention-item,.activity-item{min-height:62px}
+.empty-state{text-align:center;padding:52px 24px}
+.empty-state .empty-icon{width:44px;height:44px;border-radius:12px;background:var(--primary-soft);display:grid;place-items:center;margin:0 auto 14px;color:var(--primary);font-weight:800}
+.empty-state h3{font-size:16px;margin:0 0 7px}
+.empty-state p{font-size:13px;color:var(--text2);max-width:390px;margin:0 auto 18px;line-height:1.5}
+.first-dashboard{border-color:#DBEAFE;background:linear-gradient(135deg,#FFFFFF 0%,#F7FAFF 100%)}
+.first-dashboard .welcome{padding:22px 22px 18px}
+.first-dashboard h2{font-size:22px;margin:0;letter-spacing:-.035em}
+.first-dashboard p{font-size:13px;color:var(--text2);line-height:1.5;margin:7px 0 0}
+.getting-started{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 22px 22px}
+.start-step{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.start-step .num{width:28px;height:28px;border-radius:8px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-size:12px;font-weight:800}
+.start-step strong{display:block;font-size:13px;margin-top:12px}
+.start-step span{display:block;font-size:11px;color:var(--text2);margin-top:4px;line-height:1.45}
+.start-step.done .num{background:var(--success-soft);color:var(--success)}
+.badge-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:1px}
+.badge-dot.green{background:var(--success)} .badge-dot.amber{background:var(--warning)} .badge-dot.red{background:var(--danger)}
+.validation-banner{display:none;background:var(--danger-soft);border:1px solid #FECACA;border-radius:12px;padding:12px 14px;color:var(--danger);font-size:12px;font-weight:650;margin-bottom:16px}
+.validation-banner.show{display:block}
+.sending-summary{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:14px}
+.sending-summary .row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}
+.recipient-chips{display:flex;flex-wrap:wrap;gap:7px;min-height:44px;border:1px solid var(--border2);border-radius:9px;padding:7px;background:#fff}
+.recipient-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary);border-radius:999px;padding:6px 9px;font-size:12px;font-weight:700}
+.recipient-chip button{border:0;background:transparent;color:var(--primary);padding:0;font-size:14px}
+.review-checks{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}
+.review-check{display:flex;gap:8px;align-items:flex-start;font-size:11px;color:var(--text2);margin:7px 0}
+.review-check:before{content:"✓";width:17px;height:17px;border-radius:50%;background:var(--success-soft);color:var(--success);display:grid;place-items:center;font-weight:800;flex:0 0 17px}
+.mobile-context{display:none}
+@media(max-width:767px){
+  .page-intro{display:block;margin-bottom:18px}
+  .getting-started{grid-template-columns:1fr;padding:0 16px 16px}
+  .first-dashboard .welcome{padding:18px 16px 14px}
+  .first-dashboard h2{font-size:20px}
+  .stats{gap:10px}
+  .stat{padding:15px;min-height:auto}
+  .stat .value{font-size:23px;margin-top:8px}
+  .section-card{padding:15px}
+  .mobile-context{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:12px}
+  .editor-section .eyebrow{font-size:10px}
+  .summary{padding:15px}
+  .depositbox{padding:12px}
+  .preview-side h3{margin-top:10px}
+  .sending-summary{margin-top:12px}
+}
+
 </style>
 </head>
 <body>
@@ -209,7 +283,7 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
 <section id="appScreen" class="screen">
   <aside class="sidebar">
     <div class="logo">InvoiceFlow</div>
-    <button class="business-switch" id="businessSwitch"><strong id="businessInitials">AC</strong><span id="businessNameSide">Acme Design</span></button>
+    <button class="business-switch" id="businessSwitch" aria-label="Switch business"><strong id="businessInitials">AC</strong><span id="businessNameSide">Acme Design</span></button>
     <nav class="nav">
       <button data-route="dashboard" class="active"><span class="ico">⌂</span><span>Dashboard</span></button>
       <button data-route="invoices"><span class="ico">▤</span><span>Invoices</span></button>
@@ -234,7 +308,21 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
     <div class="page">
       <!-- Dashboard -->
       <section class="view" id="view-dashboard">
-        <div class="hero-actions">
+        <div class="mobile-context"><span id="dashMobileBusiness">Acme Design</span><span>Today</span></div>
+        <div class="card first-dashboard" id="firstDashboardCard">
+          <div class="welcome">
+            <h2>Your business is ready</h2>
+            <p>Create your first invoice or quote now. You can finish taxes, payment instructions, and branding whenever you need them.</p>
+          </div>
+          <div class="getting-started">
+            <div class="start-step done"><div class="num">✓</div><strong>Business created</strong><span>Your workspace is ready.</span></div>
+            <button class="start-step" id="startInvoiceStep" style="text-align:left;cursor:pointer"><div class="num">2</div><strong>Create an invoice</strong><span>Add a client, items, and an optional deposit.</span></button>
+            <button class="start-step" id="startSettingsStep" style="text-align:left;cursor:pointer"><div class="num">3</div><strong>Finish setup</strong><span>Add taxes and payment instructions.</span></button>
+          </div>
+        </div>
+        <div style="height:20px"></div>
+
+        <div class="page-intro"><div><h2>Overview</h2><p>Focus on money that needs action, not accounting clutter.</p></div></div><div class="hero-actions">
           <button class="btn primary" id="dashNewInvoice">+ New Invoice</button>
           <button class="btn secondary" id="dashNewQuote">+ New Quote</button>
         </div>
@@ -277,9 +365,10 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
 
       <!-- Invoice editor -->
       <section class="view hidden" id="view-invoice-editor">
+        <div class="validation-banner" id="invoiceValidation">Please fix the highlighted invoice details before review.</div>
         <div class="editor-section">
           <div class="eyebrow">Client</div>
-          <button class="client-selector" id="clientSelector"><div class="selector-main"><div class="avatar" id="editClientAvatar">AC</div><div><strong id="editClientName">ABC Construction</strong><span id="editClientEmail">john@abc.com</span></div></div><span style="font-size:22px;color:var(--muted)">›</span></button>
+          <button class="client-selector" id="clientSelector" aria-label="Select client"><div class="selector-main"><div class="avatar" id="editClientAvatar">AC</div><div><strong id="editClientName">ABC Construction</strong><span id="editClientEmail">john@abc.com</span></div></div><span style="font-size:22px;color:var(--muted)">›</span></button>
         </div>
         <div class="editor-section">
           <div class="eyebrow">Invoice details</div>
@@ -296,6 +385,7 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
         </div>
         <div class="editor-section">
           <div class="eyebrow">Items</div>
+          <div class="small muted" style="margin:-2px 0 10px">Taxes are optional. Add one or more taxes to an item only when needed.</div>
           <div class="items"><div class="items-head"><div>Description</div><div>Qty</div><div>Rate</div><div class="right">Amount</div><div></div></div><div id="editorItems"></div><div class="addbar"><button class="textaction" id="addItemBtn">+ Add item</button></div></div>
         </div>
         <div class="editor-bottom">
@@ -306,7 +396,7 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
           </div>
           <aside class="card summary">
             <div class="sumrow"><span>Subtotal</span><strong id="eSubtotal">$0.00</strong></div>
-            <div class="sumrow"><span>HST 13%</span><strong id="eTax">$0.00</strong></div>
+            <div id="eTaxRows"></div>
             <div class="sumrow total"><strong>Total</strong><strong id="eTotal">$0.00</strong></div>
             <div class="depositbox"><div class="dtop"><div><div class="label">Deposit required</div><div class="small muted" id="eDepositMeta">30% · Due on receipt</div></div><div class="amt" id="eDeposit">$0.00</div></div><div class="sumrow" style="padding:8px 0 0"><span>Remaining</span><strong id="eRemaining">$0.00</strong></div><button class="textaction" id="editDepositBtn" style="margin-top:6px">Edit deposit</button></div>
           </aside>
@@ -373,8 +463,8 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
           <div class="card settings-nav" id="settingsNav"><button class="active" data-set="profile">Business Profile</button><button data-set="documents">Document Defaults</button><button data-set="taxes">Taxes</button><button data-set="payments">Payments</button><button data-set="branding">Branding</button><button data-set="numbering">Numbering</button><button data-set="businesses">Manage Businesses</button></div>
           <div class="card settings-panel">
             <div class="setting-view" id="setting-profile"><h2>Business Profile</h2><div class="settings-section"><div class="field"><label>Business name</label><input class="input" id="settingsBusinessName" value="Acme Design"></div><div class="field"><label>Business email</label><input class="input" value="billing@acme.ca"></div><div class="grid2"><div class="field"><label>Country</label><select class="select"><option>Canada</option></select></div><div class="field"><label>Currency</label><select class="select"><option>CAD — Canadian Dollar</option></select></div></div><button class="btn primary" id="saveProfile" style="margin-top:10px">Save Changes</button></div></div>
-            <div class="setting-view hidden" id="setting-documents"><h2>Document Defaults</h2><div class="settings-section"><div class="field"><label>Default invoice due date</label><select class="select"><option>30 days after issue</option><option>15 days after issue</option></select></div><div class="field"><label>Default tax</label><select class="select"><option>HST 13%</option><option>No tax</option></select></div><div class="field"><label>Default deposit</label><select class="select"><option>None</option><option>30%</option><option>50%</option></select></div><div class="field"><label>Default quote validity</label><select class="select"><option>30 days</option><option>15 days</option></select></div><button class="btn primary">Save Changes</button></div></div>
-            <div class="setting-view hidden" id="setting-taxes"><h2>Taxes</h2><div class="settings-section"><div class="taxrow"><div><strong>HST</strong><div class="small muted">13% · Default</div></div><span class="pill green">Default</span></div><div class="taxrow"><div><strong>GST</strong><div class="small muted">5%</div></div><button class="btn secondary smallbtn">Edit</button></div><button class="btn primary" style="margin-top:18px">+ Add Tax</button></div></div>
+            <div class="setting-view hidden" id="setting-documents"><h2>Document Defaults</h2><div class="settings-section"><div class="field"><label>Default invoice due date</label><select class="select"><option>30 days after issue</option><option>15 days after issue</option></select></div><div class="field"><label>Default tax preset</label><select class="select"><option>Use business default tax</option><option>No tax</option></select><div class="hint">Items can still have multiple taxes.</div></div><div class="field"><label>Default deposit</label><select class="select"><option>None</option><option>30%</option><option>50%</option></select></div><div class="field"><label>Default quote validity</label><select class="select"><option>30 days</option><option>15 days</option></select></div><button class="btn primary">Save Changes</button></div></div>
+            <div class="setting-view hidden" id="setting-taxes"><h2>Taxes</h2><div class="settings-section"><p class="small muted" style="margin-top:0">Create all taxes your business may use. A document item can have one or multiple taxes applied.</p><div id="taxSettingsList"></div><button class="btn primary" style="margin-top:18px" id="addTaxSettingBtn">+ Add Tax</button></div></div>
             <div class="setting-view hidden" id="setting-payments"><h2>Payments</h2><div class="settings-section"><div class="field"><label>Bank transfer instructions</label><textarea class="textarea">Please send payment by e-transfer to billing@acme.ca.</textarea></div><div class="field"><label>Cheque instructions</label><textarea class="textarea" placeholder="Optional"></textarea></div><button class="btn primary">Save Changes</button></div></div>
             <div class="setting-view hidden" id="setting-branding"><h2>Branding</h2><div class="settings-section"><div class="field"><label>Accent color</label><input class="input" value="#2563EB"></div><div class="field"><label>Invoice style</label><div class="grid3"><button class="card" style="height:100px;border-color:var(--primary);color:var(--primary);font-weight:800">Clean ✓</button><button class="card" style="height:100px;font-weight:800">Modern</button><button class="card" style="height:100px;font-weight:800">Minimal</button></div></div><button class="btn primary">Save Changes</button></div></div>
             <div class="setting-view hidden" id="setting-numbering"><h2>Numbering</h2><div class="settings-section"><div class="grid2"><div class="field"><label>Invoice prefix</label><input class="input" value="INV-"></div><div class="field"><label>Next invoice number</label><input class="input" value="1052"></div></div><div class="grid2"><div class="field"><label>Quote prefix</label><input class="input" value="Q-"></div><div class="field"><label>Next quote number</label><input class="input" value="207"></div></div><button class="btn primary">Save Changes</button></div></div>
@@ -396,13 +486,18 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
 <dialog id="clientDialog"><div class="modal-head"><h2>Select client</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="search" style="max-width:none;margin-bottom:12px"><input class="input" id="clientPickerSearch" placeholder="Search clients..."></div><div id="clientPickerList"></div><div style="border-top:1px solid var(--border);margin-top:8px;padding-top:10px"><button class="textaction" id="quickAddClient">+ Add new client</button></div></div></dialog>
 
 <!-- ITEM -->
-<dialog id="itemDialog"><div class="modal-head"><h2>Add invoice item</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="field" style="margin-bottom:14px"><label>Description</label><input class="input" id="itemDesc" value="Consulting"></div><div class="grid2"><div class="field"><label>Quantity</label><input class="input" id="itemQty" type="number" value="1" min="0" step=".25"></div><div class="field"><label>Rate</label><input class="input" id="itemRate" type="number" value="150" min="0" step=".01"></div></div><div class="field" style="margin-top:14px"><label>Tax</label><select class="select" id="itemTax"><option value=".13">HST 13%</option><option value="0">No tax</option></select></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="confirmItem">Add Item</button></div></dialog>
+<dialog id="itemDialog"><div class="modal-head"><h2>Add invoice item</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="field" style="margin-bottom:14px"><label>Description</label><input class="input" id="itemDesc" value="Consulting"></div><div class="grid2"><div class="field"><label>Quantity</label><input class="input" id="itemQty" type="number" value="1" min="0" step=".25"></div><div class="field"><label>Rate</label><input class="input" id="itemRate" type="number" value="150" min="0" step=".01"></div></div><div class="field" style="margin-top:14px"><label>Taxes</label><div class="hint">Select one or more saved taxes for this item.</div><div class="tax-builder" id="itemTaxBuilder"></div><div class="tax-add-row"><button type="button" class="textaction" id="addItemTaxBtn">+ Add tax</button></div></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="confirmItem">Add Item</button></div></dialog>
 
 <!-- DEPOSIT -->
 <dialog id="depositDialog"><div class="modal-head"><h2>Deposit</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="segmented"><button class="active" data-deposit-type="percent">Percentage</button><button data-deposit-type="fixed">Fixed amount</button></div><div class="field"><label id="depositLabel">Deposit percentage</label><input class="input" id="depositValue" type="number" value="30" min="0"></div><div class="field" style="margin-top:14px"><label>Deposit due</label><select class="select" id="depositDue"><option>On receipt</option><option>7 days</option><option>15 days</option></select></div><div class="grid2" style="margin-top:16px"><div class="card" style="padding:12px"><span class="small muted">Deposit</span><strong style="display:block;margin-top:4px" id="depPreview">$0</strong></div><div class="card" style="padding:12px"><span class="small muted">Remaining</span><strong style="display:block;margin-top:4px" id="remPreview">$0</strong></div></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="saveDeposit">Save Deposit</button></div></dialog>
 
 <!-- REVIEW -->
-<dialog id="reviewDialog" class="preview-dialog"><div class="preview-layout"><div class="paper-wrap"><div class="paper"><div class="paper-head"><div class="paper-brand">ACME DESIGN</div><div class="paper-type">INVOICE</div></div><div class="paper-meta"><strong id="pNo">INV-1052</strong><div>Issue: Aug 17, 2026<br>Due: Sep 16, 2026</div></div><div class="paper-bill"><small>Bill to</small><strong id="pClient">ABC Construction</strong><div class="small muted" id="pEmail">john@abc.com</div></div><div class="paper-lines"><div class="paper-line head"><div>Description</div><div>Qty</div><div>Amount</div></div><div id="paperItems"></div></div><div class="paper-totals"><div class="paper-total"><span>Subtotal</span><strong id="pSubtotal">$0</strong></div><div class="paper-total"><span>HST 13%</span><strong id="pTax">$0</strong></div><div class="paper-total total"><span>TOTAL</span><span id="pTotal">$0</span></div><div style="background:var(--primary-soft);padding:10px;border-radius:8px;margin-top:12px"><div class="paper-total" style="color:var(--primary);font-weight:800"><span>Deposit due now</span><span id="pDeposit">$0</span></div><div class="paper-total"><span>Remaining balance</span><span id="pRemaining">$0</span></div></div></div><div class="small muted" style="margin-top:40px" id="pNotes">Thank you for your business.</div></div></div><div class="preview-side"><button class="iconbtn dialogClose" style="float:right">×</button><h3>Invoice Summary</h3><div class="small muted">Client</div><strong id="psClient">ABC Construction</strong><div class="small muted" style="margin-top:18px">Total</div><div class="big" id="psTotal">$0</div><div class="small muted">Deposit due</div><strong id="psDeposit">$0</strong><div class="small muted" style="margin-top:18px">Recipient</div><strong id="psEmail">john@abc.com</strong><div class="preview-actions"><button class="btn primary" id="sendBtn">Send Invoice</button><button class="btn secondary">Download PDF</button><button class="btn ghost dialogClose">Back to Edit</button></div></div></div></dialog>
+<dialog id="reviewDialog" class="preview-dialog"><div class="preview-layout"><div class="paper-wrap"><div class="paper"><div class="paper-head"><div class="paper-brand">ACME DESIGN</div><div class="paper-type">INVOICE</div></div><div class="paper-meta"><strong id="pNo">INV-1052</strong><div>Issue: Aug 17, 2026<br>Due: Sep 16, 2026</div></div><div class="paper-bill"><small>Bill to</small><strong id="pClient">ABC Construction</strong><div class="small muted" id="pEmail">john@abc.com</div></div><div class="paper-lines"><div class="paper-line head"><div>Description</div><div>Qty</div><div>Amount</div></div><div id="paperItems"></div></div><div class="paper-totals"><div class="paper-total"><span>Subtotal</span><strong id="pSubtotal">$0</strong></div><div id="pTaxRows"></div><div class="paper-total total"><span>TOTAL</span><span id="pTotal">$0</span></div><div style="background:var(--primary-soft);padding:10px;border-radius:8px;margin-top:12px"><div class="paper-total" style="color:var(--primary);font-weight:800"><span>Deposit due now</span><span id="pDeposit">$0</span></div><div class="paper-total"><span>Remaining balance</span><span id="pRemaining">$0</span></div></div></div><div class="small muted" style="margin-top:40px" id="pNotes">Thank you for your business.</div></div></div><div class="preview-side"><button class="iconbtn dialogClose" style="float:right">×</button><h3>Invoice Summary</h3><div class="small muted">Client</div><strong id="psClient">ABC Construction</strong><div class="small muted" style="margin-top:18px">Total</div><div class="big" id="psTotal">$0</div><div class="small muted">Deposit due</div><strong id="psDeposit">$0</strong><div class="small muted" style="margin-top:18px">Recipient</div><strong id="psEmail">john@abc.com</strong><div class="review-checks">
+        <div class="review-check">Client and recipient confirmed</div>
+        <div class="review-check">Invoice has at least one valid item</div>
+        <div class="review-check">Deposit and remaining balance are clearly shown</div>
+      </div>
+      <div class="preview-actions"><button class="btn primary" id="sendBtn">Continue to Send</button><button class="btn secondary">Download PDF</button><button class="btn ghost dialogClose">Back to Edit</button></div></div></div></dialog>
 
 <!-- PAYMENT -->
 <dialog id="paymentDialog"><div class="modal-head"><h2>Record Payment</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="field"><label>Amount</label><input class="input" id="paymentAmount" value="3955"></div><div class="grid2" style="margin-top:14px"><div class="field"><label>Date</label><input class="input" type="date" value="2026-08-18"></div><div class="field"><label>Method</label><select class="select"><option>Bank transfer</option><option>Cash</option><option>Cheque</option></select></div></div><div class="field" style="margin-top:14px"><label>Reference <span class="muted">(optional)</span></label><input class="input" placeholder="Transaction ID or note"></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="savePayment">Record Payment</button></div></dialog>
@@ -411,13 +506,122 @@ dialog::backdrop{background:rgba(16,24,40,.42);backdrop-filter:blur(2px)}
 <dialog id="newClientDialog"><div class="modal-head"><h2>New Client</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="grid2"><div class="field"><label>Name</label><input class="input" id="ncName" placeholder="John Smith"></div><div class="field"><label>Company</label><input class="input" id="ncCompany" placeholder="ABC Construction"></div></div><div class="field" style="margin-top:14px"><label>Email</label><input class="input" id="ncEmail" placeholder="john@example.com"></div><div class="field" style="margin-top:14px"><label>Phone</label><input class="input" placeholder="Optional"></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="saveNewClient">Add Client</button></div></dialog>
 
 <!-- NEW PRODUCT -->
-<dialog id="productDialog"><div class="modal-head"><h2>New Item</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="segmented"><button class="active">Service</button><button>Product</button></div><div class="field"><label>Name</label><input class="input" id="npName" value="Consulting"></div><div class="grid2" style="margin-top:14px"><div class="field"><label>Default rate</label><input class="input" id="npRate" value="150"></div><div class="field"><label>Unit</label><select class="select"><option>Hour</option><option>Fixed</option><option>Unit</option></select></div></div><div class="field" style="margin-top:14px"><label>Default tax</label><select class="select"><option>HST 13%</option><option>No tax</option></select></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="saveProduct">Save Item</button></div></dialog>
+<dialog id="productDialog"><div class="modal-head"><h2>New Item</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="segmented"><button class="active">Service</button><button>Product</button></div><div class="field"><label>Name</label><input class="input" id="npName" value="Consulting"></div><div class="grid2" style="margin-top:14px"><div class="field"><label>Default rate</label><input class="input" id="npRate" value="150"></div><div class="field"><label>Unit</label><select class="select"><option>Hour</option><option>Fixed</option><option>Unit</option></select></div></div><div class="field" style="margin-top:14px"><label>Default taxes</label><div class="hint">You can apply more than one default tax.</div><div class="tax-options" id="productTaxOptions"></div></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="saveProduct">Save Item</button></div></dialog>
+
+<!-- EDIT ITEM TAXES -->
+<dialog id="editItemTaxesDialog"><div class="modal-head"><h2>Edit Item Taxes</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><p class="small muted" style="margin-top:0">Select the taxes that apply to this item.</p><div class="tax-builder" id="editItemTaxBuilder"></div><div class="tax-add-row"><button type="button" class="textaction" id="addEditItemTaxBtn">+ Add tax</button></div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="saveItemTaxes">Save Taxes</button></div></dialog>
+
+<!-- TAX PICKER: one dialog, two internal views -->
+<dialog id="taxPickerDialog">
+  <div class="modal-head">
+    <h2 id="taxPickerTitle">Add tax</h2>
+    <button class="iconbtn dialogClose">×</button>
+  </div>
+
+  <div class="modal-body">
+    <div id="taxPickerSelectView">
+      <div class="field">
+        <label>Find a tax</label>
+        <input class="input" id="taxPickerSearch" placeholder="Search by tax name or rate...">
+      </div>
+      <div class="small muted" style="margin-top:10px">Select one or more taxes already saved for this business.</div>
+      <div class="tax-picker-list" id="taxPickerList"></div>
+      <div class="tax-picker-create">
+        <div class="small muted" style="margin-bottom:7px">Can’t find the tax you need?</div>
+        <button type="button" class="textaction" id="createTaxFromPicker">+ Create new tax</button>
+      </div>
+    </div>
+
+    <div id="taxPickerCreateView" class="hidden">
+      <button type="button" class="textaction" id="backToTaxPicker" style="margin-bottom:18px">← Back to taxes</button>
+      <div class="grid2">
+        <div class="field">
+          <label>Tax name</label>
+          <input class="input" id="pickerNewTaxName" placeholder="PST">
+        </div>
+        <div class="field">
+          <label>Rate (%)</label>
+          <input class="input" id="pickerNewTaxRate" type="number" min="0" step="0.01" placeholder="7">
+        </div>
+      </div>
+      <label class="tax-option" style="margin-top:14px">
+        <span class="tax-option-main">
+          <input type="checkbox" id="pickerNewTaxDefault">
+          <span>
+            <strong>Set as default</strong>
+            <span class="small muted" style="display:block">New invoice items will start with this tax selected.</span>
+          </span>
+        </span>
+      </label>
+      <div class="small muted" style="margin-top:14px">The new tax will also be saved to Business Settings → Taxes.</div>
+    </div>
+  </div>
+
+  <div class="modal-actions" id="taxPickerSelectActions">
+    <button class="btn secondary" id="cancelTaxPicker">Cancel</button>
+    <button class="btn primary" id="confirmTaxPicker">Add selected</button>
+  </div>
+
+  <div class="modal-actions hidden" id="taxPickerCreateActions">
+    <button class="btn secondary" id="cancelCreateTaxFromPicker">Back</button>
+    <button class="btn primary" id="saveTaxFromPicker">Create tax</button>
+  </div>
+</dialog>
+
+<!-- ADD TAX -->
+<dialog id="taxDialog"><div class="modal-head"><h2 id="taxDialogTitle">Add Tax</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><div class="grid2"><div class="field"><label>Tax name</label><input class="input" id="newTaxName" placeholder="PST"></div><div class="field"><label>Rate (%)</label><input class="input" id="newTaxRate" type="number" min="0" step="0.01" placeholder="7"></div></div><label class="tax-option" style="margin-top:14px"><span class="tax-option-main"><input type="checkbox" id="newTaxDefault"><span><strong>Set as default</strong><span class="small muted" style="display:block">New invoice items will start with this tax selected.</span></span></span></label></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="saveTaxSetting">Add Tax</button></div></dialog>
 
 <!-- BUSINESS SWITCH -->
 <dialog id="businessDialog"><div class="modal-head"><h2>Switch business</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><button class="option" data-business="Acme Design"><div class="option-main"><div class="avatar">AC</div><div><strong>Acme Design</strong><span>Canada · CAD</span></div></div><span class="pill blue">Current</span></button><button class="option" data-business="Niro Consulting"><div class="option-main"><div class="avatar">NC</div><div><strong>Niro Consulting</strong><span>Canada · CAD</span></div></div><span>›</span></button><button class="textaction" id="dialogAddBusiness" style="margin-top:12px">+ Add another business</button></div></dialog>
 
 <!-- CONVERT QUOTE -->
 <dialog id="convertDialog"><div class="modal-head"><h2>Convert Q-206 to an invoice?</h2><button class="iconbtn dialogClose">×</button></div><div class="modal-body"><p class="small muted" style="line-height:1.6;margin-top:0">We’ll copy the client, items and pricing, taxes, deposit terms, notes, and terms into a new draft invoice. A new invoice number and dates will be created.</p><div class="card" style="padding:13px;font-size:13px;line-height:1.8">✓ Client<br>✓ Items and prices<br>✓ Taxes<br>✓ 30% deposit terms</div></div><div class="modal-actions"><button class="btn secondary dialogClose">Cancel</button><button class="btn primary" id="confirmConvert">Convert</button></div></dialog>
+
+
+<!-- SEND INVOICE -->
+<dialog id="sendDialog">
+  <div class="modal-head">
+    <h2>Send Invoice</h2>
+    <button class="iconbtn dialogClose">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="field">
+      <label>To</label>
+      <div class="recipient-chips" id="recipientChips">
+        <span class="recipient-chip"><span id="sendRecipientChip">john@abc.com</span><button type="button" aria-label="Remove recipient">×</button></span>
+      </div>
+      <div class="hint">You can send to multiple email addresses.</div>
+    </div>
+    <button class="textaction" type="button" style="margin:8px 0 14px" id="showCcBcc">+ Add CC / BCC</button>
+    <div class="grid2 hidden" id="ccBccFields">
+      <div class="field"><label>CC</label><input class="input" placeholder="Optional"></div>
+      <div class="field"><label>BCC</label><input class="input" placeholder="Optional"></div>
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Subject</label>
+      <input class="input" id="sendSubject" value="Invoice INV-1052 from Acme Design">
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Message</label>
+      <textarea class="textarea" id="sendMessage">Hi,
+
+Please find invoice INV-1052 attached.
+
+A 30% deposit is due on receipt.
+
+Thank you.</textarea>
+    </div>
+    <div class="sending-summary">
+      <div class="row"><span>Attachment</span><strong id="sendPdfName">INV-1052.pdf</strong></div>
+      <div class="row"><span>Invoice total</span><strong id="sendTotal">$0.00</strong></div>
+      <div class="row"><span>Deposit due now</span><strong id="sendDeposit">$0.00</strong></div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn secondary dialogClose">Back</button>
+    <button class="btn primary" id="confirmSendBtn">Send Invoice</button>
+  </div>
+</dialog>
 
 <div class="toast" id="toast">Saved</div>
 
@@ -448,6 +652,11 @@ const db={
     {no:'Q-204',client:'North Design',due:'Aug 15, 2026',total:1800,status:'Expired'},
     {no:'Q-203',client:'John Smith',due:'—',total:950,status:'Draft'}
   ],
+  taxes:[
+    {id:'hst',name:'HST',rate:.13,isDefault:true},
+    {id:'gst',name:'GST',rate:.05,isDefault:false},
+    {id:'pst',name:'PST',rate:.07,isDefault:false}
+  ],
   products:[
     {name:'Website Design',type:'Service',rate:'$1,500',tax:'HST'},
     {name:'Consulting',type:'Service',rate:'$150 / hour',tax:'HST'},
@@ -456,12 +665,13 @@ const db={
   ],
   editor:{
     client:{name:'ABC Construction',email:'john@abc.com'},
-    items:[{desc:'Website Design',qty:1,rate:1500,tax:.13,meta:'Project fee'},{desc:'Hosting (Monthly)',qty:3,rate:30,tax:.13,meta:'Monthly hosting'}],
+    items:[{desc:'Website Design',qty:1,rate:1500,taxIds:['hst'],meta:'Project fee'},{desc:'Hosting (Monthly)',qty:3,rate:30,taxIds:['hst'],meta:'Monthly hosting'}],
     deposit:{type:'percent',value:30,due:'On receipt'}
   }
 };
 
 let route='dashboard';
+let firstRun=true;
 const routeInfo={
   dashboard:['Dashboard','Overview and recent activity'],
   invoices:['Invoices','Manage drafts, outstanding invoices, and payments'],
@@ -484,7 +694,7 @@ $('#finishSetup').onclick=()=>{db.business=$('#setupBusiness').value.trim()||'Ac
 
 function applyBusiness(){
   $('#businessNameSide').textContent=db.business;$('#businessInitials').textContent=initials(db.business);
-  $('#pageSub').textContent=db.business;$('#mobileBusiness').textContent=db.business;$('#settingsBusinessName').value=db.business;
+  $('#pageSub').textContent=db.business;$('#mobileBusiness').textContent=db.business;$('#settingsBusinessName').value=db.business;const dmb=$('#dashMobileBusiness');if(dmb)dmb.textContent=db.business;
 }
 
 function go(r){
@@ -512,13 +722,22 @@ $('#mobileBack').onclick=()=>{if(['invoice-editor','invoice-detail'].includes(ro
 $('#dashNewInvoice').onclick=$('#newInvoiceBtn').onclick=()=>go('invoice-editor');
 $('#dashNewQuote').onclick=$('#newQuoteBtn').onclick=()=>go('quote-editor');
 
+const startInvoice=$('#startInvoiceStep'); if(startInvoice) startInvoice.onclick=()=>go('invoice-editor');
+const startSettings=$('#startSettingsStep'); if(startSettings) startSettings.onclick=()=>go('settings');
+
+
 /* invoices */
 function statusClass(s){return s==='Paid'||s==='Accepted'?'green':s==='Overdue'||s==='Expired'?'red':s==='Partially Paid'?'amber':s==='Sent'?'blue':'gray'}
 function renderInvoices(filter='All',search=''){
   const rows=db.invoices.filter(x=>(filter==='All'||x.group===filter||(filter==='Outstanding'&&['Outstanding'].includes(x.group)))&&(x.no+' '+x.client).toLowerCase().includes(search.toLowerCase()));
   $('#invoiceTable').innerHTML=rows.map(x=>`<div class="table-row invoice-open" data-no="${x.no}"><div><strong>${x.no}</strong></div><div><strong>${x.client}</strong></div><div><span>${x.due}</span></div><div class="right"><strong>${money(x.total)}</strong></div><div><span class="pill ${statusClass(x.status)}">${x.status}</span></div></div>`).join('');
   $('#invoiceMobile').innerHTML=rows.map(x=>`<div class="card mobile-card invoice-open" data-no="${x.no}"><div class="top"><strong>${x.no}</strong><span class="pill ${statusClass(x.status)}">${x.status}</span></div><p>${x.client}</p><div class="bottom"><span>${x.status==='Overdue'?'7 days overdue':'Due '+x.due}</span><strong>${money(x.total)}</strong></div></div>`).join('');
-  $$('.invoice-open').forEach(x=>x.onclick=()=>openInvoice(x.dataset.no));
+  
+if(!rows.length){
+  $('#invoiceMobile').innerHTML=`<div class="card empty-state"><div class="empty-icon">⌕</div><h3>No invoices found</h3><p>Try another search or clear your filters.</p></div>`;
+  $('#invoiceTable').innerHTML=`<div class="empty-state"><div class="empty-icon">⌕</div><h3>No invoices found</h3><p>Try another search or clear your filters.</p></div>`;
+}
+$$('.invoice-open').forEach(x=>x.onclick=()=>openInvoice(x.dataset.no));
 }
 let invFilter='All';
 $('#invoiceTabs').addEventListener('click',e=>{if(!e.target.matches('.tab'))return;$$('#invoiceTabs .tab').forEach(x=>x.classList.remove('active'));e.target.classList.add('active');invFilter=e.target.dataset.filter;renderInvoices(invFilter,$('#invoiceSearch').value)});
@@ -532,23 +751,149 @@ function renderQuotes(){
   $$('.quote-open').forEach(x=>x.onclick=()=>go(x.dataset.no==='Q-206'?'quote-detail':'quote-detail'));
 }
 $('#convertQuoteBtn').onclick=()=>$('#convertDialog').showModal();
-$('#confirmConvert').onclick=()=>{$('#convertDialog').close();db.editor.items=[{desc:'Website Development',qty:1,rate:5000,tax:.13,meta:'From Q-206'}];db.editor.deposit={type:'percent',value:30,due:'On receipt'};renderEditor();go('invoice-editor');toast('Quote copied into new draft invoice')};
+$('#confirmConvert').onclick=()=>{$('#convertDialog').close();db.editor.items=[{desc:'Website Development',qty:1,rate:5000,taxIds:['hst'],meta:'From Q-206'}];db.editor.deposit={type:'percent',value:30,due:'On receipt'};renderEditor();go('invoice-editor');toast('Quote copied into new draft invoice')};
 
 /* editor */
-function calc(){let subtotal=0,tax=0;db.editor.items.forEach(i=>{const a=i.qty*i.rate;subtotal+=a;tax+=a*i.tax});const total=subtotal+tax;const d=db.editor.deposit.type==='percent'?total*db.editor.deposit.value/100:Math.min(db.editor.deposit.value,total);return{subtotal,tax,total,deposit:Math.max(0,d),remaining:Math.max(0,total-d)}}
+function taxById(id){return db.taxes.find(t=>t.id===id)}
+function itemTaxIds(item){return Array.isArray(item.taxIds)?item.taxIds:[]}
+function taxLabel(t){return `${t.name} ${(t.rate*100).toFixed(2).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1')}%`}
+function defaultTaxIds(){return db.taxes.filter(t=>t.isDefault).map(t=>t.id)}
+function calc(){
+  let subtotal=0;
+  const taxMap=new Map(db.taxes.map(t=>[t.id,{id:t.id,name:t.name,rate:t.rate,amount:0}]));
+  db.editor.items.forEach(i=>{
+    const a=(Number(i.qty)||0)*(Number(i.rate)||0);
+    subtotal+=a;
+    itemTaxIds(i).forEach(id=>{
+      const t=taxById(id);
+      if(!t)return;
+      if(!taxMap.has(id))taxMap.set(id,{id:t.id,name:t.name,rate:t.rate,amount:0});
+      taxMap.get(id).amount+=a*t.rate;
+    });
+  });
+  const taxes=[...taxMap.values()].filter(t=>t.amount>0.000001);
+  const tax=taxes.reduce((sum,t)=>sum+t.amount,0);
+  const total=subtotal+tax;
+  const d=db.editor.deposit.type==='percent'?total*db.editor.deposit.value/100:Math.min(db.editor.deposit.value,total);
+  return{subtotal,taxes,tax,total,deposit:Math.max(0,d),remaining:Math.max(0,total-d)}
+}
+function renderTaxRows(targetId,taxes,paper=false){
+  const el=document.getElementById(targetId);if(!el)return;
+  if(!taxes.length){el.innerHTML=paper?'':'<div class="summary-tax-empty">No tax</div>';return}
+  el.innerHTML=taxes.map(t=>paper
+    ?`<div class="paper-total"><span>${taxLabel(t)}</span><strong>${money(t.amount)}</strong></div>`
+    :`<div class="sumrow"><span>${taxLabel(t)}</span><strong>${money(t.amount)}</strong></div>`
+  ).join('');
+}
+function renderTaxOptions(targetId,selectedIds=[]){
+  const el=document.getElementById(targetId);if(!el)return;
+  el.innerHTML=db.taxes.map(t=>`<label class="tax-option"><span class="tax-option-main"><input type="checkbox" value="${t.id}" ${selectedIds.includes(t.id)?'checked':''}><span><strong>${t.name}</strong>${t.isDefault?'<span class="pill green" style="margin-left:7px">Default</span>':''}</span></span><span class="tax-option-rate">${taxLabel(t)}</span></label>`).join('');
+}
+function selectedTaxIds(targetId){return [...document.querySelectorAll(`#${targetId} input[type=checkbox]:checked`)].map(x=>x.value)}
+
+function renderTaxBuilder(targetId,selectedIds=[]){
+  const el=document.getElementById(targetId);if(!el)return;
+  const ids=[...new Set((selectedIds||[]).filter(id=>taxById(id)))];
+  el.dataset.taxIds=JSON.stringify(ids);
+  if(!ids.length){el.innerHTML='<div class="tax-builder-empty">No tax added.</div>';return;}
+  el.innerHTML=`<div class="tax-applied-list">${ids.map((id,index)=>{
+    const t=taxById(id);
+    return `<div class="tax-applied-row"><div class="tax-applied-meta"><strong>${t.name}</strong>${t.isDefault?'<span class="pill green">Default</span>':''}<span class="small muted">${(t.rate*100).toFixed(3).replace(/0+$/,'').replace(/\.$/,'')}%</span></div><button type="button" class="iconbtn tax-builder-remove" data-tax-remove="${index}" aria-label="Remove ${t.name}">×</button></div>`;
+  }).join('')}</div>`;
+  el.querySelectorAll('.tax-builder-remove').forEach(btn=>btn.onclick=()=>{
+    const next=getTaxBuilderIds(targetId);next.splice(+btn.dataset.taxRemove,1);renderTaxBuilder(targetId,next);
+  });
+}
+function getTaxBuilderIds(targetId){
+  const el=document.getElementById(targetId);if(!el)return[];
+  try{return JSON.parse(el.dataset.taxIds||'[]')}catch{return[]}
+}
+function renderTaxPicker(q=''){
+  const el=$('#taxPickerList');if(!el)return;
+  const query=(q||'').trim().toLowerCase();
+  const matches=db.taxes.filter(t=>!query||t.name.toLowerCase().includes(query)||String(t.rate*100).includes(query));
+  if(!matches.length){el.innerHTML='<div class="tax-picker-empty">No matching tax found.<br>Create a new tax below.</div>';return;}
+  el.innerHTML=matches.map(t=>{
+    const checked=window._taxPickerSelection&&window._taxPickerSelection.has(t.id);
+    return `<label class="tax-picker-option ${checked?'selected':''}"><span class="tax-option-main"><input type="checkbox" value="${t.id}" ${checked?'checked':''}><span><strong>${t.name}</strong>${t.isDefault?'<span class="pill green" style="margin-left:7px">Default</span>':''}</span></span><span class="tax-option-rate">${taxLabel(t)}</span></label>`;
+  }).join('');
+  el.querySelectorAll('input[type=checkbox]').forEach(input=>input.onchange=()=>{
+    if(input.checked)window._taxPickerSelection.add(input.value);else window._taxPickerSelection.delete(input.value);
+    renderTaxPicker($('#taxPickerSearch').value);
+  });
+}
+function showTaxPickerSelectView(){
+  $('#taxPickerTitle').textContent='Add tax';
+  $('#taxPickerSelectView').classList.remove('hidden');
+  $('#taxPickerCreateView').classList.add('hidden');
+  $('#taxPickerSelectActions').classList.remove('hidden');
+  $('#taxPickerCreateActions').classList.add('hidden');
+  renderTaxPicker($('#taxPickerSearch').value||'');
+}
+function showTaxPickerCreateView(){
+  $('#taxPickerTitle').textContent='Create tax';
+  $('#taxPickerSelectView').classList.add('hidden');
+  $('#taxPickerCreateView').classList.remove('hidden');
+  $('#taxPickerSelectActions').classList.add('hidden');
+  $('#taxPickerCreateActions').classList.remove('hidden');
+  $('#pickerNewTaxName').value='';
+  $('#pickerNewTaxRate').value='';
+  $('#pickerNewTaxDefault').checked=false;
+  setTimeout(()=>$('#pickerNewTaxName').focus(),0);
+}
+function openTaxPicker(targetId){
+  window._taxPickerTarget=targetId;
+  window._taxPickerSelection=new Set(getTaxBuilderIds(targetId));
+  $('#taxPickerSearch').value='';
+  showTaxPickerSelectView();
+  $('#taxPickerDialog').showModal();
+}
+function openCreateTax(returnTo){
+  window._taxReturnTo=returnTo||null;
+  $('#newTaxName').value='';$('#newTaxRate').value='';$('#newTaxDefault').checked=false;
+  $('#taxDialogTitle').textContent='Create Tax';
+  $('#taxDialog').showModal();
+}
+function itemTaxBadges(item,index){const labels=itemTaxIds(item).map(id=>taxById(id)).filter(Boolean).map(t=>`<span class="tax-mini">${taxLabel(t)}</span>`).join('');return `<div class="tax-badges">${labels||'<span class="tax-mini">No tax</span>'}<button type="button" class="tax-mini edit-item-taxes" data-tax-edit="${index}" style="border:0;cursor:pointer;color:var(--primary);background:var(--primary-soft)">Edit taxes</button></div>`}
+
 function savePulse(){$('#savedState').textContent='Saving…';clearTimeout(window._sv);window._sv=setTimeout(()=>$('#savedState').textContent='Saved ✓',650)}
 function renderEditor(){
   $('#editClientName').textContent=db.editor.client.name;$('#editClientEmail').textContent=db.editor.client.email;$('#editClientAvatar').textContent=initials(db.editor.client.name);
-  $('#editorItems').innerHTML=db.editor.items.map((i,n)=>`<div class="itemrow"><div class="itemdesc"><strong>${i.desc}</strong><small>${i.meta||'Custom item'}</small></div><div class="cell"><input class="inline-input eitem" data-i="${n}" data-f="qty" type="number" min="0" step=".25" value="${i.qty}"></div><div class="cell"><input class="inline-input eitem" data-i="${n}" data-f="rate" type="number" min="0" step=".01" value="${i.rate}"></div><div class="amt right money" data-mobile="${i.qty} × ${money(i.rate)}">${money(i.qty*i.rate)}</div><button class="iconbtn remove" data-remove="${n}">×</button></div>`).join('');
+  $('#editorItems').innerHTML=db.editor.items.map((i,n)=>`<div class="itemrow"><div class="itemdesc"><strong>${i.desc}</strong><small>${i.meta||'Custom item'}</small>${itemTaxBadges(i,n)}</div><div class="cell"><input class="inline-input eitem" data-i="${n}" data-f="qty" type="number" min="0" step=".25" value="${i.qty}"></div><div class="cell"><input class="inline-input eitem" data-i="${n}" data-f="rate" type="number" min="0" step=".01" value="${i.rate}"></div><div class="amt right money" data-mobile="${i.qty} × ${money(i.rate)}">${money(i.qty*i.rate)}</div><button class="iconbtn remove" data-remove="${n}">×</button></div>`).join('');
   $$('.eitem').forEach(inp=>inp.oninput=e=>{db.editor.items[+e.target.dataset.i][e.target.dataset.f]=Math.max(0,+e.target.value||0);renderEditor();savePulse()});
   $$('[data-remove]').forEach(b=>b.onclick=()=>{db.editor.items.splice(+b.dataset.remove,1);renderEditor();savePulse()});
-  const c=calc();$('#eSubtotal').textContent=money(c.subtotal);$('#eTax').textContent=money(c.tax);$('#eTotal').textContent=money(c.total);$('#eDeposit').textContent=money(c.deposit);$('#eRemaining').textContent=money(c.remaining);$('#eDepositMeta').textContent=(db.editor.deposit.type==='percent'?db.editor.deposit.value+'%':'Fixed amount')+' · Due '+db.editor.deposit.due.toLowerCase();$('#depPreview').textContent=money(c.deposit);$('#remPreview').textContent=money(c.remaining)
+  $$('.edit-item-taxes').forEach(b=>b.onclick=()=>{window._editingTaxItem=+b.dataset.taxEdit;renderTaxBuilder('editItemTaxBuilder',itemTaxIds(db.editor.items[window._editingTaxItem]));$('#editItemTaxesDialog').showModal()});
+  const c=calc();$('#eSubtotal').textContent=money(c.subtotal);renderTaxRows('eTaxRows',c.taxes);$('#eTotal').textContent=money(c.total);$('#eDeposit').textContent=money(c.deposit);$('#eRemaining').textContent=money(c.remaining);$('#eDepositMeta').textContent=(db.editor.deposit.type==='percent'?db.editor.deposit.value+'%':'Fixed amount')+' · Due '+db.editor.deposit.due.toLowerCase();$('#depPreview').textContent=money(c.deposit);$('#remPreview').textContent=money(c.remaining)
 }
 $('#clientSelector').onclick=()=>{renderClientPicker();$('#clientDialog').showModal()};
 function renderClientPicker(q=''){$('#clientPickerList').innerHTML=db.clients.filter(c=>(c.name+' '+c.email).toLowerCase().includes(q.toLowerCase())).map((c,i)=>`<button class="option picker-client" data-name="${c.name}"><div class="option-main"><div class="avatar">${initials(c.name)}</div><div><strong>${c.name}</strong><span>${c.email}</span></div></div><span>›</span></button>`).join('');$$('.picker-client').forEach(b=>b.onclick=()=>{const c=db.clients.find(x=>x.name===b.dataset.name);db.editor.client={name:c.name,email:c.email};$('#clientDialog').close();renderEditor();savePulse()})}
 $('#clientPickerSearch').oninput=e=>renderClientPicker(e.target.value);
-$('#addItemBtn').onclick=()=>$('#itemDialog').showModal();
-$('#confirmItem').onclick=()=>{const desc=$('#itemDesc').value.trim();if(!desc)return;db.editor.items.push({desc,qty:Math.max(0,+$('#itemQty').value||0),rate:Math.max(0,+$('#itemRate').value||0),tax:+$('#itemTax').value,meta:+$('#itemTax').value?'HST 13%':'No tax'});$('#itemDialog').close();renderEditor();savePulse()};
+$('#addItemBtn').onclick=()=>{renderTaxBuilder('itemTaxBuilder',[]);$('#itemDialog').showModal()};
+$('#addItemTaxBtn').onclick=()=>openTaxPicker('itemTaxBuilder');
+$('#addEditItemTaxBtn').onclick=()=>openTaxPicker('editItemTaxBuilder');
+$('#taxPickerSearch').oninput=e=>renderTaxPicker(e.target.value);
+$('#cancelTaxPicker').onclick=()=>$('#taxPickerDialog').close();
+$('#confirmTaxPicker').onclick=()=>{const target=window._taxPickerTarget;if(target)renderTaxBuilder(target,[...window._taxPickerSelection]);$('#taxPickerDialog').close();};
+$('#createTaxFromPicker').onclick=()=>showTaxPickerCreateView();
+$('#backToTaxPicker').onclick=()=>showTaxPickerSelectView();
+$('#cancelCreateTaxFromPicker').onclick=()=>showTaxPickerSelectView();
+$('#saveTaxFromPicker').onclick=()=>{
+  const name=$('#pickerNewTaxName').value.trim().toUpperCase();
+  const pct=Math.max(0,Number($('#pickerNewTaxRate').value)||0);
+  if(!name){$('#pickerNewTaxName').focus();return}
+  if(!(pct>0)){$('#pickerNewTaxRate').focus();return}
+  const id=(name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'tax')+'-'+Date.now().toString(36);
+  if($('#pickerNewTaxDefault').checked)db.taxes.forEach(t=>t.isDefault=false);
+  db.taxes.push({id,name,rate:pct/100,isDefault:$('#pickerNewTaxDefault').checked});
+  window._taxPickerSelection.add(id);
+  $('#taxPickerSearch').value='';
+  renderTaxSettings();
+  renderEditor();
+  showTaxPickerSelectView();
+  toast(name+' added');
+};
+$('#confirmItem').onclick=()=>{const desc=$('#itemDesc').value.trim();if(!desc)return;const taxIds=getTaxBuilderIds('itemTaxBuilder');db.editor.items.push({desc,qty:Math.max(0,+$('#itemQty').value||0),rate:Math.max(0,+$('#itemRate').value||0),taxIds,meta:'Custom item'});$('#itemDialog').close();renderEditor();savePulse()};
+$('#saveItemTaxes').onclick=()=>{const i=window._editingTaxItem;if(Number.isInteger(i)&&db.editor.items[i])db.editor.items[i].taxIds=getTaxBuilderIds('editItemTaxBuilder');$('#editItemTaxesDialog').close();renderEditor();savePulse()};
 $('#editDepositBtn').onclick=()=>{$('#depositValue').value=db.editor.deposit.value;$('#depositDue').value=db.editor.deposit.due;$$('[data-deposit-type]').forEach(b=>b.classList.toggle('active',b.dataset.depositType===db.editor.deposit.type));updateDepositPreview();$('#depositDialog').showModal()};
 $$('[data-deposit-type]').forEach(b=>b.onclick=()=>{$$('[data-deposit-type]').forEach(x=>x.classList.remove('active'));b.classList.add('active');db.editor.deposit.type=b.dataset.depositType;$('#depositLabel').textContent=db.editor.deposit.type==='percent'?'Deposit percentage':'Deposit amount';updateDepositPreview()});
 function updateDepositPreview(){db.editor.deposit.value=Math.max(0,+$('#depositValue').value||0);db.editor.deposit.due=$('#depositDue').value;const c=calc();$('#depPreview').textContent=money(c.deposit);$('#remPreview').textContent=money(c.remaining)}
@@ -557,9 +902,50 @@ $('#saveDeposit').onclick=()=>{updateDepositPreview();$('#depositDialog').close(
 $('#moreOptionsBtn').onclick=()=>{$('#moreOptions').classList.toggle('hidden')};
 $$('.saveTrack').forEach(x=>x.oninput=savePulse);
 $('#editInvoiceNo').oninput=e=>{savePulse();$('#mEditNo').textContent=e.target.value};
-$('#reviewInvoiceBtn').onclick=()=>{if(!db.editor.items.length){alert('Add at least one invoice item.');return}fillPreview();$('#reviewDialog').showModal()};
-function fillPreview(){const c=calc();$('#pNo').textContent=$('#editInvoiceNo').value;$('#pClient').textContent=$('#psClient').textContent=db.editor.client.name;$('#pEmail').textContent=$('#psEmail').textContent=db.editor.client.email;$('#pSubtotal').textContent=money(c.subtotal);$('#pTax').textContent=money(c.tax);$('#pTotal').textContent=$('#psTotal').textContent=money(c.total);$('#pDeposit').textContent=$('#psDeposit').textContent=money(c.deposit);$('#pRemaining').textContent=money(c.remaining);$('#pNotes').textContent=$('#editNotes').value;$('#paperItems').innerHTML=db.editor.items.map(i=>`<div class="paper-line"><div>${i.desc}</div><div>${i.qty}</div><div>${money(i.qty*i.rate)}</div></div>`).join('')}
-$('#sendBtn').onclick=()=>{$('#reviewDialog').close();go('invoice-detail');toast('Invoice sent successfully')};
+
+function validateInvoice(){
+  const problems=[];
+  if(!db.editor.client || !db.editor.client.name) problems.push('Select a client.');
+  if(!db.editor.items.length) problems.push('Add at least one invoice item.');
+  db.editor.items.forEach((i,idx)=>{if(!i.desc)problems.push(`Item ${idx+1}: add a description.`); if(!(i.qty>0))problems.push(`Item ${idx+1}: quantity must be greater than 0.`); if(!(i.rate>=0))problems.push(`Item ${idx+1}: enter a valid rate.`)});
+  const banner=$('#invoiceValidation');
+  if(problems.length){
+    banner.textContent=problems[0];
+    banner.classList.add('show');
+    banner.scrollIntoView({behavior:'smooth',block:'center'});
+    return false;
+  }
+  banner.classList.remove('show');
+  return true;
+}
+$('#reviewInvoiceBtn').onclick=()=>{if(!validateInvoice())return;fillPreview();$('#reviewDialog').showModal()};
+
+function fillPreview(){const c=calc();$('#pNo').textContent=$('#editInvoiceNo').value;$('#pClient').textContent=$('#psClient').textContent=db.editor.client.name;$('#pEmail').textContent=$('#psEmail').textContent=db.editor.client.email;$('#pSubtotal').textContent=money(c.subtotal);renderTaxRows('pTaxRows',c.taxes,true);$('#pTotal').textContent=$('#psTotal').textContent=money(c.total);$('#pDeposit').textContent=$('#psDeposit').textContent=money(c.deposit);$('#pRemaining').textContent=money(c.remaining);$('#pNotes').textContent=$('#editNotes').value;$('#paperItems').innerHTML=db.editor.items.map(i=>`<div class="paper-line"><div>${i.desc}${itemTaxIds(i).length?`<small style="display:block;color:#667085;margin-top:3px">${itemTaxIds(i).map(id=>taxById(id)).filter(Boolean).map(t=>taxLabel(t)).join(' + ')}</small>`:''}</div><div>${i.qty}</div><div>${money(i.qty*i.rate)}</div></div>`).join('')}
+
+$('#sendBtn').onclick=()=>{
+  const c=calc();
+  $('#reviewDialog').close();
+  $('#sendRecipientChip').textContent=db.editor.client.email||'No email';
+  $('#sendSubject').value=`Invoice ${$('#editInvoiceNo').value} from ${db.business}`;
+  $('#sendPdfName').textContent=`${$('#editInvoiceNo').value}.pdf`;
+  $('#sendTotal').textContent=money(c.total);
+  $('#sendDeposit').textContent=money(c.deposit);
+  $('#sendDialog').showModal();
+};
+$('#showCcBcc').onclick=()=>$('#ccBccFields').classList.toggle('hidden');
+$('#confirmSendBtn').onclick=()=>{
+  const email=db.editor.client.email||'';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    toast('Add a valid client email before sending');
+    return;
+  }
+  $('#sendDialog').close();
+  firstRun=false;
+  const fd=$('#firstDashboardCard'); if(fd) fd.classList.add('hidden');
+  go('invoice-detail');
+  toast('Invoice sent successfully');
+};
+
 
 /* payments */
 $('#recordPaymentBtn').onclick=()=>$('#paymentDialog').showModal();
@@ -579,10 +965,28 @@ function renderProducts(){
   $('#productTable').innerHTML=db.products.map(x=>`<div class="table-row" style="grid-template-columns:minmax(260px,1fr) 160px 220px 140px"><div><strong>${x.name}</strong></div><div>${x.type}</div><div><strong>${x.rate}</strong></div><div>${x.tax}</div></div>`).join('');
   $('#productMobile').innerHTML=db.products.map(x=>`<div class="card mobile-card"><div class="top"><strong>${x.name}</strong><span class="pill gray">${x.type}</span></div><p>${x.tax}</p><div class="bottom"><span>Default rate</span><strong>${x.rate}</strong></div></div>`).join('');
 }
-$('#newProductBtn').onclick=()=>$('#productDialog').showModal();
-$('#saveProduct').onclick=()=>{db.products.push({name:$('#npName').value.trim()||'New Item',type:'Service',rate:'$'+$('#npRate').value+' / hour',tax:'HST'});$('#productDialog').close();renderProducts();toast('Item saved')};
+$('#newProductBtn').onclick=()=>{renderTaxOptions('productTaxOptions',defaultTaxIds());$('#productDialog').showModal()};
+$('#saveProduct').onclick=()=>{const taxIds=selectedTaxIds('productTaxOptions');const taxText=taxIds.map(id=>taxById(id)).filter(Boolean).map(t=>t.name).join(' + ')||'No tax';db.products.push({name:$('#npName').value.trim()||'New Item',type:'Service',rate:'$'+$('#npRate').value+' / hour',tax:taxText});$('#productDialog').close();renderProducts();toast('Item saved')};
 
 /* settings */
+function renderTaxSettings(){
+  const el=$('#taxSettingsList');if(!el)return;
+  el.innerHTML=db.taxes.map(t=>`<div class="taxrow"><div><strong>${t.name}</strong><div class="small muted">${(t.rate*100).toFixed(2).replace(/\.00$/,'')}%${t.isDefault?' · Default':''}</div></div>${t.isDefault?'<span class="pill green">Default</span>':'<button class="btn secondary smallbtn set-default-tax" data-tax-default="'+t.id+'">Set default</button>'}</div>`).join('');
+  $$('.set-default-tax').forEach(b=>b.onclick=()=>{db.taxes.forEach(t=>t.isDefault=t.id===b.dataset.taxDefault);renderTaxSettings();toast('Default tax updated')});
+}
+const addTaxBtn=$('#addTaxSettingBtn');if(addTaxBtn)addTaxBtn.onclick=()=>openCreateTax(null);
+const saveTaxBtn=$('#saveTaxSetting');if(saveTaxBtn)saveTaxBtn.onclick=()=>{
+  const name=$('#newTaxName').value.trim().toUpperCase();
+  const pct=Math.max(0,Number($('#newTaxRate').value)||0);
+  if(!name){$('#newTaxName').focus();return}
+  if(!(pct>0)){$('#newTaxRate').focus();return}
+  const id=(name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'tax')+'-'+Date.now().toString(36);
+  if($('#newTaxDefault').checked)db.taxes.forEach(t=>t.isDefault=false);
+  db.taxes.push({id,name,rate:pct/100,isDefault:$('#newTaxDefault').checked});
+  $('#taxDialog').close();renderTaxSettings();renderEditor();
+  if(window._taxReturnTo){const target=window._taxReturnTo;const ids=getTaxBuilderIds(target);ids.push(id);renderTaxBuilder(target,ids);window._taxReturnTo=null;}
+  toast(name+' added');
+};
 $('#settingsNav').onclick=e=>{if(!e.target.matches('button[data-set]'))return;$$('#settingsNav button').forEach(x=>x.classList.remove('active'));e.target.classList.add('active');$$('.setting-view').forEach(x=>x.classList.add('hidden'));$('#setting-'+e.target.dataset.set).classList.remove('hidden')};
 $('#saveProfile').onclick=()=>{db.business=$('#settingsBusinessName').value.trim()||db.business;applyBusiness();toast('Business profile saved')};
 $('#businessSwitch').onclick=()=>$('#businessDialog').showModal();
@@ -593,7 +997,7 @@ $('#addBusinessBtn').onclick=$('#dialogAddBusiness').onclick=()=>{const n=prompt
 /* modal close */
 $$('.dialogClose').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 
-renderInvoices();renderQuotes();renderClients();renderProducts();renderEditor();applyBusiness();
+renderInvoices();renderQuotes();renderClients();renderProducts();renderTaxSettings();renderTaxOptions('productTaxOptions',defaultTaxIds());renderTaxBuilder('itemTaxBuilder',[]);renderEditor();applyBusiness();
 </script>
 </body>
 </html>

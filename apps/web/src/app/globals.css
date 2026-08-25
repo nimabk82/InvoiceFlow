@@ -1269,3 +1269,113 @@ body {
 .if-settings-section .if-field {
   margin-bottom: 16px;
 }
+
+/* ===== Invoice editor demo additions (sample.html parity) ===== */
+.if-validation-banner {
+  display: none;
+  background: #fef3f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+.if-validation-banner.if-show {
+  display: block;
+}
+.if-invoice-details .if-dialog-field .MuiOutlinedInput-root {
+  min-height: 44px;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 13px;
+}
+.if-segmented {
+  display: flex;
+  background: #f8fafc;
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.if-segmented button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  height: 36px;
+  border-radius: 8px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.if-segmented button.if-active {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+  color: #101828;
+}
+.if-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.if-preview-card {
+  padding: 12px;
+}
+.if-preview-card span {
+  font-size: 12px;
+  color: #667085;
+}
+.if-preview-card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+  color: #101828;
+}
+.if-tax-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.if-tax-chip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #344054;
+  background: #f2f4f7;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.if-tax-chip-edit {
+  border: 0;
+  cursor: pointer;
+  color: #2563eb;
+  background: #eff6ff;
+}
+.if-toast.if-show {
+  opacity: 1;
+  transform: none;
+}
+.if-toast:not(.if-show) {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+.if-toast {
+  transition: 0.2s;
+}
+.if-demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
